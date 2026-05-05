@@ -18,8 +18,11 @@ Verify the real wire path without depending on an external Minecraft bot crate.
 10. Enter play state and validate play login, the level-chunk readiness game
     event, the advertised chunk radius, level chunks, light, position,
     movement, time, and keepalive packets.
-11. Validate one live block placement and break sequence through protocol
+11. Open an observer play client and validate the same bootstrap boundary.
+12. Validate one live block placement and break sequence through protocol
     `774` prediction acknowledgements and block updates.
+13. Validate the observer receives the authoritative block updates without
+    receiving prediction acknowledgements.
 
 ## Chunk Assertions
 
@@ -45,6 +48,7 @@ writing timed server packets during terrain loading.
 - The probe sends a vanilla-shaped `position_look` movement packet after
   teleport confirm.
 - The probe places fixed stone at `0,80,0` and then breaks it back to air.
+- A second probe client observes both authoritative block updates.
 - The probe must observe at least one periodic time packet before the next
   keepalive.
 

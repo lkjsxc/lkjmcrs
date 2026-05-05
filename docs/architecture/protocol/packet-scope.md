@@ -31,6 +31,7 @@
 - Basic movement packets decoded from client and stored on the session.
 - Creative-style block placement and breaking in loaded spawn chunks.
 - Block prediction acknowledgements and single-block updates.
+- Single-block updates fanned out to subscribed play sessions.
 
 ## Deferred
 
@@ -40,7 +41,7 @@
 - Chat signing.
 - Full vanilla registry coverage beyond evidence-driven first milestone
   entries.
-- Persistent or mutable chunk packets.
+- Persistent chunk storage and full mutable chunk resend packets.
 - Inventory-backed item use.
 - Resource pack negotiation.
 - Complete play packet set.

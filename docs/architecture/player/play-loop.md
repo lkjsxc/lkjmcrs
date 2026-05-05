@@ -9,6 +9,7 @@ values deterministic and testable.
 
 Each play session tracks:
 
+- server-local session ID,
 - position `x`, `y`, `z`,
 - yaw and pitch,
 - on-ground flag,
@@ -58,3 +59,11 @@ The play loop sends observable time updates after bootstrap:
 
 Time is session-visible only in this milestone. It is not yet a persisted world
 clock and does not drive block, entity, or weather behavior.
+
+## Outbound Fanout
+
+The play loop owns all writes to its TCP stream. Region-owned gameplay events
+that target a session arrive through the internal outbound channel documented in
+[chunk-observers.md](chunk-observers.md). This keeps TCP ownership local to the
+session while allowing region actors and registries to publish authoritative
+updates.

@@ -18,3 +18,11 @@ or region section.
 - Use static region ownership for the flat spawn area.
 - Prove actor/mailbox scheduling with tests.
 - Defer dynamic split and merge until persistent chunk loading exists.
+
+## Mutation Publication
+
+- Sessions submit block mutations as actor messages.
+- The region actor returns the authoritative final state to the caller.
+- Accepted loaded-chunk mutations are published to session observers through the
+  session registry.
+- The region actor does not write client sockets directly.

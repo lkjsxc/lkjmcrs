@@ -2,9 +2,9 @@
 
 ## Goal
 
-Give a stock offline-mode `1.21.11` client enough protocol state to pass
-`login_finished`, complete configuration, enter play, and receive a minimal
-flat spawn area.
+Document the first playable skeleton: a stock offline-mode `1.21.11` client can
+pass `login_finished`, complete configuration, enter play, and receive a
+minimal flat spawn area.
 
 ## Vanilla Client Boundary
 
@@ -33,12 +33,25 @@ flat spawn area.
 - Keepalive responses are accepted in play state.
 - Time updates are sent every `1` second and advance by `20` ticks.
 
+## Current Gameplay Extension
+
+The skeleton has moved beyond its first join-only milestone. The current
+gameplay contract is owned by [survival-core.md](survival-core.md):
+
+- creative-style block placement and breaking are implemented for loaded spawn
+  chunks,
+- block mutations are region-owned,
+- initiating clients receive prediction acknowledgements and authoritative
+  block updates,
+- the next multiplayer slice fans accepted block updates out to subscribed
+  play sessions.
+
 ## Out of Scope
 
 - Full vanilla registry synchronization.
 - Full variant registry contents beyond one valid entry per required registry.
 - Terrain outside the advertised deterministic spawn batch.
-- Block breaking and placement.
+- Survival inventory semantics for block breaking and placement.
 - Entity AI.
 - Inventory and recipes.
 - Chat signing.

@@ -15,6 +15,8 @@ Use this subtree for required compose verification contracts.
 - [smoke-probe.md](smoke-probe.md): wire smoke behavior.
 - [block-mutation-smoke.md](block-mutation-smoke.md): live block mutation probe
   behavior.
+- [multiplayer-mutation-smoke.md](multiplayer-mutation-smoke.md): live
+  observer fanout probe behavior.
 - [join-boundary.md](join-boundary.md): latest known manual client boundary.
 - [evidence-policy.md](evidence-policy.md): how reports become active
   protocol evidence.
