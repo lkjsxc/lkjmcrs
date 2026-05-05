@@ -30,9 +30,21 @@ impl RegionHandle {
     }
 
     pub async fn spawn_chunks(&self, radius: i32) -> Result<Vec<ChunkSnapshot>, RegionActorError> {
+        self.spawn_chunks_around(ChunkPos::new(0, 0), radius).await
+    }
+
+    pub async fn spawn_chunks_around(
+        &self,
+        center: ChunkPos,
+        radius: i32,
+    ) -> Result<Vec<ChunkSnapshot>, RegionActorError> {
         let (reply, receive) = oneshot::channel();
         self.outbox
-            .send(RegionCommand::SpawnChunks { radius, reply })
+            .send(RegionCommand::SpawnChunks {
+                center,
+                radius,
+                reply,
+            })
             .await
             .map_err(|_| RegionActorError::Closed)?;
         receive.await.map_err(|_| RegionActorError::Closed)?

@@ -1,3 +1,4 @@
+use crate::player::{PlayerPosition, PlayerProfile};
 use crate::protocol::movement::Movement;
 use crate::protocol::play::Bootstrap;
 use crate::session::registry::SessionId;
@@ -21,11 +22,11 @@ impl PlaySession {
     pub fn new(bootstrap: Bootstrap, id: SessionId) -> Self {
         Self {
             id,
-            x: f64::from(bootstrap.spawn_x) + 0.5,
-            y: f64::from(bootstrap.spawn_y),
-            z: f64::from(bootstrap.spawn_z) + 0.5,
-            yaw: 0.0,
-            pitch: 0.0,
+            x: bootstrap.player_x,
+            y: bootstrap.player_y,
+            z: bootstrap.player_z,
+            yaw: bootstrap.yaw,
+            pitch: bootstrap.pitch,
             on_ground: false,
             horizontal_collision: false,
             last_keepalive_id: 0,
@@ -79,6 +80,16 @@ impl PlaySession {
     pub fn advance_time(&mut self, ticks: i64) {
         self.age += ticks;
         self.day_time += ticks;
+    }
+
+    pub fn write_profile(self, profile: &mut PlayerProfile) {
+        profile.position = PlayerPosition {
+            x: self.x,
+            y: self.y,
+            z: self.z,
+            yaw: self.yaw,
+            pitch: self.pitch,
+        };
     }
 
     fn update_position(

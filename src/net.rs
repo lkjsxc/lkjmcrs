@@ -4,7 +4,7 @@ use tokio::net::TcpListener;
 
 pub async fn serve(config: Config) -> Result<(), Box<dyn std::error::Error>> {
     let listener = TcpListener::bind(config.bind).await?;
-    let context = ServerContext::new(config);
+    let context = ServerContext::new(config)?;
     tracing::info!(bind = %context.config.bind, "server listening");
 
     loop {

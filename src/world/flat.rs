@@ -36,9 +36,13 @@ impl FlatWorld {
     }
 
     pub fn spawn_chunk_positions(&self, radius: i32) -> Vec<ChunkPos> {
+        self.chunk_positions(ChunkPos::new(0, 0), radius)
+    }
+
+    pub fn chunk_positions(&self, center: ChunkPos, radius: i32) -> Vec<ChunkPos> {
         let mut positions = Vec::new();
-        for z in -radius..=radius {
-            for x in -radius..=radius {
+        for z in center.z - radius..=center.z + radius {
+            for x in center.x - radius..=center.x + radius {
                 positions.push(ChunkPos::new(x, z));
             }
         }
@@ -56,5 +60,11 @@ mod tests {
         assert_eq!(world.spawn(), (0.0, 80.0, 0.0));
         assert_eq!(world.spawn_chunks(1).len(), 9);
         assert_eq!(world.spawn_chunks(2).len(), 25);
+        assert_eq!(
+            world
+                .chunk_positions(crate::world::ChunkPos::new(2, -1), 0)
+                .len(),
+            1
+        );
     }
 }

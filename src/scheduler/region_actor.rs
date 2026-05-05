@@ -28,6 +28,7 @@ pub(super) enum RegionCommand {
         reply: oneshot::Sender<usize>,
     },
     SpawnChunks {
+        center: ChunkPos,
         radius: i32,
         reply: oneshot::Sender<Result<Vec<ChunkSnapshot>, RegionActorError>>,
     },
@@ -80,8 +81,12 @@ impl RegionActor {
                     self.applied += 1;
                     let _ = reply.send(self.applied);
                 }
-                RegionCommand::SpawnChunks { radius, reply } => {
-                    let chunks = self.spawn_chunks(radius);
+                RegionCommand::SpawnChunks {
+                    center,
+                    radius,
+                    reply,
+                } => {
+                    let chunks = self.spawn_chunks(center, radius);
                     let _ = reply.send(chunks);
                 }
                 RegionCommand::ChunkSnapshot { pos, reply } => {
@@ -137,8 +142,12 @@ impl RegionActor {
         Ok(mutation)
     }
 
-    fn spawn_chunks(&mut self, radius: i32) -> Result<Vec<ChunkSnapshot>, RegionActorError> {
-        for pos in self.world.spawn_chunk_positions(radius) {
+    fn spawn_chunks(
+        &mut self,
+        center: ChunkPos,
+        radius: i32,
+    ) -> Result<Vec<ChunkSnapshot>, RegionActorError> {
+        for pos in self.world.chunk_positions(center, radius) {
             if self.chunks.contains_key(&pos) {
                 continue;
             }
@@ -150,7 +159,7 @@ impl RegionActor {
         }
         Ok(self
             .world
-            .spawn_chunk_positions(radius)
+            .chunk_positions(center, radius)
             .into_iter()
             .filter_map(|pos| self.chunks.get(&pos).cloned())
             .collect())

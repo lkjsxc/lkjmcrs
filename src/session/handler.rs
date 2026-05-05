@@ -1,4 +1,5 @@
 use crate::config::Config;
+use crate::player::PlayerStore;
 use crate::protocol::codec;
 use crate::protocol::ids;
 use crate::protocol::types::{Handshake, LoginStart, NextState};
@@ -23,19 +24,22 @@ pub struct ServerContext {
     pub config: Config,
     pub region: crate::scheduler::RegionHandle,
     pub sessions: SessionRegistry,
+    pub player_store: PlayerStore,
     players: AtomicUsize,
 }
 
 impl ServerContext {
-    pub fn new(config: Config) -> Arc<Self> {
+    pub fn new(config: Config) -> Result<Arc<Self>, crate::player::PlayerStoreError> {
+        let player_store = PlayerStore::open(&config.data_dir)?;
         let region =
             RegionActor::spawn_persistent(RegionId(0), WorldStorage::new(&config.data_dir));
-        Arc::new(Self {
+        Ok(Arc::new(Self {
             config,
             region,
             sessions: SessionRegistry::default(),
+            player_store,
             players: AtomicUsize::new(0),
-        })
+        }))
     }
 
     fn player_count(&self) -> usize {
@@ -115,6 +119,11 @@ async fn handle_login(
     let login = LoginStart::decode(start.data).map_err(|error| codec_error(phase, error))?;
     validate_name(&login.name).map_err(|source| ConnectionError::Profile { phase, source })?;
     let uuid = offline_uuid(&login.name);
+    let profile = context
+        .player_store
+        .load_or_create(uuid, login.name.clone())
+        .await
+        .map_err(|source| ConnectionError::Player { phase, source })?;
     send_login_success(&mut stream, &login.name, uuid).await?;
     expect_packet(&mut stream, phase, ids::login::ACKNOWLEDGED).await?;
     handle_configuration(&mut stream).await?;
@@ -124,6 +133,8 @@ async fn handle_login(
         context.config.max_players,
         context.region.clone(),
         context.sessions.clone(),
+        profile,
+        context.player_store.clone(),
     )
     .await;
     context.players.fetch_sub(1, Ordering::Relaxed);

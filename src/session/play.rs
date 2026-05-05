@@ -1,3 +1,4 @@
+use crate::player::{PlayerProfile, PlayerStore};
 use crate::protocol::ids;
 use crate::protocol::play;
 use crate::scheduler::RegionHandle;
@@ -22,6 +23,8 @@ pub async fn handle_play(
     max_players: usize,
     region: RegionHandle,
     sessions: SessionRegistry,
+    mut profile: PlayerProfile,
+    player_store: PlayerStore,
 ) -> Result<(), ConnectionError> {
     let (session_id, outbound) = sessions.register().await;
     let result = run_play(
@@ -31,9 +34,18 @@ pub async fn handle_play(
         sessions.clone(),
         session_id,
         outbound,
+        &mut profile,
     )
     .await;
     sessions.unregister(session_id).await;
+    let save = player_store
+        .save(profile)
+        .await
+        .map_err(|source| ConnectionError::Player {
+            phase: SessionState::Play,
+            source,
+        });
+    save?;
     result
 }
 
@@ -44,9 +56,10 @@ async fn run_play(
     sessions: SessionRegistry,
     session_id: SessionId,
     mut outbound: tokio::sync::mpsc::Receiver<PlayOutbound>,
+    profile: &mut PlayerProfile,
 ) -> Result<(), ConnectionError> {
     let phase = SessionState::Play;
-    let bootstrap = play::Bootstrap::new(max_players);
+    let bootstrap = bootstrap_from_profile(max_players, profile);
     let mut session = PlaySession::new(bootstrap, session_id);
     let (mut reader, mut writer) = stream.split();
     let chunks = send_play_bootstrap(&mut writer, bootstrap, &region).await?;
@@ -58,36 +71,40 @@ async fn run_play(
     times.set_missed_tick_behavior(MissedTickBehavior::Delay);
     let mut next_keepalive_id = 2_i64;
 
-    loop {
-        tokio::select! {
+    let result = loop {
+        let step = tokio::select! {
             packet = read_packet(&mut reader, phase) => {
-                handle_play_packet(
-                    packet?,
-                    phase,
-                    &mut session,
-                    &region,
-                    &sessions,
-                    &mut writer,
-                ).await?;
+                match packet {
+                    Ok(packet) => handle_play_packet(
+                        packet,
+                        phase,
+                        &mut session,
+                        &region,
+                        &sessions,
+                        &mut writer,
+                    ).await,
+                    Err(error) => Err(error),
+                }
             }
             message = outbound.recv() => {
                 match message {
                     Some(PlayOutbound::BlockUpdate { pos, state }) => {
-                        send_block_update(&mut writer, phase, pos, state).await?;
+                        send_block_update(&mut writer, phase, pos, state).await
                     }
                     None => break Ok(()),
                 }
             }
             _ = keepalives.tick() => {
                 session.record_keepalive_sent(next_keepalive_id);
-                write_packet(
+                let written = write_packet(
                     &mut writer,
                     phase,
                     ids::play::KEEPALIVE,
                     &play::encode_keepalive(next_keepalive_id),
                 )
-                .await?;
+                .await;
                 next_keepalive_id += 1;
+                written
             }
             _ = times.tick() => {
                 session.advance_time(TIME_STEP_TICKS);
@@ -97,8 +114,25 @@ async fn run_play(
                     ids::play::SET_TIME,
                     &play::encode_time(session.age, session.day_time),
                 )
-                .await?;
+                .await
             }
+        };
+        if let Err(error) = step {
+            break Err(error);
         }
-    }
+    };
+    session.write_profile(profile);
+    result
+}
+
+fn bootstrap_from_profile(max_players: usize, profile: &PlayerProfile) -> play::Bootstrap {
+    play::Bootstrap::new(max_players).with_player_state(
+        profile.position.x,
+        profile.position.y,
+        profile.position.z,
+        profile.position.yaw,
+        profile.position.pitch,
+        profile.game_mode.vanilla_id(),
+        profile.game_mode.ability_flags(),
+    )
 }

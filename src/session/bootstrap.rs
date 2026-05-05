@@ -36,7 +36,7 @@ where
         stream,
         phase,
         ids::play::PLAYER_ABILITIES,
-        &play::encode_player_abilities(),
+        &play::encode_player_abilities_for(bootstrap),
     )
     .await?;
     write_packet(
@@ -50,7 +50,7 @@ where
         stream,
         phase,
         ids::play::CHUNK_CACHE_CENTER,
-        &play::encode_chunk_cache_center(0, 0),
+        &play::encode_chunk_cache_center(bootstrap.chunk_x, bootstrap.chunk_z),
     )
     .await?;
     write_packet(
@@ -61,7 +61,10 @@ where
     )
     .await?;
     let chunks = region
-        .spawn_chunks(bootstrap.view_distance)
+        .spawn_chunks_around(
+            ChunkPos::new(bootstrap.chunk_x, bootstrap.chunk_z),
+            bootstrap.view_distance,
+        )
         .await
         .map_err(|source| ConnectionError::Region { phase, source })?;
     debug_assert_eq!(chunks.len(), bootstrap.chunk_count());
