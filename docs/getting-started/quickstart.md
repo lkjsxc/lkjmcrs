@@ -1,0 +1,33 @@
+# Quickstart
+
+## Run the Server
+
+```bash
+docker compose up --build server
+```
+
+Default bind:
+
+- Host: `0.0.0.0`
+- Container port: `25565`
+- Host port: `${LKJMCRS_PORT:-25565}`
+
+## Try the Wire Probes
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm smoke
+```
+
+The smoke probe checks:
+
+- status request,
+- ping round trip,
+- offline login path,
+- configuration to play transition,
+- keepalive/tick behavior.
+
+## Stop and Clean State
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
+```
