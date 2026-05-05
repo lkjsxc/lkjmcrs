@@ -9,6 +9,7 @@ RUN cargo build --release
 FROM alpine:3.22
 
 RUN adduser -D -u 10001 lkjmcrs
+RUN mkdir -p /data && chown lkjmcrs:lkjmcrs /data
 USER lkjmcrs
 WORKDIR /app
 COPY --from=builder /workspace/target/release/lkjmcrs /usr/local/bin/lkjmcrs

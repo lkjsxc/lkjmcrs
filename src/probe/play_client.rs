@@ -96,8 +96,15 @@ async fn expect_chunks(
     for _ in 0..chunk_count {
         let chunk_packet =
             super::expect(stream, ids::play::LEVEL_CHUNK_WITH_LIGHT, "level chunk").await?;
-        chunk::validate_level_chunk_with_light(chunk_packet.data.clone())?;
-        observed = observed.or(persistence::target_block_state(chunk_packet.data)?);
+        let persisted = expected_block
+            .is_some()
+            .then(|| persistence::target_block_state(chunk_packet.data.clone()))
+            .transpose()?
+            .flatten();
+        if persisted.is_none() {
+            chunk::validate_level_chunk_with_light(chunk_packet.data)?;
+        }
+        observed = observed.or(persisted);
         let light = super::expect(stream, ids::play::UPDATE_LIGHT, "update light").await?;
         chunk::validate_update_light(light.data)?;
     }
