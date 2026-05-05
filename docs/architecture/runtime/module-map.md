@@ -6,8 +6,10 @@
 - `config`: environment and default configuration.
 - `net`: TCP listener and connection loop.
 - `protocol`: packet framing, types, encoding, decoding.
-- `player`: persistent player model and SQLite profile storage.
-- `session`: login, configuration, play state, keepalive.
+- `player`: persistent player model, inventory, named locations, and SQLite
+  storage.
+- `session`: login, configuration, play state, keepalive, commands, and travel
+  command dispatch.
 - `world`: chunk, region, and flat-world data.
 - `scheduler`: region actor and task ownership primitives.
 - `quality`: docs topology and line-limit checks.
@@ -21,3 +23,11 @@
 4. `session` coordinates protocol, player state, and world access.
 5. `scheduler` owns mutation entrypoints for region state.
 6. `probe` may depend on protocol but not on server internals.
+
+## Notable Submodules
+
+- `player::store_rows`: profile and inventory row mapping.
+- `player::location_rows`: home and warp row mapping.
+- `player::schema`: current player database schema.
+- `session::command_dispatch`: command permission and routing entrypoint.
+- `session::travel_commands`: `/spawn`, homes, and warps.
