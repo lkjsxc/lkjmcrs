@@ -36,7 +36,7 @@ The first milestone declares one registry packet for each of these registries:
 - `0x5f spawn_position`: global position in `minecraft:overworld`.
 - `0x6f update_time`: age `0`, time `0`, ticking enabled.
 - `0x3e abilities`: permissive initial ability flags.
-- `0x21 game_event`: event `13`, `start_waiting_for_level_chunks`, value
+- `0x26 game_state_change`: event `13`, `start_waiting_for_level_chunks`, value
   `0.0`.
 - `0x5c update_view_position`: spawn chunk `0,0`.
 - `0x5d set_chunk_cache_radius`: radius `2`.
@@ -54,9 +54,11 @@ The `level_chunk_with_light` count is derived from
 must send `25` chunks. A smaller `3x3` batch is invalid because it advertises
 terrain the client never receives during initial world entry.
 
-The game event is a readiness gate, not cosmetic state. A modern vanilla client
-can remain on terrain loading even after receiving chunks if the server never
-sends event `13`.
+The game-state change is a readiness gate, not cosmetic state. A modern vanilla
+client can remain on terrain loading even after receiving chunks if the server
+never sends event `13`. The packet ID must be `0x26` for protocol `774`; `0x21`
+is chat and will be decoded as `clientbound/minecraft:disguised_chat` or
+`profileless_chat`.
 
 ## Flat Chunk IDs
 

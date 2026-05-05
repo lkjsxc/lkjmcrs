@@ -12,6 +12,8 @@ Use this subtree for manual Minecraft client disconnect evidence.
 
 - Reports listed here are historical unless
   [../join-boundary.md](../join-boundary.md) names one as active.
+- [game-state-packet-id.md](game-state-packet-id.md): active vanilla
+  disconnect caused by sending game-state event `13` on chat packet ID `0x21`.
 - [post-radius-terrain-timeout.md](post-radius-terrain-timeout.md): fixed
   terrain-loading timeout after the full-radius chunk batch fix.
 - [terrain-radius-timeout.md](terrain-radius-timeout.md): fixed terrain-loading

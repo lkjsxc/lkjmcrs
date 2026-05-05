@@ -2,8 +2,9 @@
 
 ## Packet Names
 
-Protocol `774` names play packet `0x2c`
-`clientbound/minecraft:level_chunk_with_light`.
+Protocol `774` names play packet `0x2c` `clientbound/minecraft:map_chunk` in
+the generated packet table. This project uses the more descriptive local name
+`level_chunk_with_light` because the payload includes chunk data and light data.
 
 Use this name in code and documentation. Older `map_chunk` labels are too vague
 for the current debugging boundary.

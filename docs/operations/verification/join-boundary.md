@@ -2,8 +2,20 @@
 
 ## Current State
 
-As of commit `26f8d20`, all captured packet-shape failures in `tmp/` have
-implemented regression fixes and compose smoke coverage:
+As of commit `048e36f`, the latest stock-client report is
+`tmp/disconnect-2026-05-05_15.15.50-client.txt`. It is an active packet-ID
+boundary:
+
+- vanilla client version: `1.21.11`,
+- protocol state: play,
+- clientbound packet decoded by the client:
+  `clientbound/minecraft:disguised_chat`,
+- root cause: the server sent the level-chunk readiness event payload on packet
+  ID `0x21`,
+- correct contract: `0x26 game_state_change` with event ID `13`.
+
+Earlier captured packet-shape failures already have regression fixes and
+compose smoke coverage:
 
 - login success trailing byte,
 - missing required dynamic registry entries,
@@ -11,17 +23,14 @@ implemented regression fixes and compose smoke coverage:
 - heightmap fixed-storage long count,
 - periodic play keepalives,
 - advertised chunk radius versus sent chunk count,
-- level-chunk readiness game event `13`.
+- level-chunk readiness game-state event `13`.
 
 ## Active Manual Boundary
 
-No newer stock-client report has been captured after the readiness event and
-live chunk-payload probe fixes. The next active boundary is therefore unknown
-until a fresh stock Minecraft Java Edition `1.21.11` join attempt is recorded
-against commit `26f8d20` or later.
-
-Existing `tmp/disconnect-*.txt` files are historical evidence unless a newer
-manual run reproduces the same failure against the current implementation.
+Fix the readiness packet ID and strengthen the live smoke probe so it fails if
+the server sends `0x21` during play bootstrap. After that implementation and
+compose smoke pass, the next active boundary becomes unknown until a fresh
+stock Minecraft Java Edition `1.21.11` join attempt is recorded.
 
 ## Evidence Rules
 
@@ -38,6 +47,7 @@ manual run reproduces the same failure against the current implementation.
 
 ## Next Manual Check
 
-Use a stock offline-mode `1.21.11` client against the compose `server` service.
-Record the exact disconnect text or successful terrain-rendering result in this
-directory before changing the manual boundary again.
+Use a stock offline-mode `1.21.11` client against the compose `server` service
+after the `0x26` fix. Record the exact disconnect text or successful
+terrain-rendering result in this directory before changing the manual boundary
+again.

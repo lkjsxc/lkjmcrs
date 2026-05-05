@@ -11,6 +11,8 @@ Use this subtree for Minecraft `1.21.11` wire contracts.
 ## Child Index
 
 - [version-1-21-11.md](version-1-21-11.md): exact compatibility constants.
+- [play-packet-ids.md](play-packet-ids.md): pinned play packet IDs used by
+  the first milestone.
 - [packet-contract.md](packet-contract.md): packet IDs and payload contracts.
 - [chunk-packets.md](chunk-packets.md): chunk packet and paletted container
   wire shape.
