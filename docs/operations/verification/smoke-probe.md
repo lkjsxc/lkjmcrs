@@ -15,8 +15,9 @@ Verify the real wire path without depending on an external Minecraft bot crate.
 7. Acknowledge login success.
 8. Validate login success has no trailing payload bytes.
 9. Complete known-pack, registry, tag, and feature-flag configuration.
-10. Enter play state and observe play login, the full advertised chunk radius,
-    light, position, and keepalive packets.
+10. Enter play state and observe play login, the level-chunk readiness game
+    event, the full advertised chunk radius, light, position, and keepalive
+    packets.
 
 ## Rules
 

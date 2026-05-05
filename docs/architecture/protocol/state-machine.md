@@ -27,6 +27,7 @@
 ## Play Flow
 
 - Server sends initial play state and spawn position.
+- Server sends game event `13`, start waiting for level chunks.
 - Server advertises chunk-cache radius `2`.
 - Server sends a matching `5x5` flat chunk and light batch around spawn.
 - Server sends an initial keepalive, then sends another keepalive every `10`

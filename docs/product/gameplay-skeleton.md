@@ -19,6 +19,7 @@ flat spawn area.
 - One dimension: `minecraft:overworld`.
 - Flat deterministic terrain.
 - Spawn defaults to `0, 80, 0`.
+- World entry sends the vanilla level-chunk readiness game event.
 - The initial world-entry batch covers the full advertised radius `2`.
 - Initial game mode is creative for easier smoke testing.
 - Time starts at `0` and advances by server ticks.

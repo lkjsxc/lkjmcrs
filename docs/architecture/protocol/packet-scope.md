@@ -18,6 +18,7 @@
 - Finish configuration from server.
 - Finish configuration from client.
 - Play login/join packet with `minecraft:overworld` spawn info.
+- Game event `13`, start waiting for level chunks.
 - Chunk cache center and radius.
 - Flat `level_chunk_with_light` chunks around spawn.
 - Chunk batch start and finish.
@@ -52,6 +53,10 @@ set is intentionally minimal. The active manual boundary is terrain-loading
 timeout after the server advertised radius `2` but sent only a `3x3` chunk
 batch.
 
+After that fix, the active terrain-loading boundary moved to the missing
+post-login game event `13`. The play bootstrap must send it before the chunk
+batch so the client starts applying chunk readiness to world entry.
+
 Dynamic registries are intentionally minimal and evidence-driven. They are not
 full vanilla coverage. `minecraft:damage_type` is required before play login can
 construct the client level because vanilla play login constructs its built-in
@@ -73,8 +78,8 @@ client reports may be recorded only when they expose a vanilla protocol gap.
 9. Server sends enabled features with `minecraft:vanilla`.
 10. Server sends finish configuration.
 11. Client acknowledges finish configuration.
-12. Server sends play login, the full advertised flat chunk radius, light,
-    position, and keepalive.
+12. Server sends play login, game event `13`, the full advertised flat chunk
+    radius, light, position, and keepalive.
 
 ## Rule
 
