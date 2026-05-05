@@ -26,11 +26,10 @@ client reported as required, including the `minecraft:timeline` tag binding
 used by the overworld dimension and the grouped `minecraft:damage_type`
 bootstrap entries used by client-level construction.
 
-The latest captured boundary is heightmap decoding inside
-`clientbound/minecraft:level_chunk_with_light`. The client now reaches chunk
-handling, but rejects heightmaps whose long arrays contain `36` longs instead
-of the expected `37`. See
-[client-reports/heightmap-long-count.md](client-reports/heightmap-long-count.md).
+The latest captured boundary is a play-state timeout after chunk and heightmap
+decoding. The client remains in the world-entry path for roughly `30` seconds,
+then disconnects with `Timed out`. See
+[client-reports/play-keepalive-timeout.md](client-reports/play-keepalive-timeout.md).
 
 If a stock client still disconnects before rendering terrain, record the exact
 new disconnect text here before moving the boundary again.

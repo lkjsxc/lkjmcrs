@@ -25,3 +25,4 @@
 2. World mutation requests go through scheduler APIs.
 3. Disconnect must release session-owned resources.
 4. Session position updates are accepted only in play state.
+5. Play-state packet reads must not prevent periodic keepalive writes.

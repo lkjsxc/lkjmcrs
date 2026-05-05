@@ -10,6 +10,8 @@ Use this subtree for manual Minecraft client disconnect evidence.
 
 ## Child Index
 
+- [play-keepalive-timeout.md](play-keepalive-timeout.md): latest post-chunk
+  timeout after heightmap sizing was fixed.
 - [heightmap-long-count.md](heightmap-long-count.md): latest terrain-load
   warning after chunk-section decoding was fixed.
 - [level-chunk-with-light.md](level-chunk-with-light.md): latest play packet
