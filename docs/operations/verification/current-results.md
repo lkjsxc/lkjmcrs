@@ -2,10 +2,11 @@
 
 ## 2026-05-06
 
-Implementation tested: working tree after `31040c9`.
+Implementation tested: working tree after `5f28a6d`.
 
 Compose commands:
 
+- `docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v`
 - `docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm verify`
 - `docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v`
 - `docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build server`
@@ -44,7 +45,9 @@ Results:
   mutation.
 - SMP commands smoke: pass, `Admin` and `Guest` received the declared command
   tree, `Guest` chat reached `Admin` as system chat, `Guest` was denied
-  operator-only `/say`, `Admin` changed `Guest` to survival, the survival mode
+  operator-only `/say` and `/setwarp`, `Guest` saved and used personal home
+  `base`, `Admin` saved global warp `spawnish`, `Guest` listed and used it,
+  `Admin` changed `Guest` to survival, survival mode and the home row
   persisted across reconnect, and `Admin` kicked `Guest` with a play disconnect
   reason.
 - Survival item smoke: pass, a new survival profile received one starter
@@ -69,9 +72,9 @@ Results:
   probe.
 - Movement flags regression: pass, movement probe now sends one protocol `774`
   flags byte.
-- Rust tests: `102` passed.
+- Rust tests: `104` passed.
 - docs maximum line count: `103`.
-- source maximum line count: `194`.
+- source maximum line count: `200`.
 - Manual join: user-reported success in the task prompt, with no raw client log
   attached.
 
