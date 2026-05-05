@@ -27,6 +27,12 @@ The first tree declares root literals for:
 
 - `help`
 - `spawn`
+- `sethome`
+- `home`
+- `homes`
+- `setwarp`
+- `warp`
+- `warps`
 - `say`
 - `gamemode`
 - `kick`

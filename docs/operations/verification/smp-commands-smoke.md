@@ -19,6 +19,8 @@ docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
 - `Admin` and `Guest` both receive the declared command tree.
 - Plain chat from `Guest` is observed by `Admin` as system chat.
 - `Guest` is denied an operator-only command.
+- `Guest` saves, lists, and teleports to a personal home.
+- `Admin` saves a global warp and `Guest` lists and uses it.
 - `Admin` changes `Guest` to survival.
 - `Guest` reconnects and enters play in survival mode.
 - `Admin` kicks `Guest` and the target receives a play disconnect reason.
@@ -27,4 +29,5 @@ docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
 
 This probe proves unsigned offline-mode SMP control packets. It does not prove
 chat signing, online-mode identity, command suggestions, or full permission
-storage.
+storage. Travel checks prove packet-level teleports and command persistence, not
+safe-destination scanning.

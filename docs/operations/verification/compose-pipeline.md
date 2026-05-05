@@ -48,7 +48,7 @@ docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
 6. `persist-place` writes a mutation through the public wire path.
 7. `persist-check` verifies that mutation after restart.
 8. `survival-item` verifies survival profile defaults and item persistence.
-9. `smp-commands` verifies offline chat, commands, permissions, and kick.
+9. `smp-commands` verifies offline chat, permissions, travel commands, and kick.
 10. Non-zero from any step blocks acceptance.
 11. Initial `down -v` removes stale named volumes before stateful probes.
 12. Final `down -v` removes disposable compose state.

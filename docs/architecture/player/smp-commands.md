@@ -25,6 +25,12 @@ Keep the first multiplayer control surface explicit, small, and testable.
 - `/help` sends one system chat response to the caller.
 - `/spawn` sends an absolute position packet to the caller and updates the
   caller profile position.
+- `/sethome` saves the caller's current location under a normalized home name.
+- `/home` teleports the caller to a saved home.
+- `/homes` lists the caller's saved home names.
+- `/setwarp` saves the caller's current location under a normalized warp name.
+- `/warp` teleports the caller to a saved global warp.
+- `/warps` lists normalized global warp names.
 - `/say` broadcasts one system chat message.
 - `/gamemode` changes profile mode, sends abilities and game-event mode update,
   and confirms with system chat.
@@ -36,3 +42,4 @@ Keep the first multiplayer control surface explicit, small, and testable.
 - Command suggestions beyond the declared command tree.
 - Full Brigadier parser coverage.
 - Chat signing and signed message verification.
+- Teleport cooldowns, warmups, request flows, or safety scans.
