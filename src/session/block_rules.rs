@@ -7,6 +7,7 @@ use crate::session::error::ConnectionError;
 use crate::world::{BlockPos, BlockState};
 
 const STONE_ITEM: &str = "minecraft:stone";
+const DIRT_ITEM: &str = "minecraft:dirt";
 
 pub(super) async fn place_block(
     region: &RegionHandle,
@@ -22,12 +23,14 @@ pub(super) async fn place_block(
     if current != Some(BlockState::Air) {
         return Ok(reconcile(pos, current));
     }
-    if game_mode == GameMode::Survival && inventory.selected_item_count(STONE_ITEM) == 0 {
+    let Some((state, item_id)) = placement_state(game_mode, inventory) else {
         return Ok(reconcile(pos, current));
-    }
-    let result = set_block(region, pos, BlockState::Stone, phase).await?;
-    if game_mode == GameMode::Survival && result.broadcast.is_some() {
-        inventory.consume_selected(STONE_ITEM);
+    };
+    let result = set_block(region, pos, state, phase).await?;
+    if result.broadcast.is_some()
+        && let Some(item_id) = item_id
+    {
+        inventory.consume_selected(item_id);
     }
     Ok(result)
 }
@@ -107,9 +110,24 @@ fn simple_drop(state: Option<BlockState>) -> Option<&'static str> {
     }
 }
 
+fn placement_state(
+    game_mode: GameMode,
+    inventory: &Inventory,
+) -> Option<(BlockState, Option<&'static str>)> {
+    match game_mode {
+        GameMode::Creative => Some((BlockState::Stone, None)),
+        GameMode::Survival => match inventory.selected_item_id()? {
+            STONE_ITEM => Some((BlockState::Stone, Some(STONE_ITEM))),
+            DIRT_ITEM => Some((BlockState::Dirt, Some(DIRT_ITEM))),
+            _ => None,
+        },
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::simple_drop;
+    use super::{placement_state, simple_drop};
+    use crate::player::{GameMode, Inventory, InventorySlot};
     use crate::world::BlockState;
 
     #[test]
@@ -125,5 +143,38 @@ mod tests {
         );
         assert_eq!(simple_drop(Some(BlockState::Air)), None);
         assert_eq!(simple_drop(Some(BlockState::Bedrock)), None);
+    }
+
+    #[test]
+    fn survival_placement_uses_selected_material() {
+        let inventory = Inventory {
+            selected_hotbar_slot: 0,
+            slots: vec![InventorySlot {
+                slot: 0,
+                item_id: "minecraft:dirt".to_string(),
+                count: 1,
+                data: None,
+            }],
+        };
+
+        assert_eq!(
+            placement_state(GameMode::Survival, &inventory),
+            Some((BlockState::Dirt, Some("minecraft:dirt")))
+        );
+    }
+
+    #[test]
+    fn unsupported_survival_item_cannot_place() {
+        let inventory = Inventory {
+            selected_hotbar_slot: 0,
+            slots: vec![InventorySlot {
+                slot: 0,
+                item_id: "minecraft:stick".to_string(),
+                count: 1,
+                data: None,
+            }],
+        };
+
+        assert_eq!(placement_state(GameMode::Survival, &inventory), None);
     }
 }

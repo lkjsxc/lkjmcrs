@@ -16,7 +16,10 @@ pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut client = PlayClient::connect(host, "ChunkStream").await?;
     live_play::send_position_look_at(&mut client.stream, 16.5, 80.0, 0.5, 0.0, 0.0).await?;
     expect_cache_center(&mut client.stream, 1, 0).await?;
-    expect_new_column_batch(&mut client.stream).await?;
+    expect_column_batch(&mut client.stream, 3).await?;
+    live_play::send_position_look_at(&mut client.stream, 44.5, 80.0, 0.5, 0.0, 0.0).await?;
+    expect_cache_center(&mut client.stream, 2, 0).await?;
+    expect_column_batch(&mut client.stream, 4).await?;
     place_in_streamed_chunk(&mut client.stream).await
 }
 
@@ -36,7 +39,10 @@ async fn expect_cache_center(
     Ok(())
 }
 
-async fn expect_new_column_batch(stream: &mut TcpStream) -> Result<(), Box<dyn std::error::Error>> {
+async fn expect_column_batch(
+    stream: &mut TcpStream,
+    expected_x: i32,
+) -> Result<(), Box<dyn std::error::Error>> {
     let start = block_mutation::read_next_non_time(stream, "stream batch start").await?;
     if start.id != ids::play::CHUNK_BATCH_START {
         return Err(Box::new(ProbeError::Phase("stream batch start id")));
@@ -55,7 +61,7 @@ async fn expect_new_column_batch(stream: &mut TcpStream) -> Result<(), Box<dyn s
         }
         chunk::validate_update_light(light.data)?;
     }
-    validate_new_column(positions)?;
+    validate_new_column(positions, expected_x)?;
     let finished = block_mutation::read_next_non_time(stream, "stream batch finished").await?;
     if finished.id != ids::play::CHUNK_BATCH_FINISHED {
         return Err(Box::new(ProbeError::Phase("stream batch finished id")));
@@ -63,8 +69,11 @@ async fn expect_new_column_batch(stream: &mut TcpStream) -> Result<(), Box<dyn s
     validate_chunk_batch_finished(finished.data, 5)
 }
 
-fn validate_new_column(positions: HashSet<(i32, i32)>) -> Result<(), Box<dyn std::error::Error>> {
-    let expected: HashSet<_> = (-2..=2).map(|z| (3, z)).collect();
+fn validate_new_column(
+    positions: HashSet<(i32, i32)>,
+    expected_x: i32,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let expected: HashSet<_> = (-2..=2).map(|z| (expected_x, z)).collect();
     if positions != expected {
         return Err(Box::new(ProbeError::Phase("stream chunk positions")));
     }

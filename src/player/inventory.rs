@@ -24,6 +24,12 @@ impl Inventory {
             .unwrap_or(0)
     }
 
+    pub fn selected_item_id(&self) -> Option<&str> {
+        self.selected_slot()
+            .filter(|slot| slot.count > 0)
+            .map(|slot| slot.item_id.as_str())
+    }
+
     pub fn consume_selected(&mut self, item_id: &str) -> bool {
         let slot_id = i32::from(self.selected_hotbar_slot);
         let Some(index) = self
@@ -112,5 +118,20 @@ mod tests {
 
         assert_eq!(inventory.slots[0].count, 64);
         assert_eq!(inventory.slots[1].count, 1);
+    }
+
+    #[test]
+    fn selected_item_ignores_empty_slots() {
+        let inventory = Inventory {
+            selected_hotbar_slot: 0,
+            slots: vec![InventorySlot {
+                slot: 0,
+                item_id: "minecraft:stone".to_string(),
+                count: 0,
+                data: None,
+            }],
+        };
+
+        assert_eq!(inventory.selected_item_id(), None);
     }
 }

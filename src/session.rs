@@ -17,6 +17,7 @@ pub mod play_packets;
 mod play_packets_tests;
 pub mod play_state;
 pub mod profile;
+pub mod reach;
 pub mod registry;
 #[cfg(test)]
 mod registry_tests;

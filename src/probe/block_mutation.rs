@@ -46,9 +46,17 @@ pub(super) async fn send_start_destroy(
     stream: &mut TcpStream,
     sequence: i32,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    send_start_destroy_at(stream, sequence, BlockPos::new(0, 80, 0)).await
+}
+
+pub(super) async fn send_start_destroy_at(
+    stream: &mut TcpStream,
+    sequence: i32,
+    pos: BlockPos,
+) -> Result<(), Box<dyn std::error::Error>> {
     let mut payload = Vec::new();
     codec::write_var_i32(&mut payload, 0);
-    codec::write_position(&mut payload, 0, 80, 0);
+    codec::write_position(&mut payload, pos.x, pos.y, pos.z);
     codec::write_u8(&mut payload, 1);
     codec::write_var_i32(&mut payload, sequence);
     codec::write_packet(stream, ids::play::SERVERBOUND_PLAYER_ACTION, &payload).await?;

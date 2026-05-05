@@ -62,6 +62,7 @@ where
             context.region,
             context.sessions,
             context.writer,
+            session,
             profile,
         )
         .await?;
