@@ -25,15 +25,18 @@ inventory synchronization.
 ## Mutation Rules
 
 1. Creative placement ignores inventory and writes fixed stone.
-2. Survival placement consumes one selected `minecraft:stone`.
-3. Survival placement with no selected stone does not mutate the world.
-4. Survival breaking adds simple drops after an accepted block mutation.
-5. Empty slots are removed before profile save.
-6. Item stacks cannot exceed `64` in this slice.
+2. Survival placement consumes one selected supported block item.
+3. Supported survival placement items are `minecraft:stone` and
+   `minecraft:dirt`.
+4. `minecraft:stone` places stone, and `minecraft:dirt` places dirt.
+5. Survival placement with no selected supported item does not mutate the world.
+6. Survival breaking adds simple drops after an accepted block mutation.
+7. Empty slots are removed before profile save.
+8. Item stacks cannot exceed `64` in this slice.
 
 ## Out of Scope
 
 - Full vanilla inventory windows.
 - Clientbound slot synchronization.
 - Item NBT semantics beyond stored opaque text.
-- Recipes, durability, tools, mining speed, and reach validation.
+- Recipes, durability, tools, and mining speed.

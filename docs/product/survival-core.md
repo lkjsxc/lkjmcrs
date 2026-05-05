@@ -35,12 +35,28 @@ region-ownership architecture.
   grass block drops dirt.
 - Inventory mutations are saved with the player profile on disconnect.
 
+## Material Loop Slice
+
+- Survival placement uses the selected server-side hotbar item.
+- Selected `minecraft:stone` places `minecraft:stone`.
+- Selected `minecraft:dirt` places `minecraft:dirt`.
+- Unsupported selected items and empty selected slots do not mutate the world.
+- Rejected placement still acknowledges prediction and reconciles the target
+  block.
+- Accepted survival placement consumes exactly one selected item.
+- Accepted survival breaking keeps the simple deterministic drops from the
+  Survival Item Slice.
+- Placement and breaking require the target block center to be within `6.0`
+  blocks of the player's eye position.
+- The eye position is `(player.x, player.y + 1.62, player.z)`.
+- Out-of-reach interactions do not mutate chunks or inventory.
+
 ## Player Boundary
 
 - Inventory contents and selected hotbar slot affect survival placement.
 - Held item selection is server-internal until full inventory packet support.
-- Reach distance, survival mining speed, drops, recipes, and item durability are
-  not validated in this slice.
+- Survival mining speed, recipes, and item durability are not validated in this
+  slice.
 - Block interactions outside the loaded spawn-radius chunks are acknowledged and
   reconciled without loading new chunks.
 

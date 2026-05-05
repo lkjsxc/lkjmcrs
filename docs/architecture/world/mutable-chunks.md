@@ -22,6 +22,16 @@ interaction can be implemented without introducing persistence.
 - Section serialization reads through the same block lookup path as gameplay.
 - Bedrock at `y=0` is immutable in the first mutation slice.
 
+## Reach Boundary
+
+- Session code validates block interaction reach before submitting mutations.
+- The maximum accepted block reach is `6.0` blocks from player eye position to
+  the target block center.
+- Out-of-reach placement and breaking reconcile the target block through loaded
+  chunk lookup only.
+- Rejected reach checks must not load chunks, mutate chunks, or consume
+  inventory.
+
 ## Region Ownership
 
 - The initial region actor owns spawn chunks and chunks loaded by movement
