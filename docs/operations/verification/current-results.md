@@ -2,7 +2,7 @@
 
 ## 2026-05-05
 
-Implementation commit tested: `6f3e065`.
+Implementation commit tested: `d997cb7`.
 
 Compose commands:
 
@@ -16,7 +16,9 @@ Results:
 - `smoke`: pass, `login-play probe ok`.
 - Block mutation smoke: pass, fixed-stone placement and break observed through
   prediction acknowledgements and block updates.
-- Rust tests: `65` passed.
+- Movement flags regression: pass, movement probe now sends one protocol `774`
+  flags byte.
+- Rust tests: `66` passed.
 - docs maximum line count: `103`.
 - source maximum line count: `185`.
 - Manual join: user-reported success in the task prompt, with no raw client log
@@ -24,6 +26,6 @@ Results:
 
 ## Active Manual Boundary
 
-No active disconnect boundary is known after the reported successful join.
+No active disconnect boundary is known after the movement flags-byte fix.
 Record the next exact stock-client disconnect or gameplay blocker before
 changing [join-boundary.md](join-boundary.md).
