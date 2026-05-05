@@ -9,11 +9,12 @@ Verify the first survival item loop through the public play wire path.
 Run the server with survival defaults and one starter stone:
 
 ```bash
-LKJMCRS_DEFAULT_GAME_MODE=survival \
-LKJMCRS_SURVIVAL_STARTER_STONE=1 \
+export LKJMCRS_DEFAULT_GAME_MODE=survival
+export LKJMCRS_SURVIVAL_STARTER_STONE=1
 docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build server
 docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm survival-item
 docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
+unset LKJMCRS_DEFAULT_GAME_MODE LKJMCRS_SURVIVAL_STARTER_STONE
 ```
 
 ## Expected Behavior

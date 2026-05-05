@@ -2,7 +2,7 @@
 
 ## 2026-05-06
 
-Implementation tested: working tree based on `607b8d7`.
+Implementation tested: working tree based on `be596fa`.
 
 Compose commands:
 
@@ -15,6 +15,12 @@ Compose commands:
 - `docker compose -f docker-compose.yml -f docker-compose.verify.yml restart server`
 - `docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm persist-check`
 - `docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v`
+- `export LKJMCRS_DEFAULT_GAME_MODE=survival`
+- `export LKJMCRS_SURVIVAL_STARTER_STONE=1`
+- `docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build server`
+- `docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm survival-item`
+- `docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v`
+- `unset LKJMCRS_DEFAULT_GAME_MODE LKJMCRS_SURVIVAL_STARTER_STONE`
 
 Results:
 
@@ -24,6 +30,11 @@ Results:
 - `chunk-stream`: pass, `chunk-stream probe ok`.
 - `persist-place`: pass, `persist-place probe ok`.
 - `persist-check`: pass after restart, `persist-check probe ok`.
+- `survival-item`: pass, `survival-item probe ok`.
+- Survival item smoke: pass, a new survival profile received one starter
+  stone, consumed it on successful placement, reconciled a second empty-slot
+  placement without mutation, broke the placed block for a simple drop, saved
+  on disconnect, and spent the persisted drop after reconnect.
 - Player profile persistence smoke: pass, a player moved to non-default
   position and look values, disconnected, reconnected with the same offline
   UUID, and received the saved state in the initial position packet.
@@ -42,7 +53,7 @@ Results:
   probe.
 - Movement flags regression: pass, movement probe now sends one protocol `774`
   flags byte.
-- Rust tests: `84` passed.
+- Rust tests: `90` passed.
 - docs maximum line count: `103`.
 - source maximum line count: `194`.
 - Manual join: user-reported success in the task prompt, with no raw client log
