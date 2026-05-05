@@ -3,6 +3,15 @@ use crate::protocol::configuration::{self, KnownPack};
 use crate::protocol::{MINECRAFT_VERSION, PROTOCOL_VERSION, codec, play};
 use std::io::Cursor;
 
+#[derive(Debug, Clone, Copy)]
+pub(super) struct PositionPacket {
+    pub x: f64,
+    pub y: f64,
+    pub z: f64,
+    pub yaw: f32,
+    pub pitch: f32,
+}
+
 pub(super) fn validate_status_json(json: &str) -> Result<(), Box<dyn std::error::Error>> {
     let value: serde_json::Value = serde_json::from_str(json)?;
     let version = &value["version"];
@@ -37,13 +46,29 @@ pub(super) fn validate_login_success(
     Ok(())
 }
 
-pub(super) fn validate_position_packet(data: Vec<u8>) -> Result<(), Box<dyn std::error::Error>> {
+pub(super) fn decode_position_packet(
+    data: Vec<u8>,
+) -> Result<PositionPacket, Box<dyn std::error::Error>> {
     let mut cursor = Cursor::new(data);
     let teleport_id = codec::read_var_i32(&mut cursor)?;
     if teleport_id != play::Bootstrap::new(100).teleport_id() {
         return Err(Box::new(ProbeError::Phase("teleport id")));
     }
-    Ok(())
+    let x = codec::read_f64(&mut cursor)?;
+    let y = codec::read_f64(&mut cursor)?;
+    let z = codec::read_f64(&mut cursor)?;
+    for _ in 0..3 {
+        codec::read_f64(&mut cursor)?;
+    }
+    let yaw = codec::read_f32(&mut cursor)?;
+    let pitch = codec::read_f32(&mut cursor)?;
+    Ok(PositionPacket {
+        x,
+        y,
+        z,
+        yaw,
+        pitch,
+    })
 }
 
 pub(super) fn validate_chunk_radius(data: Vec<u8>) -> Result<usize, Box<dyn std::error::Error>> {

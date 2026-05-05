@@ -3,8 +3,8 @@ use crate::probe::chunk;
 use crate::probe::live_play;
 use crate::probe::persistence;
 use crate::probe::validation::{
-    validate_chunk_batch_finished, validate_chunk_radius, validate_game_state_change,
-    validate_known_packs, validate_login_success, validate_position_packet,
+    PositionPacket, decode_position_packet, validate_chunk_batch_finished, validate_chunk_radius,
+    validate_game_state_change, validate_known_packs, validate_login_success,
 };
 use crate::protocol::configuration;
 use crate::protocol::types::{LoginStart, NextState};
@@ -14,6 +14,7 @@ use uuid::Uuid;
 
 pub(super) struct PlayClient {
     pub stream: TcpStream,
+    pub initial_position: PositionPacket,
 }
 
 impl PlayClient {
@@ -34,8 +35,11 @@ impl PlayClient {
         validate_login_success(success.data, name)?;
         codec::write_packet(&mut stream, ids::login::ACKNOWLEDGED, &[]).await?;
         complete_configuration(&mut stream).await?;
-        complete_play_bootstrap(&mut stream, expected_block).await?;
-        Ok(Self { stream })
+        let initial_position = complete_play_bootstrap(&mut stream, expected_block).await?;
+        Ok(Self {
+            stream,
+            initial_position,
+        })
     }
 }
 
@@ -69,7 +73,7 @@ async fn complete_configuration(stream: &mut TcpStream) -> Result<(), Box<dyn st
 async fn complete_play_bootstrap(
     stream: &mut TcpStream,
     expected_block: Option<i32>,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<PositionPacket, Box<dyn std::error::Error>> {
     super::expect(stream, ids::play::LOGIN, "play login").await?;
     super::expect(stream, ids::play::DEFAULT_SPAWN_POSITION, "spawn").await?;
     super::expect(stream, ids::play::SET_TIME, "time").await?;
@@ -82,8 +86,9 @@ async fn complete_play_bootstrap(
     let chunk_count = validate_chunk_radius(radius.data)?;
     expect_chunks(stream, chunk_count, expected_block).await?;
     let position = super::expect(stream, ids::play::PLAYER_POSITION, "position").await?;
-    validate_position_packet(position.data)?;
-    confirm_and_keepalive(stream).await
+    let initial_position = decode_position_packet(position.data)?;
+    confirm_and_keepalive(stream).await?;
+    Ok(initial_position)
 }
 
 async fn expect_chunks(

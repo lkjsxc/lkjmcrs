@@ -59,6 +59,10 @@ enum ProbeCommand {
         #[arg(long, default_value = "127.0.0.1:25565")]
         host: String,
     },
+    ProfileReconnect {
+        #[arg(long, default_value = "127.0.0.1:25565")]
+        host: String,
+    },
 }
 
 #[tokio::main]
@@ -84,6 +88,9 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             ProbeCommand::PersistPlace { host } => crate::probe::persist_place(&host).await?,
             ProbeCommand::PersistCheck { host } => crate::probe::persist_check(&host).await?,
+            ProbeCommand::ProfileReconnect { host } => {
+                crate::probe::profile_reconnect(&host).await?
+            }
         },
     }
 

@@ -5,12 +5,23 @@ use tokio::net::TcpStream;
 pub(super) async fn send_position_look(
     stream: &mut TcpStream,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    send_position_look_at(stream, 0.5, 80.0, 0.5, 0.0, 0.0).await
+}
+
+pub(super) async fn send_position_look_at(
+    stream: &mut TcpStream,
+    x: f64,
+    y: f64,
+    z: f64,
+    yaw: f32,
+    pitch: f32,
+) -> Result<(), Box<dyn std::error::Error>> {
     let mut payload = Vec::new();
-    codec::write_f64(&mut payload, 0.5);
-    codec::write_f64(&mut payload, 80.0);
-    codec::write_f64(&mut payload, 0.5);
-    codec::write_f32(&mut payload, 0.0);
-    codec::write_f32(&mut payload, 0.0);
+    codec::write_f64(&mut payload, x);
+    codec::write_f64(&mut payload, y);
+    codec::write_f64(&mut payload, z);
+    codec::write_f32(&mut payload, yaw);
+    codec::write_f32(&mut payload, pitch);
     codec::write_u8(&mut payload, 0);
     codec::write_packet(stream, ids::play::SERVERBOUND_POSITION_LOOK, &payload).await?;
     Ok(())
