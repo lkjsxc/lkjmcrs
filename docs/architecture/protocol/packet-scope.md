@@ -52,8 +52,8 @@ minimal.
 
 Dynamic registries are intentionally minimal and evidence-driven. They are not
 full vanilla coverage. `minecraft:damage_type` is required before play login can
-construct the client level because vanilla play login expects
-`minecraft:damage_type / minecraft:in_fire` to exist.
+construct the client level because vanilla play login constructs its built-in
+damage sources at that point.
 
 The target remains stock Minecraft Java Edition `1.21.11`. Fabric or modded
 client reports may be recorded only when they expose a vanilla protocol gap.

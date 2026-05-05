@@ -18,11 +18,12 @@ Target protocol: `774` for Minecraft Java Edition `1.21.11`.
 - `0x0c feature_flags`: sends `minecraft:vanilla`.
 - `0x03 finish_configuration`: empty payload.
 
-The first milestone declares:
+The first milestone declares one registry packet for each of these registries:
 
 - `minecraft:dimension_type` with `minecraft:overworld` at registry ID `0`.
 - `minecraft:worldgen/biome` with `minecraft:plains` at registry ID `0`.
-- `minecraft:damage_type` with `minecraft:in_fire` at registry ID `0`.
+- `minecraft:damage_type` with the bootstrap keys in
+  [dynamic-registries.md](dynamic-registries.md).
 - Minimal non-empty variant registries required by the vanilla client:
   cat, chicken, cow, frog, painting, pig, wolf sound, wolf, and zombie nautilus.
 - `minecraft:timeline` with `minecraft:day` at registry ID `0`.
