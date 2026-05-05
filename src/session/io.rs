@@ -1,13 +1,16 @@
 use crate::protocol::codec::{self, Packet};
 use crate::session::SessionState;
 use crate::session::error::ConnectionError;
-use tokio::net::TcpStream;
+use tokio::io::{AsyncRead, AsyncWrite};
 
-pub async fn expect_packet(
-    stream: &mut TcpStream,
+pub async fn expect_packet<R>(
+    stream: &mut R,
     phase: SessionState,
     expected: i32,
-) -> Result<Packet, ConnectionError> {
+) -> Result<Packet, ConnectionError>
+where
+    R: AsyncRead + Unpin,
+{
     let packet = read_packet(stream, phase).await?;
     if packet.id == expected {
         Ok(packet)
@@ -16,12 +19,15 @@ pub async fn expect_packet(
     }
 }
 
-pub async fn read_until_packet(
-    stream: &mut TcpStream,
+pub async fn read_until_packet<R>(
+    stream: &mut R,
     phase: SessionState,
     expected: i32,
     ignored: &[i32],
-) -> Result<Packet, ConnectionError> {
+) -> Result<Packet, ConnectionError>
+where
+    R: AsyncRead + Unpin,
+{
     loop {
         let packet = read_packet(stream, phase).await?;
         if packet.id == expected {
@@ -35,21 +41,24 @@ pub async fn read_until_packet(
     }
 }
 
-pub async fn read_packet(
-    stream: &mut TcpStream,
-    phase: SessionState,
-) -> Result<Packet, ConnectionError> {
+pub async fn read_packet<R>(stream: &mut R, phase: SessionState) -> Result<Packet, ConnectionError>
+where
+    R: AsyncRead + Unpin,
+{
     codec::read_packet(stream)
         .await
         .map_err(|error| codec_error(phase, error))
 }
 
-pub async fn write_packet(
-    stream: &mut TcpStream,
+pub async fn write_packet<W>(
+    stream: &mut W,
     phase: SessionState,
     id: i32,
     payload: &[u8],
-) -> Result<(), ConnectionError> {
+) -> Result<(), ConnectionError>
+where
+    W: AsyncWrite + Unpin,
+{
     codec::write_packet(stream, id, payload)
         .await
         .map_err(|error| codec_error(phase, error))

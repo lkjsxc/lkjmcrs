@@ -5,7 +5,11 @@ use crate::session::SessionState;
 use crate::session::error::ConnectionError;
 use crate::session::io::{read_packet, write_packet};
 use crate::world::FlatWorld;
+use tokio::io::AsyncWrite;
 use tokio::net::TcpStream;
+use tokio::time::{self, Duration, Instant, MissedTickBehavior};
+
+const KEEPALIVE_INTERVAL: Duration = Duration::from_secs(10);
 
 pub async fn handle_play(
     stream: &mut TcpStream,
@@ -13,33 +17,58 @@ pub async fn handle_play(
 ) -> Result<(), ConnectionError> {
     let phase = SessionState::Play;
     let bootstrap = play::Bootstrap::new(max_players);
-    send_play_bootstrap(stream, bootstrap).await?;
+    let (mut reader, mut writer) = stream.split();
+    send_play_bootstrap(&mut writer, bootstrap).await?;
+    let mut keepalives = time::interval_at(Instant::now() + KEEPALIVE_INTERVAL, KEEPALIVE_INTERVAL);
+    keepalives.set_missed_tick_behavior(MissedTickBehavior::Delay);
+    let mut keepalive_id = 1_i64;
+
     loop {
-        let packet = read_packet(stream, phase).await?;
-        match packet.id {
-            ids::play::SERVERBOUND_TELEPORT_CONFIRM
-            | ids::play::SERVERBOUND_CHUNK_BATCH_RECEIVED
-            | ids::play::SERVERBOUND_SETTINGS
-            | ids::play::SERVERBOUND_KEEPALIVE
-            | ids::play::SERVERBOUND_POSITION
-            | ids::play::SERVERBOUND_POSITION_LOOK
-            | ids::play::SERVERBOUND_LOOK
-            | ids::play::SERVERBOUND_FLYING
-            | ids::play::SERVERBOUND_PLAYER_LOADED
-            | ids::play::SERVERBOUND_PONG => {
-                tracing::debug!(phase = %phase, packet_id = packet.id, "play packet accepted");
+        tokio::select! {
+            packet = read_packet(&mut reader, phase) => {
+                handle_play_packet(packet?.id, phase);
             }
-            _ => {
-                tracing::debug!(phase = %phase, packet_id = packet.id, "play packet ignored");
+            _ = keepalives.tick() => {
+                keepalive_id += 1;
+                write_packet(
+                    &mut writer,
+                    phase,
+                    ids::play::KEEPALIVE,
+                    &play::encode_keepalive(keepalive_id),
+                )
+                .await?;
             }
         }
     }
 }
 
-async fn send_play_bootstrap(
-    stream: &mut TcpStream,
+fn handle_play_packet(packet_id: i32, phase: SessionState) {
+    match packet_id {
+        ids::play::SERVERBOUND_TELEPORT_CONFIRM
+        | ids::play::SERVERBOUND_CHUNK_BATCH_RECEIVED
+        | ids::play::SERVERBOUND_SETTINGS
+        | ids::play::SERVERBOUND_KEEPALIVE
+        | ids::play::SERVERBOUND_POSITION
+        | ids::play::SERVERBOUND_POSITION_LOOK
+        | ids::play::SERVERBOUND_LOOK
+        | ids::play::SERVERBOUND_FLYING
+        | ids::play::SERVERBOUND_PLAYER_LOADED
+        | ids::play::SERVERBOUND_PONG => {
+            tracing::debug!(phase = %phase, packet_id, "play packet accepted");
+        }
+        _ => {
+            tracing::debug!(phase = %phase, packet_id, "play packet ignored");
+        }
+    }
+}
+
+async fn send_play_bootstrap<W>(
+    stream: &mut W,
     bootstrap: play::Bootstrap,
-) -> Result<(), ConnectionError> {
+) -> Result<(), ConnectionError>
+where
+    W: AsyncWrite + Unpin,
+{
     let phase = SessionState::Play;
     write_packet(
         stream,

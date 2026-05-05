@@ -104,6 +104,10 @@ pub async fn login_play(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     if codec::read_i64(&mut Cursor::new(keepalive.data))? != 1 {
         return Err(Box::new(ProbeError::Phase("keepalive id")));
     }
+    let next_keepalive = expect(&mut stream, ids::play::KEEPALIVE, "periodic keepalive").await?;
+    if codec::read_i64(&mut Cursor::new(next_keepalive.data))? != 2 {
+        return Err(Box::new(ProbeError::Phase("periodic keepalive id")));
+    }
     println!("login-play probe ok");
     Ok(())
 }
