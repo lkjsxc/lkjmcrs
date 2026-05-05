@@ -14,6 +14,17 @@ docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm persi
 docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
 ```
 
+## Survival Item Slice
+
+Use a separate clean volume because this slice changes new-profile defaults:
+
+```bash
+LKJMCRS_DEFAULT_GAME_MODE=survival LKJMCRS_SURVIVAL_STARTER_STONE=1 \
+docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build server
+docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm survival-item
+docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
+```
+
 ## Required Behavior
 
 1. `verify` runs Rust formatting, Clippy, tests, docs topology, and line limits.

@@ -13,11 +13,13 @@ quests, parties, and cross-player queries.
 
 ## Schema Contract
 
-- SQLite `PRAGMA user_version` is `1`.
+- SQLite `PRAGMA user_version` is `2`.
 - `player_profiles` owns one row per UUID.
+- `player_profiles.selected_hotbar_slot` stores the selected hotbar slot.
 - `player_inventory_slots` owns zero or more rows per UUID.
 - Inventory slot rows are replaced as part of profile save.
 - Unsupported nonzero schema versions fail startup or profile access.
+- Existing version `1` databases are intentionally unsupported.
 
 ## I/O Rules
 

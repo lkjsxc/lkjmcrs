@@ -7,6 +7,9 @@
 - `LKJMCRS_MAX_PLAYERS`: status max players, default `100`.
 - `LKJMCRS_ONLINE_MODE`: authentication mode, default `false`.
 - `LKJMCRS_DATA_DIR`: world override storage root, default `data`.
+- `LKJMCRS_DEFAULT_GAME_MODE`: new-profile game mode, default `creative`.
+- `LKJMCRS_SURVIVAL_STARTER_STONE`: new-survival-profile starter stone count,
+  default `0`.
 
 ## Rules
 
@@ -15,3 +18,5 @@
 3. `LKJMCRS_ONLINE_MODE=true` fails startup until online mode is implemented.
 4. Secrets are not required for the first milestone.
 5. `LKJMCRS_DATA_DIR` must be writable by the server process.
+6. `LKJMCRS_DEFAULT_GAME_MODE` accepts only `creative` or `survival`.
+7. `LKJMCRS_SURVIVAL_STARTER_STONE` must be between `0` and `64`.

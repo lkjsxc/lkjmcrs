@@ -14,6 +14,7 @@ lifecycle, and play-session visibility contracts.
 ## Child Index
 
 - [authentication.md](authentication.md): offline and future online auth.
+- [inventory.md](inventory.md): selected hotbar and first item-loop rules.
 - [player-state.md](player-state.md): persistent profile, gamemode, inventory,
   and vitals.
 - [player-storage.md](player-storage.md): SQLite profile storage contract.

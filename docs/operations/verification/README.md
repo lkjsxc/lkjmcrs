@@ -21,6 +21,7 @@ Use this subtree for required compose verification contracts.
   persistence smoke.
 - [chunk-stream-smoke.md](chunk-stream-smoke.md): movement-driven chunk
   streaming smoke.
+- [survival-item-smoke.md](survival-item-smoke.md): survival item-loop smoke.
 - [persistence-smoke.md](persistence-smoke.md): restart behavior for persisted
   block overrides.
 - [join-boundary.md](join-boundary.md): latest known manual client boundary.
