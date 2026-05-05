@@ -26,11 +26,12 @@ client reported as required, including the `minecraft:timeline` tag binding
 used by the overworld dimension and the grouped `minecraft:damage_type`
 bootstrap entries used by client-level construction.
 
-The latest captured boundary is a terrain-loading timeout after earlier
-keepalive and chunk encoding fixes. The server advertised chunk-cache radius
-`2` but sent only a `3x3` chunk batch, leaving the initial terrain batch smaller
-than the advertised radius. See
+The latest fixed boundary was a terrain-loading timeout caused by advertising
+chunk-cache radius `2` while sending only a `3x3` chunk batch. The automated
+smoke probe now requires the full `5x5` batch for that radius. See
 [client-reports/terrain-radius-timeout.md](client-reports/terrain-radius-timeout.md).
 
-If a stock client still disconnects before rendering terrain, record the exact
-new disconnect text here before moving the boundary again.
+The next manual stock-client check must recapture the join result after the
+full-radius batch fix. If the client still disconnects before rendering
+terrain, record the exact new disconnect text here before moving the boundary
+again.

@@ -34,3 +34,8 @@ Derive the bootstrap chunk batch from the advertised radius:
 - radius `2` sends `25` chunks,
 - `chunk_batch_finished` reports the derived chunk count,
 - the first-party probe validates the same derived count.
+
+## Resolution
+
+Implemented in the server bootstrap and first-party probe. The next evidence
+step is a fresh stock-client join attempt against the fixed full-radius batch.
