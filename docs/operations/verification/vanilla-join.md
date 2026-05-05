@@ -26,8 +26,8 @@ client reported as required, including the `minecraft:timeline` tag binding
 used by the overworld dimension.
 
 The latest captured boundary is play login failing while constructing the
-client level because `minecraft:damage_type / minecraft:in_fire` is missing.
-See [damage-type-login.md](damage-type-login.md).
+client level because `minecraft:damage_type / minecraft:campfire` is missing.
+See [client-reports/damage-type-campfire.md](client-reports/damage-type-campfire.md).
 
 If a stock client still disconnects before rendering terrain, record the exact
 new disconnect text here before moving the boundary again.
