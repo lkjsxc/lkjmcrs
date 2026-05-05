@@ -31,6 +31,7 @@ flat spawn area.
 - Movement packets are accepted and update session-local position.
 - Keepalive is sent at play bootstrap and every `10` seconds while connected.
 - Keepalive responses are accepted in play state.
+- Time updates are sent every `1` second and advance by `20` ticks.
 
 ## Out of Scope
 

@@ -12,3 +12,4 @@ Use this subtree for authentication and session lifecycle contracts.
 
 - [authentication.md](authentication.md): offline and future online auth.
 - [session-lifecycle.md](session-lifecycle.md): player session states.
+- [play-loop.md](play-loop.md): movement, keepalive, and time behavior in play.

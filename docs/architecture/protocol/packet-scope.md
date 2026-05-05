@@ -28,7 +28,7 @@
 - Player abilities.
 - Initial player position sync.
 - Keepalive serverbound and clientbound in play.
-- Basic movement packets accepted from client.
+- Basic movement packets decoded from client and stored on the session.
 
 ## Deferred
 
@@ -48,8 +48,8 @@ The server-list status path is vanilla-shaped for `1.21.11`.
 The login path reaches configuration, negotiates the vanilla core pack,
 loads the required non-empty registries, enters play, sends game event `13`,
 and sends a deterministic `5x5` flat spawn chunk batch for advertised radius
-`2`. Full terrain rendering by a stock client still requires fresh manual
-evidence because the registry and chunk set is intentionally minimal.
+`2`. A player join was reported on `2026-05-05` after the `0x26` fix. Treat
+that as manual success evidence without raw logs attached.
 
 Dynamic registries are intentionally minimal and evidence-driven. They are not
 full vanilla coverage. `minecraft:damage_type` is required before play login can

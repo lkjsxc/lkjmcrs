@@ -2,8 +2,12 @@
 
 ## Current State
 
-As of commit `d694a59`, all captured packet-shape failures in `tmp/` have
+As of commit `485c906`, all captured packet-shape failures in `tmp/` have
 implemented regression fixes and compose smoke coverage.
+
+A successful player join was reported in the task prompt on `2026-05-05` after
+the `0x26 game_state_change` fix. No raw client log was attached, so this is
+manual success evidence but not a packet-level regression artifact.
 
 The latest stock-client report is
 `tmp/disconnect-2026-05-05_15.15.50-client.txt`. It is now historical packet-ID
@@ -30,10 +34,10 @@ smoke coverage:
 
 ## Active Manual Boundary
 
-No newer stock-client report has been captured after the `0x26` fix and live
-smoke verification. The next active boundary is unknown until a fresh stock
-Minecraft Java Edition `1.21.11` join attempt is recorded against commit
-`d694a59` or later.
+No active disconnect boundary is known after the reported successful join and
+live smoke verification. The next active boundary is the first newer stock
+Minecraft Java Edition `1.21.11` disconnect or gameplay blocker recorded
+against commit `485c906` or later.
 
 ## Evidence Rules
 
@@ -51,5 +55,5 @@ Minecraft Java Edition `1.21.11` join attempt is recorded against commit
 ## Next Manual Check
 
 Use a stock offline-mode `1.21.11` client against the compose `server` service.
-Record the exact disconnect text or successful terrain-rendering result in this
+Record the exact disconnect text or successful gameplay observation in this
 directory before changing the manual boundary again.

@@ -2,7 +2,7 @@
 
 ## 2026-05-05
 
-Commit tested: `d694a59`.
+Commit tested: `485c906`.
 
 Compose commands:
 
@@ -16,9 +16,11 @@ Results:
 - `smoke`: pass, `login-play probe ok`.
 - docs maximum line count: `103`.
 - source maximum line count: `191`.
+- Manual join: user-reported success in the task prompt, with no raw client log
+  attached.
 
-## Remaining Manual Boundary
+## Active Manual Boundary
 
-Run a stock Minecraft Java Edition `1.21.11` client against commit `d694a59` or
-later. Record either successful terrain rendering or the next exact disconnect
-report before changing [join-boundary.md](join-boundary.md).
+No active disconnect boundary is known after the reported successful join.
+Record the next exact stock-client disconnect or gameplay blocker before
+changing [join-boundary.md](join-boundary.md).

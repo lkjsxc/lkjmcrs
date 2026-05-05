@@ -32,5 +32,6 @@
 - Server sends a matching `5x5` flat chunk and light batch around spawn.
 - Server sends an initial keepalive, then sends another keepalive every `10`
   seconds while the play session remains open.
+- Server sends observable time updates every `1` second after bootstrap.
 - Client keepalive responses are accepted without blocking outgoing keepalives.
 - Client movement updates session position.
