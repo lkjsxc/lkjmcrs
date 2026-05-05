@@ -11,6 +11,7 @@ Use this subtree for required compose verification contracts.
 ## Child Index
 
 - [compose-pipeline.md](compose-pipeline.md): required compose commands.
+- [current-results.md](current-results.md): latest compose verification result.
 - [smoke-probe.md](smoke-probe.md): wire smoke behavior.
 - [join-boundary.md](join-boundary.md): latest known manual client boundary.
 - [evidence-policy.md](evidence-policy.md): how reports become active

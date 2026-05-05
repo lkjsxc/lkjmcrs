@@ -30,3 +30,8 @@ The correct packet ID is `0x26 game_state_change`.
 3. Make the live smoke probe assert the `0x26` packet before chunk radius and
    chunk data.
 4. Run compose `verify` and `smoke`.
+
+## Fixed State
+
+Commit `d694a59` implements the packet ID fix and updates the live smoke probe.
+Compose `verify` and `smoke` passed on `2026-05-05`.
