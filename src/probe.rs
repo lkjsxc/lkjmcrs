@@ -2,8 +2,8 @@ use crate::protocol::codec;
 mod validation;
 
 use crate::probe::validation::{
-    validate_chunk_batch_finished, validate_chunk_radius, validate_known_packs,
-    validate_login_success, validate_position_packet, validate_status_json,
+    validate_chunk_batch_finished, validate_chunk_radius, validate_game_event,
+    validate_known_packs, validate_login_success, validate_position_packet, validate_status_json,
 };
 use crate::protocol::PROTOCOL_VERSION;
 use crate::protocol::configuration;
@@ -75,6 +75,11 @@ pub async fn login_play(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     expect(&mut stream, ids::config::FINISH, "finish config").await?;
     codec::write_packet(&mut stream, ids::config::FINISH, &[]).await?;
     expect(&mut stream, ids::play::LOGIN, "play login").await?;
+    expect(&mut stream, ids::play::DEFAULT_SPAWN_POSITION, "spawn").await?;
+    expect(&mut stream, ids::play::SET_TIME, "time").await?;
+    expect(&mut stream, ids::play::PLAYER_ABILITIES, "abilities").await?;
+    let game_event = expect(&mut stream, ids::play::GAME_EVENT, "chunk readiness").await?;
+    validate_game_event(game_event.data)?;
     expect(&mut stream, ids::play::CHUNK_CACHE_CENTER, "chunk center").await?;
     let radius = expect(&mut stream, ids::play::CHUNK_CACHE_RADIUS, "chunk radius").await?;
     let chunk_count = validate_chunk_radius(radius.data)?;
@@ -95,9 +100,6 @@ pub async fn login_play(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     )
     .await?;
     validate_chunk_batch_finished(finished.data, chunk_count)?;
-    expect(&mut stream, ids::play::DEFAULT_SPAWN_POSITION, "spawn").await?;
-    expect(&mut stream, ids::play::SET_TIME, "time").await?;
-    expect(&mut stream, ids::play::PLAYER_ABILITIES, "abilities").await?;
     let position = expect(&mut stream, ids::play::PLAYER_POSITION, "position").await?;
     validate_position_packet(position.data)?;
     let mut confirm = Vec::new();

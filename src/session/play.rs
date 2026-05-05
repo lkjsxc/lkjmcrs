@@ -80,6 +80,28 @@ where
     write_packet(
         stream,
         phase,
+        ids::play::DEFAULT_SPAWN_POSITION,
+        &play::encode_default_spawn_position(bootstrap),
+    )
+    .await?;
+    write_packet(stream, phase, ids::play::SET_TIME, &play::encode_time(0, 0)).await?;
+    write_packet(
+        stream,
+        phase,
+        ids::play::PLAYER_ABILITIES,
+        &play::encode_player_abilities(),
+    )
+    .await?;
+    write_packet(
+        stream,
+        phase,
+        ids::play::GAME_EVENT,
+        &play::encode_start_waiting_for_chunks(),
+    )
+    .await?;
+    write_packet(
+        stream,
+        phase,
         ids::play::CHUNK_CACHE_CENTER,
         &play::encode_chunk_cache_center(0, 0),
     )
@@ -115,21 +137,6 @@ where
         phase,
         ids::play::CHUNK_BATCH_FINISHED,
         &chunk::encode_chunk_batch_finished(chunks.len()),
-    )
-    .await?;
-    write_packet(
-        stream,
-        phase,
-        ids::play::DEFAULT_SPAWN_POSITION,
-        &play::encode_default_spawn_position(bootstrap),
-    )
-    .await?;
-    write_packet(stream, phase, ids::play::SET_TIME, &play::encode_time(0, 0)).await?;
-    write_packet(
-        stream,
-        phase,
-        ids::play::PLAYER_ABILITIES,
-        &play::encode_player_abilities(),
     )
     .await?;
     write_packet(

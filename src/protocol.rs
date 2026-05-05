@@ -16,6 +16,8 @@ pub mod ids;
 pub mod login;
 pub mod nbt;
 pub mod play;
+#[cfg(test)]
+mod play_tests;
 pub mod registry;
 mod registry_damage;
 #[cfg(test)]

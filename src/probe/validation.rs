@@ -52,6 +52,13 @@ pub(super) fn validate_chunk_radius(data: Vec<u8>) -> Result<usize, Box<dyn std:
     Ok(play::chunk_count_for_radius(radius))
 }
 
+pub(super) fn validate_game_event(data: Vec<u8>) -> Result<(), Box<dyn std::error::Error>> {
+    if data != play::encode_start_waiting_for_chunks() {
+        return Err(Box::new(ProbeError::Phase("chunk readiness payload")));
+    }
+    Ok(())
+}
+
 pub(super) fn validate_chunk_batch_finished(
     data: Vec<u8>,
     expected: usize,
