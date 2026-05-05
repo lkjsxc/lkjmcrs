@@ -26,11 +26,11 @@ client reported as required, including the `minecraft:timeline` tag binding
 used by the overworld dimension and the grouped `minecraft:damage_type`
 bootstrap entries used by client-level construction.
 
-The latest captured boundary is play packet decoding inside
-`clientbound/minecraft:level_chunk_with_light`. The client reaches level chunk
-section and paletted container decoding, then overruns the packet while reading
-a fixed raw long. See
-[client-reports/level-chunk-with-light.md](client-reports/level-chunk-with-light.md).
+The latest captured boundary is heightmap decoding inside
+`clientbound/minecraft:level_chunk_with_light`. The client now reaches chunk
+handling, but rejects heightmaps whose long arrays contain `36` longs instead
+of the expected `37`. See
+[client-reports/heightmap-long-count.md](client-reports/heightmap-long-count.md).
 
 If a stock client still disconnects before rendering terrain, record the exact
 new disconnect text here before moving the boundary again.

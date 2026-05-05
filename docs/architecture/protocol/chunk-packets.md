@@ -35,6 +35,23 @@ The packet payload is:
 
 The chunk section byte length covers only the raw section data.
 
+## Heightmap Data
+
+The first milestone sends two heightmaps for each chunk:
+
+- `WORLD_SURFACE`,
+- `MOTION_BLOCKING`.
+
+Each heightmap contains `256` entries with `9` bits per entry. The packed long
+array uses fixed values-per-long storage:
+
+- `values_per_long = floor(64 / 9) = 7`,
+- values do not cross long boundaries,
+- `raw_long_count = ceil(256 / 7) = 37`.
+
+Compact bit-stream packing would produce `36` longs and is rejected by the
+client with `expected: 37, got: 36`.
+
 ## Section Data
 
 Each vertical section writes:

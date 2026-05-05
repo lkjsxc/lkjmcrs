@@ -48,8 +48,8 @@ The login path reaches configuration, negotiates the vanilla core pack,
 loads the required non-empty registries, enters play, and sends a deterministic
 `3x3` flat spawn chunk batch. Full terrain rendering by a stock client still
 requires manual evidence because the registry and chunk set is intentionally
-minimal. The active manual boundary is chunk-section paletted container decoding
-inside `clientbound/minecraft:level_chunk_with_light`.
+minimal. The active manual boundary is heightmap long-array sizing inside
+`clientbound/minecraft:level_chunk_with_light`.
 
 Dynamic registries are intentionally minimal and evidence-driven. They are not
 full vanilla coverage. `minecraft:damage_type` is required before play login can

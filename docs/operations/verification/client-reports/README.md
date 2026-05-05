@@ -10,6 +10,8 @@ Use this subtree for manual Minecraft client disconnect evidence.
 
 ## Child Index
 
+- [heightmap-long-count.md](heightmap-long-count.md): latest terrain-load
+  warning after chunk-section decoding was fixed.
 - [level-chunk-with-light.md](level-chunk-with-light.md): latest play packet
   chunk-section decoding blocker.
 - [damage-type-in-fire.md](damage-type-in-fire.md): first play-login damage
