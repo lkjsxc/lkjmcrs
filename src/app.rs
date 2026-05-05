@@ -63,6 +63,10 @@ enum ProbeCommand {
         #[arg(long, default_value = "127.0.0.1:25565")]
         host: String,
     },
+    ChunkStream {
+        #[arg(long, default_value = "127.0.0.1:25565")]
+        host: String,
+    },
 }
 
 #[tokio::main]
@@ -91,6 +95,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
             ProbeCommand::ProfileReconnect { host } => {
                 crate::probe::profile_reconnect(&host).await?
             }
+            ProbeCommand::ChunkStream { host } => crate::probe::chunk_stream(&host).await?,
         },
     }
 

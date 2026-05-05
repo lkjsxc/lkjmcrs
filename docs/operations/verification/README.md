@@ -19,6 +19,8 @@ Use this subtree for required compose verification contracts.
   observer fanout probe behavior.
 - [profile-reconnect-smoke.md](profile-reconnect-smoke.md): player profile
   persistence smoke.
+- [chunk-stream-smoke.md](chunk-stream-smoke.md): movement-driven chunk
+  streaming smoke.
 - [persistence-smoke.md](persistence-smoke.md): restart behavior for persisted
   block overrides.
 - [join-boundary.md](join-boundary.md): latest known manual client boundary.

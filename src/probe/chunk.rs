@@ -39,6 +39,15 @@ pub(super) fn validate_update_light(data: Vec<u8>) -> Result<(), Box<dyn std::er
     Ok(())
 }
 
+pub(super) fn level_chunk_pos(data: &[u8]) -> Result<(i32, i32), Box<dyn std::error::Error>> {
+    if data.len() < 8 {
+        return Err(Box::new(ProbeError::Phase("chunk position")));
+    }
+    let x = i32::from_be_bytes(data[0..4].try_into()?);
+    let z = i32::from_be_bytes(data[4..8].try_into()?);
+    Ok((x, z))
+}
+
 fn validate_heightmaps(cursor: &mut Cursor<Vec<u8>>) -> Result<(), Box<dyn std::error::Error>> {
     if codec::read_var_i32(cursor)? != HEIGHTMAP_COUNT {
         return Err(Box::new(ProbeError::Phase("heightmap count")));

@@ -12,6 +12,8 @@ Use this subtree for chunk, region, and world-data contracts.
 
 - [flat-world.md](flat-world.md): deterministic first world.
 - [chunk-storage.md](chunk-storage.md): chunk representation and persistence boundary.
+- [chunk-streaming.md](chunk-streaming.md): load-only player-driven chunk
+  streaming.
 - [mutable-chunks.md](mutable-chunks.md): sparse in-memory block overrides.
 - [persistent-overrides.md](persistent-overrides.md): JSON storage for sparse
   chunk overrides.

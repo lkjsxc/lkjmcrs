@@ -1,6 +1,7 @@
 use crate::protocol::codec;
 mod block_mutation;
 mod chunk;
+mod chunk_stream;
 mod live_play;
 mod multiplayer_mutation;
 mod persistence;
@@ -76,6 +77,12 @@ pub async fn persist_check(host: &str) -> Result<(), Box<dyn std::error::Error>>
 pub async fn profile_reconnect(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     profile_reconnect::run(host).await?;
     println!("profile-reconnect probe ok");
+    Ok(())
+}
+
+pub async fn chunk_stream(host: &str) -> Result<(), Box<dyn std::error::Error>> {
+    chunk_stream::run(host).await?;
+    println!("chunk-stream probe ok");
     Ok(())
 }
 

@@ -24,12 +24,14 @@ interaction can be implemented without introducing persistence.
 
 ## Region Ownership
 
-- The static spawn region owns all chunks in the advertised radius `2`.
+- The initial region actor owns spawn chunks and chunks loaded by movement
+  streaming in this slice.
 - Sessions submit block mutations to the owning region actor.
 - Region actors return the resulting block state for client reconciliation.
 - Accepted mutations in loaded chunks are published as single-block updates to
   subscribed play sessions.
-- Missing owners or unloaded chunks must not create chunks during this slice.
+- Missing owners or still-unloaded chunks must not create chunks through the
+  mutation path.
 - Persistent override writes follow
   [persistent-overrides.md](persistent-overrides.md).
 

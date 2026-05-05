@@ -5,6 +5,7 @@ use crate::protocol::movement::Movement;
 use crate::scheduler::RegionHandle;
 use crate::session::SessionState;
 use crate::session::block_actions::handle_block_interaction;
+use crate::session::chunk_stream::{ChunkStream, StreamContext};
 use crate::session::error::ConnectionError;
 use crate::session::io::codec_error;
 use crate::session::play_state::PlaySession;
@@ -15,6 +16,7 @@ pub async fn handle_play_packet(
     packet: Packet,
     phase: SessionState,
     session: &mut PlaySession,
+    chunk_stream: &mut ChunkStream,
     region: &RegionHandle,
     sessions: &SessionRegistry,
     writer: &mut (impl tokio::io::AsyncWrite + Unpin),
@@ -23,6 +25,14 @@ pub async fn handle_play_packet(
         .map_err(|error| codec_error(phase, error))?
     {
         session.apply_movement(movement);
+        let context = StreamContext {
+            region,
+            sessions,
+            session_id: session.id,
+        };
+        chunk_stream
+            .stream_after_movement(session.x, session.z, phase, context, writer)
+            .await?;
         tracing::debug!(phase = %phase, packet_id = packet.id, "movement packet applied");
         return Ok(());
     }

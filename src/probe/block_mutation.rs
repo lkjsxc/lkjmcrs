@@ -1,5 +1,6 @@
 use crate::probe::ProbeError;
 use crate::protocol::{codec, ids};
+use crate::world::BlockPos;
 use std::io::Cursor;
 use tokio::net::TcpStream;
 
@@ -19,9 +20,17 @@ pub(super) async fn send_use_item_on(
     stream: &mut TcpStream,
     sequence: i32,
 ) -> Result<(), Box<dyn std::error::Error>> {
+    send_use_item_on_at(stream, sequence, BlockPos::new(0, 79, 0)).await
+}
+
+pub(super) async fn send_use_item_on_at(
+    stream: &mut TcpStream,
+    sequence: i32,
+    pos: BlockPos,
+) -> Result<(), Box<dyn std::error::Error>> {
     let mut payload = Vec::new();
     codec::write_var_i32(&mut payload, 0);
-    codec::write_position(&mut payload, 0, 79, 0);
+    codec::write_position(&mut payload, pos.x, pos.y, pos.z);
     codec::write_var_i32(&mut payload, 1);
     codec::write_f32(&mut payload, 0.5);
     codec::write_f32(&mut payload, 1.0);
@@ -88,8 +97,16 @@ pub(super) fn validate_ack(data: Vec<u8>, sequence: i32) -> Result<(), Box<dyn s
 }
 
 pub(super) fn validate_update(data: Vec<u8>, state: i32) -> Result<(), Box<dyn std::error::Error>> {
+    validate_update_at(data, BlockPos::new(0, 80, 0), state)
+}
+
+pub(super) fn validate_update_at(
+    data: Vec<u8>,
+    pos: BlockPos,
+    state: i32,
+) -> Result<(), Box<dyn std::error::Error>> {
     let mut cursor = Cursor::new(data);
-    if codec::read_position(&mut cursor)? != (0, 80, 0) {
+    if codec::read_position(&mut cursor)? != (pos.x, pos.y, pos.z) {
         return Err(Box::new(ProbeError::Phase("block mutation update pos")));
     }
     if codec::read_var_i32(&mut cursor)? != state {

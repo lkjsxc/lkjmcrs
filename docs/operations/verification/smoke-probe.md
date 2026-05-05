@@ -16,8 +16,8 @@ Verify the real wire path without depending on an external Minecraft bot crate.
 8. Validate login success has no trailing payload bytes.
 9. Complete known-pack, registry, tag, and feature-flag configuration.
 10. Enter play state and validate play login, the level-chunk readiness game
-    event, the advertised chunk radius, level chunks, light, position,
-    movement, time, and keepalive packets.
+    event, the advertised chunk radius, bootstrap level chunks, light,
+    position, movement, time, and keepalive packets.
 11. Open an observer play client and validate the same bootstrap boundary.
 12. Validate one live block placement and break sequence through protocol
     `774` prediction acknowledgements and block updates.
@@ -61,3 +61,5 @@ writing timed server packets during terrain loading.
   probe-only play marker packets.
 - Passing smoke proves the first-party login/configuration/play boundary, not
   final stock-client terrain rendering.
+- Movement-driven post-bootstrap chunk batches are covered by
+  [chunk-stream-smoke.md](chunk-stream-smoke.md).

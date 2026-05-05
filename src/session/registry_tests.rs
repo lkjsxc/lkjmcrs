@@ -47,3 +47,28 @@ async fn unregister_removes_subscriptions() {
 
     assert_eq!(sent, 0);
 }
+
+#[tokio::test]
+async fn newly_subscribed_chunks_are_fanout_eligible() {
+    let registry = SessionRegistry::default();
+    let (id, mut rx) = registry.register().await;
+    registry.subscribe(id, [ChunkPos::new(0, 0)]).await;
+    registry.subscribe(id, [ChunkPos::new(3, 0)]).await;
+
+    let sent = registry
+        .broadcast_block_update(
+            ChunkPos::new(3, 0),
+            BlockPos::new(48, 80, 0),
+            BlockState::Stone,
+        )
+        .await;
+
+    assert_eq!(sent, 1);
+    assert_eq!(
+        rx.try_recv().unwrap(),
+        PlayOutbound::BlockUpdate {
+            pos: BlockPos::new(48, 80, 0),
+            state: BlockState::Stone,
+        }
+    );
+}

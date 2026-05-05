@@ -30,9 +30,10 @@ The first milestone accepts these serverbound movement packets:
 - `0x1f look`,
 - `0x20 status_only`.
 
-Movement packets update session-local state only. The final state is persisted
-on disconnect. Movement does not mutate world chunks, broadcast movement, load
-chunks dynamically, or validate survival physics.
+Movement packets update session-local state and may trigger load-only chunk
+streaming when the derived chunk center changes. The final state is persisted
+on disconnect. Movement does not mutate world chunks, broadcast movement,
+unload chunks, or validate survival physics.
 
 The final movement field is one unsigned flags byte:
 
@@ -41,6 +42,14 @@ The final movement field is one unsigned flags byte:
 
 Payload decoding must reject trailing bytes in tests. Runtime handling may log
 malformed movement and close through the normal connection error path.
+
+## Chunk Streaming
+
+The play loop tracks the current chunk center for each session. Crossing from
+center `0,0` to `1,0` with radius `2` sends one new visible column at chunk
+`x=3`, updates the client chunk-cache center, and subscribes the session to the
+newly sent chunks. The streaming contract is documented in
+[../world/chunk-streaming.md](../world/chunk-streaming.md).
 
 ## Keepalive
 

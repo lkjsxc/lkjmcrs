@@ -5,6 +5,7 @@ use crate::scheduler::RegionHandle;
 use crate::session::SessionState;
 use crate::session::block_actions::send_block_update;
 use crate::session::bootstrap::send_play_bootstrap;
+use crate::session::chunk_stream::ChunkStream;
 use crate::session::error::ConnectionError;
 use crate::session::io::{read_packet, write_packet};
 use crate::session::outbound::PlayOutbound;
@@ -61,6 +62,10 @@ async fn run_play(
     let phase = SessionState::Play;
     let bootstrap = bootstrap_from_profile(max_players, profile);
     let mut session = PlaySession::new(bootstrap, session_id);
+    let mut chunk_stream = ChunkStream::new(
+        crate::world::ChunkPos::new(bootstrap.chunk_x, bootstrap.chunk_z),
+        bootstrap.view_distance,
+    );
     let (mut reader, mut writer) = stream.split();
     let chunks = send_play_bootstrap(&mut writer, bootstrap, &region).await?;
     sessions.subscribe(session.id, chunks).await;
@@ -79,6 +84,7 @@ async fn run_play(
                         packet,
                         phase,
                         &mut session,
+                        &mut chunk_stream,
                         &region,
                         &sessions,
                         &mut writer,

@@ -29,6 +29,8 @@
 - Initial player position sync.
 - Keepalive serverbound and clientbound in play.
 - Basic movement packets decoded from client and stored on the session.
+- Movement-driven `chunk_cache_center` updates and load-only chunk batches for
+  newly visible chunks.
 - Stored player position, look, and game mode used during play bootstrap.
 - Creative-style block placement and breaking in loaded spawn chunks.
 - Block prediction acknowledgements and single-block updates.
@@ -43,6 +45,7 @@
 - Full vanilla registry coverage beyond evidence-driven first milestone
   entries.
 - Full mutable chunk resend packets.
+- Client chunk unload packets.
 - Inventory-backed item use.
 - Resource pack negotiation.
 - Complete play packet set.

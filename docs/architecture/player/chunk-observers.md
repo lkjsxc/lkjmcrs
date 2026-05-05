@@ -11,11 +11,11 @@ subscription includes the changed chunk.
   configuration complete.
 - Bootstrap sends the full advertised spawn radius before the session subscribes
   to those chunks.
-- The current subscription set is static: all chunks in view radius `2` around
-  chunk `0,0`.
+- Movement across a chunk-center boundary sends newly visible chunks and adds
+  those chunks to the session subscription set.
 - Disconnect removes the session and all subscriptions.
-- Dynamic movement-based view changes are deferred until chunk loading policy
-  exists.
+- This slice is load-only: movement does not remove subscriptions and does not
+  send chunk unload packets.
 
 ## Outbound Messages
 
@@ -44,4 +44,5 @@ the region-owned state.
 - Region actors remain the authority for final block state.
 - Sessions never mutate chunk state directly.
 - Observer fanout sends block updates only; it does not resend whole chunks.
-- The multiplayer smoke probe owns the acceptance evidence for this contract.
+- The multiplayer and chunk-stream smoke probes own the acceptance evidence for
+  this contract.

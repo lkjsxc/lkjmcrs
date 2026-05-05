@@ -68,7 +68,7 @@ where
         .await
         .map_err(|source| ConnectionError::Region { phase, source })?;
     debug_assert_eq!(chunks.len(), bootstrap.chunk_count());
-    send_chunks(stream, &chunks).await?;
+    send_chunk_batch(stream, &chunks).await?;
     write_packet(
         stream,
         phase,
@@ -86,7 +86,7 @@ where
     Ok(chunks.iter().map(|chunk| chunk.pos).collect())
 }
 
-async fn send_chunks<W>(
+pub async fn send_chunk_batch<W>(
     stream: &mut W,
     chunks: &[crate::world::ChunkSnapshot],
 ) -> Result<(), ConnectionError>
