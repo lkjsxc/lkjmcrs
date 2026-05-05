@@ -1,2 +1,3 @@
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
-pub struct RegionId(pub u32);
+pub mod region_actor;
+
+pub use region_actor::{RegionActor, RegionHandle};
