@@ -1,6 +1,7 @@
 pub mod app;
 pub mod config;
 pub mod net;
+pub mod player;
 pub mod probe;
 pub mod protocol;
 pub mod quality;
