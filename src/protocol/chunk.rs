@@ -103,7 +103,7 @@ fn write_bitset(out: &mut Vec<u8>, mask: i64) {
     codec::write_i64(out, mask);
 }
 
-fn block_state_id(state: BlockState) -> i32 {
+pub(crate) fn block_state_id(state: BlockState) -> i32 {
     match state {
         BlockState::Air => AIR_ID,
         BlockState::Bedrock => BEDROCK_ID,

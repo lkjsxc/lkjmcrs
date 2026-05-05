@@ -4,6 +4,7 @@ pub const WORLD_VERSION: i32 = 4671;
 pub const DATA_PACK_VERSION: (i32, i32) = (94, 1);
 pub const RESOURCE_PACK_VERSION: (i32, i32) = (75, 0);
 
+pub mod block_interaction;
 pub mod chunk;
 mod chunk_palette;
 #[cfg(test)]

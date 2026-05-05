@@ -4,6 +4,8 @@ pub mod handler;
 pub mod io;
 pub mod play;
 pub mod play_packets;
+#[cfg(test)]
+mod play_packets_tests;
 pub mod play_state;
 pub mod profile;
 pub mod state;

@@ -3,6 +3,7 @@ use crate::protocol::codec;
 use crate::protocol::ids;
 use crate::protocol::types::{Handshake, LoginStart, NextState};
 use crate::protocol::{PROTOCOL_VERSION, login, status};
+use crate::scheduler::RegionActor;
 use crate::session::SessionState;
 use crate::session::configuration::handle_configuration;
 use crate::session::error::ConnectionError;
@@ -11,6 +12,7 @@ use crate::session::io::{
 };
 use crate::session::play::handle_play;
 use crate::session::profile::{offline_uuid, validate_name};
+use crate::world::RegionId;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use tokio::net::TcpStream;
@@ -18,6 +20,7 @@ use tokio::net::TcpStream;
 #[derive(Debug)]
 pub struct ServerContext {
     pub config: Config,
+    pub region: crate::scheduler::RegionHandle,
     players: AtomicUsize,
 }
 
@@ -25,6 +28,7 @@ impl ServerContext {
     pub fn new(config: Config) -> Arc<Self> {
         Arc::new(Self {
             config,
+            region: RegionActor::spawn(RegionId(0)),
             players: AtomicUsize::new(0),
         })
     }
@@ -110,7 +114,12 @@ async fn handle_login(
     expect_packet(&mut stream, phase, ids::login::ACKNOWLEDGED).await?;
     handle_configuration(&mut stream).await?;
     context.players.fetch_add(1, Ordering::Relaxed);
-    let play_result = handle_play(&mut stream, context.config.max_players).await;
+    let play_result = handle_play(
+        &mut stream,
+        context.config.max_players,
+        context.region.clone(),
+    )
+    .await;
     context.players.fetch_sub(1, Ordering::Relaxed);
     play_result
 }

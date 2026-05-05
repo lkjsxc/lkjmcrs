@@ -26,6 +26,8 @@ pub mod config {
 }
 
 pub mod play {
+    pub const BLOCK_CHANGED_ACK: i32 = 0x04;
+    pub const BLOCK_UPDATE: i32 = 0x08;
     pub const CHUNK_BATCH_FINISHED: i32 = 0x0b;
     pub const CHUNK_BATCH_START: i32 = 0x0c;
     pub const GAME_STATE_CHANGE: i32 = 0x26;
@@ -47,9 +49,12 @@ pub mod play {
     pub const SERVERBOUND_POSITION_LOOK: i32 = 0x1e;
     pub const SERVERBOUND_LOOK: i32 = 0x1f;
     pub const SERVERBOUND_FLYING: i32 = 0x20;
+    pub const SERVERBOUND_PLAYER_ACTION: i32 = 0x28;
     pub const SERVERBOUND_CHUNK_BATCH_RECEIVED: i32 = 0x0a;
     pub const SERVERBOUND_PLAYER_LOADED: i32 = 0x2b;
     pub const SERVERBOUND_PONG: i32 = 0x2c;
+    pub const SERVERBOUND_SWING: i32 = 0x3c;
+    pub const SERVERBOUND_USE_ITEM_ON: i32 = 0x3f;
 }
 
 #[cfg(test)]
@@ -77,6 +82,8 @@ mod tests {
 
     #[test]
     fn play_packet_ids_match_protocol_774() {
+        assert_eq!(play::BLOCK_CHANGED_ACK, 0x04);
+        assert_eq!(play::BLOCK_UPDATE, 0x08);
         assert_eq!(play::CHUNK_BATCH_FINISHED, 0x0b);
         assert_eq!(play::CHUNK_BATCH_START, 0x0c);
         assert_eq!(play::GAME_STATE_CHANGE, 0x26);
@@ -92,7 +99,10 @@ mod tests {
         assert_eq!(play::SET_TIME, 0x6f);
         assert_eq!(play::SERVERBOUND_TELEPORT_CONFIRM, 0x00);
         assert_eq!(play::SERVERBOUND_CHUNK_BATCH_RECEIVED, 0x0a);
+        assert_eq!(play::SERVERBOUND_PLAYER_ACTION, 0x28);
         assert_eq!(play::SERVERBOUND_PLAYER_LOADED, 0x2b);
+        assert_eq!(play::SERVERBOUND_SWING, 0x3c);
+        assert_eq!(play::SERVERBOUND_USE_ITEM_ON, 0x3f);
     }
 
     #[test]

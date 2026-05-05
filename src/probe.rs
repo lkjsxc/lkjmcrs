@@ -1,4 +1,5 @@
 use crate::protocol::codec;
+mod block_mutation;
 mod chunk;
 mod live_play;
 mod validation;
@@ -129,6 +130,7 @@ pub async fn login_play(host: &str) -> Result<(), Box<dyn std::error::Error>> {
         &keepalive_response,
     )
     .await?;
+    block_mutation::place_and_break(&mut stream).await?;
     let next_keepalive = live_play::expect_keepalive_after_time(&mut stream).await?;
     if next_keepalive != 2 {
         return Err(Box::new(ProbeError::Phase("periodic keepalive id")));

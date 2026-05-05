@@ -133,3 +133,18 @@ pub fn write_position(out: &mut Vec<u8>, x: i32, y: i32, z: i32) {
         | (i64::from(y) & 0xfff);
     out.extend_from_slice(&(value as u64).to_be_bytes());
 }
+
+pub fn read_position(cursor: &mut Cursor<Vec<u8>>) -> Result<(i32, i32, i32), CodecError> {
+    let mut bytes = [0; 8];
+    std::io::Read::read_exact(cursor, &mut bytes).map_err(|_| CodecError::Eof)?;
+    let value = u64::from_be_bytes(bytes);
+    let x = sign_extend((value >> 38) as i32, 26);
+    let y = sign_extend((value & 0xfff) as i32, 12);
+    let z = sign_extend(((value >> 12) & 0x3ffffff) as i32, 26);
+    Ok((x, y, z))
+}
+
+fn sign_extend(value: i32, bits: u8) -> i32 {
+    let shift = 32 - bits;
+    (value << shift) >> shift
+}

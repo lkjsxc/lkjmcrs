@@ -1,4 +1,5 @@
 use crate::protocol::codec;
+use crate::scheduler::region_actor::RegionActorError;
 use crate::session::SessionState;
 use crate::session::profile::ProfileError;
 use thiserror::Error;
@@ -35,6 +36,12 @@ pub enum ConnectionError {
         #[source]
         source: ProfileError,
     },
+    #[error("{phase}: {source}")]
+    Region {
+        phase: SessionState,
+        #[source]
+        source: RegionActorError,
+    },
 }
 
 impl ConnectionError {
@@ -47,7 +54,8 @@ impl ConnectionError {
             Self::Codec { phase, .. }
             | Self::Protocol { phase, .. }
             | Self::Json { phase, .. }
-            | Self::Profile { phase, .. } => *phase,
+            | Self::Profile { phase, .. }
+            | Self::Region { phase, .. } => *phase,
         }
     }
 

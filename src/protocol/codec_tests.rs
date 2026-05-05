@@ -1,6 +1,6 @@
 use crate::protocol::codec::{
-    CodecError, read_bool, read_error_to_codec, read_f32, read_f64, read_packet, read_var_i32,
-    write_position, write_var_i32,
+    CodecError, read_bool, read_error_to_codec, read_f32, read_f64, read_packet, read_position,
+    read_var_i32, write_position, write_var_i32,
 };
 use std::io::Cursor;
 use tokio::io::{AsyncWriteExt, duplex};
@@ -19,6 +19,17 @@ fn position_encoding_matches_protocol_layout() {
     let mut bytes = Vec::new();
     write_position(&mut bytes, 0, 80, 0);
     assert_eq!(bytes, [0, 0, 0, 0, 0, 0, 0, 80]);
+    assert_eq!(read_position(&mut Cursor::new(bytes)).unwrap(), (0, 80, 0));
+}
+
+#[test]
+fn position_decoding_sign_extends_negative_axes() {
+    let mut bytes = Vec::new();
+    write_position(&mut bytes, -1, -64, -2);
+    assert_eq!(
+        read_position(&mut Cursor::new(bytes)).unwrap(),
+        (-1, -64, -2)
+    );
 }
 
 #[test]
