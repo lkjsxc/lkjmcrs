@@ -97,6 +97,6 @@ The historical `readerIndex(6345) + length(8) exceeds writerIndex(6345)` crash
 came from a malformed chunk-section stream. The first milestone must keep tests
 that prove the chunk-data byte range is consumed exactly.
 
-For the current flat spawn chunk, the encoded chunk section data length is a
-fixed regression target. If that length changes, update this file and the tests
-in the same batch with the new documented reason.
+For the current flat spawn chunk, the encoded chunk section data length is
+`6294` bytes. If that length changes, update this file and the tests in the
+same batch with the new documented reason.

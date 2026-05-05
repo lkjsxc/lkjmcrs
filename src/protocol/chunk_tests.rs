@@ -4,6 +4,9 @@ use crate::protocol::{chunk, codec};
 use crate::world::{ChunkPos, ChunkSnapshot};
 use std::io::Cursor;
 
+const EXPECTED_FLAT_CHUNK_DATA_LEN: i32 = 6294;
+const HISTORICAL_MALFORMED_CHUNK_DATA_LEN: i32 = 6345;
+
 #[derive(Debug)]
 struct SectionShape {
     non_air_blocks: u16,
@@ -43,6 +46,18 @@ fn level_chunk_packet_sections_consume_exact_chunk_data() {
 }
 
 #[test]
+fn flat_chunk_data_length_stays_on_documented_shape() {
+    let chunk = ChunkSnapshot::flat(ChunkPos::new(0, 0));
+    let packet = encode_level_chunk_with_light(&chunk);
+
+    assert_eq!(parse_chunk_data_len(packet), EXPECTED_FLAT_CHUNK_DATA_LEN);
+    assert_ne!(
+        EXPECTED_FLAT_CHUNK_DATA_LEN,
+        HISTORICAL_MALFORMED_CHUNK_DATA_LEN
+    );
+}
+
+#[test]
 fn level_chunk_and_update_light_packets_remain_separate() {
     let chunk = ChunkSnapshot::flat(ChunkPos::new(0, 0));
     assert!(encode_level_chunk_with_light(&chunk).len() > 4096);
@@ -67,6 +82,13 @@ fn parse_heightmap_long_counts(packet: Vec<u8>) -> Vec<i32> {
     let mut cursor = Cursor::new(packet);
     skip_bytes(&mut cursor, 8);
     parse_heightmaps(&mut cursor)
+}
+
+fn parse_chunk_data_len(packet: Vec<u8>) -> i32 {
+    let mut cursor = Cursor::new(packet);
+    skip_bytes(&mut cursor, 8);
+    let _heightmaps = parse_heightmaps(&mut cursor);
+    codec::read_var_i32(&mut cursor).unwrap()
 }
 
 fn parse_heightmaps(cursor: &mut Cursor<Vec<u8>>) -> Vec<i32> {

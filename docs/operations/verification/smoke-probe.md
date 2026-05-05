@@ -26,10 +26,17 @@ captured client regressions:
 
 - advertised radius `2` yields `25` chunks,
 - each `level_chunk_with_light` payload has exactly consumed chunk data,
+- each `update_light` payload has exactly consumed light data,
 - heightmaps use `37` raw longs for each `9`-bit `256`-entry heightmap,
 - section paletted containers omit VarInt raw-long lengths,
 - biome containers use the plains single-value shape,
 - the batch-finished size equals the observed chunk count.
+
+## Keepalive Assertions
+
+The smoke probe must answer the bootstrap keepalive and still observe the next
+periodic keepalive. This proves the play loop can read client packets and keep
+writing timed server packets during terrain loading.
 
 ## Rules
 

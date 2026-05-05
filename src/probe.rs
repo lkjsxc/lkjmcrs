@@ -93,7 +93,8 @@ pub async fn login_play(host: &str) -> Result<(), Box<dyn std::error::Error>> {
         )
         .await?;
         chunk::validate_level_chunk_with_light(chunk.data)?;
-        expect(&mut stream, ids::play::UPDATE_LIGHT, "update light").await?;
+        let light = expect(&mut stream, ids::play::UPDATE_LIGHT, "update light").await?;
+        chunk::validate_update_light(light.data)?;
     }
     let finished = expect(
         &mut stream,
@@ -113,9 +114,18 @@ pub async fn login_play(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     )
     .await?;
     let keepalive = expect(&mut stream, ids::play::KEEPALIVE, "keepalive").await?;
-    if codec::read_i64(&mut Cursor::new(keepalive.data))? != 1 {
+    let keepalive_id = codec::read_i64(&mut Cursor::new(keepalive.data))?;
+    if keepalive_id != 1 {
         return Err(Box::new(ProbeError::Phase("keepalive id")));
     }
+    let mut keepalive_response = Vec::new();
+    codec::write_i64(&mut keepalive_response, keepalive_id);
+    codec::write_packet(
+        &mut stream,
+        ids::play::SERVERBOUND_KEEPALIVE,
+        &keepalive_response,
+    )
+    .await?;
     let next_keepalive = expect(&mut stream, ids::play::KEEPALIVE, "periodic keepalive").await?;
     if codec::read_i64(&mut Cursor::new(next_keepalive.data))? != 2 {
         return Err(Box::new(ProbeError::Phase("periodic keepalive id")));
