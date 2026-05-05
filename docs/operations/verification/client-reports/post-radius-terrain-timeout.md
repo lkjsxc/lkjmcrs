@@ -34,3 +34,10 @@ The next implementation pass should focus on the post-chunk bootstrap sequence:
 
 Add the smallest vanilla-shaped play readiness packets that move the client out
 of terrain loading, and extend the first-party probe so it proves their order.
+
+## Resolution
+
+Implemented game event `13`, start waiting for level chunks, before the
+advertised chunk batch. The first-party probe validates the packet and payload.
+The next evidence step is a fresh stock-client join attempt against this fixed
+readiness sequence.

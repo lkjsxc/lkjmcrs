@@ -26,10 +26,12 @@ client reported as required, including the `minecraft:timeline` tag binding
 used by the overworld dimension and the grouped `minecraft:damage_type`
 bootstrap entries used by client-level construction.
 
-The latest active boundary is still a terrain-loading timeout after the
-full-radius chunk batch fix. See
+The latest fixed boundary was a terrain-loading timeout after the full-radius
+chunk batch fix. The server now sends game event `13`, start waiting for level
+chunks, before the chunk batch. See
 [client-reports/post-radius-terrain-timeout.md](client-reports/post-radius-terrain-timeout.md).
 
-The next implementation pass must focus on the post-chunk readiness sequence.
-If a stock client still disconnects before rendering terrain, record the exact
-new disconnect text here before moving the boundary again.
+The next manual stock-client check must recapture the join result after the
+readiness event fix. If a stock client still disconnects before rendering
+terrain, record the exact new disconnect text here before moving the boundary
+again.
