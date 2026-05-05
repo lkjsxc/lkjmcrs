@@ -10,6 +10,8 @@ Use this subtree for manual Minecraft client disconnect evidence.
 
 ## Child Index
 
+- [post-radius-terrain-timeout.md](post-radius-terrain-timeout.md): latest
+  terrain-loading timeout after the full-radius chunk batch fix.
 - [terrain-radius-timeout.md](terrain-radius-timeout.md): fixed terrain-loading
   timeout caused by advertised radius and sent chunk-count mismatch.
 - [play-keepalive-timeout.md](play-keepalive-timeout.md): latest post-chunk
