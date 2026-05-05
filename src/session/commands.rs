@@ -4,6 +4,12 @@ use crate::player::GameMode;
 pub enum ServerCommand {
     Help,
     Spawn,
+    SetHome(String),
+    Home(String),
+    Homes,
+    SetWarp(String),
+    Warp(String),
+    Warps,
     Say(String),
     Gamemode {
         mode: GameMode,
@@ -21,6 +27,16 @@ pub fn parse(input: &str) -> Result<ServerCommand, &'static str> {
     match parts.next().unwrap_or("") {
         "help" => Ok(ServerCommand::Help),
         "spawn" => Ok(ServerCommand::Spawn),
+        "sethome" => {
+            parse_optional_location(parts, ServerCommand::SetHome, "Usage: /sethome [name]")
+        }
+        "home" => parse_optional_location(parts, ServerCommand::Home, "Usage: /home [name]"),
+        "homes" => parse_no_args(parts, ServerCommand::Homes, "Usage: /homes"),
+        "setwarp" => {
+            parse_required_location(parts, ServerCommand::SetWarp, "Usage: /setwarp <name>")
+        }
+        "warp" => parse_required_location(parts, ServerCommand::Warp, "Usage: /warp <name>"),
+        "warps" => parse_no_args(parts, ServerCommand::Warps, "Usage: /warps"),
         "say" => parse_say(trimmed),
         "gamemode" => parse_gamemode(parts),
         "kick" => parse_kick(trimmed),
@@ -32,9 +48,62 @@ impl ServerCommand {
     pub const fn requires_op(&self) -> bool {
         matches!(
             self,
-            Self::Say(_) | Self::Gamemode { .. } | Self::Kick { .. }
+            Self::SetWarp(_) | Self::Say(_) | Self::Gamemode { .. } | Self::Kick { .. }
         )
     }
+}
+
+pub fn normalize_location_name(raw: &str) -> Result<String, &'static str> {
+    let name = raw.trim().to_ascii_lowercase();
+    if name.is_empty() || name.len() > 32 {
+        return Err("Location names must be 1-32 characters");
+    }
+    if name.bytes().all(|byte| {
+        byte.is_ascii_lowercase() || byte.is_ascii_digit() || byte == b'_' || byte == b'-'
+    }) {
+        Ok(name)
+    } else {
+        Err("Location names may contain a-z, 0-9, _, and -")
+    }
+}
+
+fn parse_no_args<'a>(
+    mut parts: impl Iterator<Item = &'a str>,
+    command: ServerCommand,
+    usage: &'static str,
+) -> Result<ServerCommand, &'static str> {
+    if parts.next().is_some() {
+        Err(usage)
+    } else {
+        Ok(command)
+    }
+}
+
+fn parse_optional_location<'a>(
+    mut parts: impl Iterator<Item = &'a str>,
+    build: fn(String) -> ServerCommand,
+    usage: &'static str,
+) -> Result<ServerCommand, &'static str> {
+    let name = normalize_location_name(parts.next().unwrap_or("home"))?;
+    if parts.next().is_some() {
+        return Err(usage);
+    }
+    Ok(build(name))
+}
+
+fn parse_required_location<'a>(
+    mut parts: impl Iterator<Item = &'a str>,
+    build: fn(String) -> ServerCommand,
+    usage: &'static str,
+) -> Result<ServerCommand, &'static str> {
+    let Some(name) = parts.next() else {
+        return Err(usage);
+    };
+    let name = normalize_location_name(name)?;
+    if parts.next().is_some() {
+        return Err(usage);
+    }
+    Ok(build(name))
 }
 
 fn parse_say(input: &str) -> Result<ServerCommand, &'static str> {
@@ -93,5 +162,19 @@ mod tests {
     fn identifies_operator_commands() {
         assert!(!parse("help").unwrap().requires_op());
         assert!(parse("say hello").unwrap().requires_op());
+        assert!(parse("setwarp base").unwrap().requires_op());
+    }
+
+    #[test]
+    fn parses_location_names() {
+        assert_eq!(
+            parse("sethome Base_1").unwrap(),
+            ServerCommand::SetHome("base_1".to_string())
+        );
+        assert_eq!(
+            parse("home").unwrap(),
+            ServerCommand::Home("home".to_string())
+        );
+        assert!(parse("warp bad/name").is_err());
     }
 }

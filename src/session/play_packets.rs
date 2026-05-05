@@ -1,4 +1,4 @@
-use crate::player::PlayerProfile;
+use crate::player::{PlayerProfile, PlayerStore};
 use crate::protocol::block_interaction::BlockInteraction;
 use crate::protocol::chat::{self, PlayChat};
 use crate::protocol::codec::{self, Packet};
@@ -23,6 +23,7 @@ where
     pub region: &'a RegionHandle,
     pub sessions: &'a SessionRegistry,
     pub max_players: usize,
+    pub player_store: &'a PlayerStore,
     pub writer: &'a mut W,
 }
 
@@ -130,6 +131,7 @@ where
                 CommandDispatchContext {
                     phase,
                     max_players: context.max_players,
+                    player_store: context.player_store,
                     sessions: context.sessions,
                     writer: context.writer,
                 },

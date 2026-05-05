@@ -18,16 +18,26 @@ struct Node<'a> {
 
 pub fn encode_declare_commands() -> Vec<u8> {
     let nodes = [
-        node(ROOT, &[1, 2, 3, 5, 8], None),
+        node(ROOT, &[1, 2, 3, 5, 7, 8, 10, 12, 13, 15, 18], None),
         node(LITERAL | EXECUTABLE, &[], Some("help")),
         node(LITERAL | EXECUTABLE, &[], Some("spawn")),
-        node(LITERAL, &[4], Some("say")),
+        node(LITERAL | EXECUTABLE, &[4], Some("sethome")),
+        string_arg("name", SINGLE_WORD, &[]),
+        node(LITERAL | EXECUTABLE, &[6], Some("home")),
+        string_arg("name", SINGLE_WORD, &[]),
+        node(LITERAL | EXECUTABLE, &[], Some("homes")),
+        node(LITERAL, &[9], Some("setwarp")),
+        string_arg("name", SINGLE_WORD, &[]),
+        node(LITERAL, &[11], Some("warp")),
+        string_arg("name", SINGLE_WORD, &[]),
+        node(LITERAL | EXECUTABLE, &[], Some("warps")),
+        node(LITERAL, &[14], Some("say")),
         string_arg("message", GREEDY_PHRASE, &[]),
-        node(LITERAL, &[6], Some("gamemode")),
-        string_arg("mode", SINGLE_WORD, &[7]),
+        node(LITERAL, &[16], Some("gamemode")),
+        string_arg("mode", SINGLE_WORD, &[17]),
         string_arg("player", SINGLE_WORD, &[]),
-        node(LITERAL, &[9], Some("kick")),
-        string_arg("player", SINGLE_WORD, &[10]),
+        node(LITERAL, &[19], Some("kick")),
+        string_arg("player", SINGLE_WORD, &[20]),
         string_arg("reason", GREEDY_PHRASE, &[]),
     ];
     let mut out = Vec::new();
@@ -81,7 +91,8 @@ mod tests {
     #[test]
     fn command_tree_declares_nodes() {
         let payload = encode_declare_commands();
-        assert_eq!(payload[0], 11);
+        assert_eq!(payload[0], 21);
+        assert!(String::from_utf8_lossy(&payload).contains("sethome"));
         assert!(String::from_utf8_lossy(&payload).contains("gamemode"));
     }
 }

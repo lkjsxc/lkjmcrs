@@ -1,4 +1,7 @@
-use crate::player::{GameMode, InventorySlot, PlayerDefaults, PlayerProfile, PlayerStore};
+use crate::player::{
+    GameMode, InventorySlot, NamedLocation, PlayerDefaults, PlayerPosition, PlayerProfile,
+    PlayerStore,
+};
 use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -88,6 +91,42 @@ fn rejects_unsupported_schema_version() {
     cleanup(root);
 }
 
+#[tokio::test]
+async fn saves_homes_and_warps() {
+    let root = temp_root();
+    let store = PlayerStore::open(&root).unwrap();
+    let uuid = Uuid::from_u128(4);
+    let home = NamedLocation::overworld("base".to_string(), position(9.0, 82.0, -2.0));
+    let warp = NamedLocation::overworld("spawnish".to_string(), position(1.0, 80.0, 1.0));
+
+    store.set_home(uuid, home).await.unwrap();
+    store.set_warp(uuid, warp).await.unwrap();
+
+    assert_eq!(store.home_names(uuid).await.unwrap(), vec!["base"]);
+    assert_eq!(store.warp_names().await.unwrap(), vec!["spawnish"]);
+    assert_eq!(
+        store
+            .home(uuid, "base".to_string())
+            .await
+            .unwrap()
+            .unwrap()
+            .position
+            .x,
+        9.0
+    );
+    assert_eq!(
+        store
+            .warp("spawnish".to_string())
+            .await
+            .unwrap()
+            .unwrap()
+            .position
+            .z,
+        1.0
+    );
+    cleanup(root);
+}
+
 fn temp_root() -> PathBuf {
     let nanos = SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -98,4 +137,14 @@ fn temp_root() -> PathBuf {
 
 fn cleanup(root: PathBuf) {
     let _ = fs::remove_dir_all(root);
+}
+
+fn position(x: f64, y: f64, z: f64) -> PlayerPosition {
+    PlayerPosition {
+        x,
+        y,
+        z,
+        yaw: 10.0,
+        pitch: 20.0,
+    }
 }

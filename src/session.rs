@@ -22,6 +22,7 @@ pub mod registry;
 #[cfg(test)]
 mod registry_tests;
 pub mod state;
+mod travel_commands;
 
 pub use error::ConnectionLogLevel;
 pub use handler::{ServerContext, handle_connection};

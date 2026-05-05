@@ -1,12 +1,14 @@
+use crate::player::location_rows;
+use crate::player::schema::initialize_schema;
 use crate::player::store_rows::{load_profile, save_profile};
-use crate::player::{PlayerDefaults, PlayerProfile};
+use crate::player::{NamedLocation, PlayerDefaults, PlayerProfile};
 use rusqlite::Connection;
 use std::fs;
 use std::path::{Path, PathBuf};
 use thiserror::Error;
 use uuid::Uuid;
 
-const SCHEMA_VERSION: i32 = 2;
+const MAX_HOMES: usize = 16;
 
 #[derive(Debug, Clone)]
 pub struct PlayerStore {
@@ -29,6 +31,10 @@ pub enum PlayerStoreError {
     InvalidInventorySlot,
     #[error("invalid stored selected hotbar slot")]
     InvalidSelectedHotbarSlot,
+    #[error("invalid stored location")]
+    InvalidLocation,
+    #[error("home limit exceeded")]
+    HomeLimitExceeded,
 }
 
 impl PlayerStore {
@@ -65,45 +71,80 @@ impl PlayerStore {
         })
         .await?
     }
+
+    pub async fn set_home(
+        &self,
+        uuid: Uuid,
+        location: NamedLocation,
+    ) -> Result<(), PlayerStoreError> {
+        let path = self.path.clone();
+        tokio::task::spawn_blocking(move || {
+            let connection = open_checked(&path)?;
+            let exists = location_rows::get_home(&connection, uuid, &location.name)?.is_some();
+            if !exists && location_rows::count_homes(&connection, uuid)? >= MAX_HOMES {
+                return Err(PlayerStoreError::HomeLimitExceeded);
+            }
+            location_rows::upsert_home(&connection, uuid, &location)
+        })
+        .await?
+    }
+
+    pub async fn home(
+        &self,
+        uuid: Uuid,
+        name: String,
+    ) -> Result<Option<NamedLocation>, PlayerStoreError> {
+        let path = self.path.clone();
+        tokio::task::spawn_blocking(move || {
+            let connection = open_checked(&path)?;
+            location_rows::get_home(&connection, uuid, &name)
+        })
+        .await?
+    }
+
+    pub async fn home_names(&self, uuid: Uuid) -> Result<Vec<String>, PlayerStoreError> {
+        let path = self.path.clone();
+        tokio::task::spawn_blocking(move || {
+            let connection = open_checked(&path)?;
+            location_rows::list_home_names(&connection, uuid)
+        })
+        .await?
+    }
+
+    pub async fn set_warp(
+        &self,
+        created_by_uuid: Uuid,
+        location: NamedLocation,
+    ) -> Result<(), PlayerStoreError> {
+        let path = self.path.clone();
+        tokio::task::spawn_blocking(move || {
+            let connection = open_checked(&path)?;
+            location_rows::upsert_warp(&connection, created_by_uuid, &location)
+        })
+        .await?
+    }
+
+    pub async fn warp(&self, name: String) -> Result<Option<NamedLocation>, PlayerStoreError> {
+        let path = self.path.clone();
+        tokio::task::spawn_blocking(move || {
+            let connection = open_checked(&path)?;
+            location_rows::get_warp(&connection, &name)
+        })
+        .await?
+    }
+
+    pub async fn warp_names(&self) -> Result<Vec<String>, PlayerStoreError> {
+        let path = self.path.clone();
+        tokio::task::spawn_blocking(move || {
+            let connection = open_checked(&path)?;
+            location_rows::list_warp_names(&connection)
+        })
+        .await?
+    }
 }
 
 fn open_checked(path: &Path) -> Result<Connection, PlayerStoreError> {
     let connection = Connection::open(path)?;
     initialize_schema(&connection)?;
     Ok(connection)
-}
-
-fn initialize_schema(connection: &Connection) -> Result<(), PlayerStoreError> {
-    let version: i32 = connection.pragma_query_value(None, "user_version", |row| row.get(0))?;
-    if version != 0 && version != SCHEMA_VERSION {
-        return Err(PlayerStoreError::UnsupportedSchema(version));
-    }
-    connection.execute_batch(
-        "
-        CREATE TABLE IF NOT EXISTS player_profiles (
-          uuid TEXT PRIMARY KEY,
-          name TEXT NOT NULL,
-          game_mode TEXT NOT NULL,
-          x REAL NOT NULL,
-          y REAL NOT NULL,
-          z REAL NOT NULL,
-          yaw REAL NOT NULL,
-          pitch REAL NOT NULL,
-          selected_hotbar_slot INTEGER NOT NULL,
-          health REAL NOT NULL,
-          hunger INTEGER NOT NULL,
-          saturation REAL NOT NULL
-        );
-        CREATE TABLE IF NOT EXISTS player_inventory_slots (
-          uuid TEXT NOT NULL,
-          slot INTEGER NOT NULL,
-          item_id TEXT NOT NULL,
-          count INTEGER NOT NULL,
-          data TEXT,
-          PRIMARY KEY (uuid, slot)
-        );
-        PRAGMA user_version = 2;
-        ",
-    )?;
-    Ok(())
 }

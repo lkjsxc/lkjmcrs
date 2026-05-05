@@ -1,14 +1,12 @@
-use crate::player::{GameMode, PlayerPosition, PlayerProfile};
-use crate::protocol::ids;
-use crate::protocol::play;
+use crate::player::{GameMode, PlayerProfile, PlayerStore};
 use crate::session::SessionState;
 use crate::session::chat::send_system_chat;
 use crate::session::commands::{self, ServerCommand};
 use crate::session::error::ConnectionError;
 use crate::session::game_mode::apply_game_mode;
-use crate::session::io::write_packet;
 use crate::session::play_state::PlaySession;
 use crate::session::registry::SessionRegistry;
+use crate::session::travel_commands;
 use tokio::io::AsyncWrite;
 
 pub struct CommandDispatchContext<'a, W>
@@ -17,6 +15,7 @@ where
 {
     pub phase: SessionState,
     pub max_players: usize,
+    pub player_store: &'a PlayerStore,
     pub sessions: &'a SessionRegistry,
     pub writer: &'a mut W,
 }
@@ -39,7 +38,17 @@ where
     }
     match command {
         ServerCommand::Help => send_help(context.writer, context.phase).await,
-        ServerCommand::Spawn => spawn(session, profile, context).await,
+        ServerCommand::Spawn => travel_commands::spawn(session, profile, context).await,
+        ServerCommand::SetHome(name) => {
+            travel_commands::set_home(name, session, profile, context).await
+        }
+        ServerCommand::Home(name) => travel_commands::home(name, session, profile, context).await,
+        ServerCommand::Homes => travel_commands::homes(profile, context).await,
+        ServerCommand::SetWarp(name) => {
+            travel_commands::set_warp(name, session, profile, context).await
+        }
+        ServerCommand::Warp(name) => travel_commands::warp(name, session, profile, context).await,
+        ServerCommand::Warps => travel_commands::warps(context).await,
         ServerCommand::Say(message) => {
             context
                 .sessions
@@ -59,40 +68,7 @@ where
     send_system_chat(
         writer,
         phase,
-        "Commands: /help, /spawn, /say, /gamemode, /kick",
-    )
-    .await
-}
-
-async fn spawn<W>(
-    session: &mut PlaySession,
-    profile: &mut PlayerProfile,
-    context: CommandDispatchContext<'_, W>,
-) -> Result<(), ConnectionError>
-where
-    W: AsyncWrite + Unpin,
-{
-    session.move_to_spawn();
-    profile.position = PlayerPosition {
-        x: session.x,
-        y: session.y,
-        z: session.z,
-        yaw: session.yaw,
-        pitch: session.pitch,
-    };
-    let bootstrap = play::Bootstrap::new(context.max_players).with_player_state(
-        (session.x, session.y, session.z),
-        (session.yaw, session.pitch),
-        (
-            profile.game_mode.vanilla_id(),
-            profile.game_mode.ability_flags(),
-        ),
-    );
-    write_packet(
-        context.writer,
-        context.phase,
-        ids::play::PLAYER_POSITION,
-        &play::encode_initial_position(bootstrap),
+        "Commands: /help, /spawn, /sethome, /home, /homes, /warp, /warps, /say, /gamemode, /kick",
     )
     .await
 }

@@ -47,6 +47,7 @@ pub async fn handle_play(
         max_players,
         region,
         sessions.clone(),
+        player_store.clone(),
         registered,
         &mut profile,
     )
@@ -68,6 +69,7 @@ async fn run_play(
     max_players: usize,
     region: RegionHandle,
     sessions: SessionRegistry,
+    player_store: PlayerStore,
     registered: RegisteredSession,
     profile: &mut PlayerProfile,
 ) -> Result<(), ConnectionError> {
@@ -103,6 +105,7 @@ async fn run_play(
                             region: &region,
                             sessions: &sessions,
                             max_players,
+                            player_store: &player_store,
                             writer: &mut writer,
                         },
                     ).await,
