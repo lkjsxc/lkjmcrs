@@ -16,10 +16,10 @@ async fn owns_spawn_chunks_and_mutations() {
     assert_eq!(handle.spawn_chunks(1).await.unwrap().len(), 9);
     let pos = BlockPos::new(0, 80, 0);
     assert_eq!(handle.get_block(pos).await.unwrap(), Some(BlockState::Air));
-    assert_eq!(
-        handle.set_block(pos, BlockState::Stone).await.unwrap(),
-        Some(BlockState::Stone)
-    );
+    let mutation = handle.set_block(pos, BlockState::Stone).await.unwrap();
+    assert_eq!(mutation.state, BlockState::Stone);
+    assert!(mutation.accepted());
+    assert!(mutation.changed);
     let chunk = handle
         .chunk_snapshot(ChunkPos::new(0, 0))
         .await
@@ -31,11 +31,11 @@ async fn owns_spawn_chunks_and_mutations() {
 #[tokio::test]
 async fn does_not_create_unloaded_chunks_on_mutation() {
     let handle = RegionActor::spawn(RegionId(1));
-    assert_eq!(
-        handle
-            .set_block(BlockPos::new(1000, 80, 0), BlockState::Stone)
-            .await
-            .unwrap(),
-        None
-    );
+    let mutation = handle
+        .set_block(BlockPos::new(1000, 80, 0), BlockState::Stone)
+        .await
+        .unwrap();
+    assert!(!mutation.loaded);
+    assert!(!mutation.accepted());
+    assert!(!mutation.changed);
 }

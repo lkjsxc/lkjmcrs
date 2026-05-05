@@ -1,8 +1,10 @@
 use crate::protocol::movement::Movement;
 use crate::protocol::play::Bootstrap;
+use crate::session::registry::SessionId;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct PlaySession {
+    pub id: SessionId,
     pub x: f64,
     pub y: f64,
     pub z: f64,
@@ -16,8 +18,9 @@ pub struct PlaySession {
 }
 
 impl PlaySession {
-    pub fn new(bootstrap: Bootstrap) -> Self {
+    pub fn new(bootstrap: Bootstrap, id: SessionId) -> Self {
         Self {
+            id,
             x: f64::from(bootstrap.spawn_x) + 0.5,
             y: f64::from(bootstrap.spawn_y),
             z: f64::from(bootstrap.spawn_z) + 0.5,
@@ -109,10 +112,11 @@ mod tests {
     use super::PlaySession;
     use crate::protocol::movement::Movement;
     use crate::protocol::play::Bootstrap;
+    use crate::session::registry::SessionId;
 
     #[test]
     fn movement_updates_session_local_state() {
-        let mut session = PlaySession::new(Bootstrap::new(100));
+        let mut session = PlaySession::new(Bootstrap::new(100), SessionId(1));
         session.apply_movement(Movement::PositionLook {
             x: 2.0,
             y: 81.0,
@@ -132,7 +136,7 @@ mod tests {
 
     #[test]
     fn time_advances_by_ticks() {
-        let mut session = PlaySession::new(Bootstrap::new(100));
+        let mut session = PlaySession::new(Bootstrap::new(100), SessionId(1));
         session.advance_time(20);
         assert_eq!(session.age, 20);
         assert_eq!(session.day_time, 20);

@@ -1,5 +1,5 @@
 use crate::protocol::codec;
-use crate::scheduler::region_actor::RegionActorError;
+use crate::scheduler::RegionActorError;
 use crate::session::SessionState;
 use crate::session::profile::ProfileError;
 use thiserror::Error;

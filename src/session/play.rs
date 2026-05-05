@@ -1,13 +1,15 @@
-use crate::protocol::chunk;
 use crate::protocol::ids;
 use crate::protocol::play;
 use crate::scheduler::RegionHandle;
 use crate::session::SessionState;
+use crate::session::block_actions::send_block_update;
+use crate::session::bootstrap::send_play_bootstrap;
 use crate::session::error::ConnectionError;
 use crate::session::io::{read_packet, write_packet};
+use crate::session::outbound::PlayOutbound;
 use crate::session::play_packets::handle_play_packet;
 use crate::session::play_state::PlaySession;
-use tokio::io::AsyncWrite;
+use crate::session::registry::{SessionId, SessionRegistry};
 use tokio::net::TcpStream;
 use tokio::time::{self, Duration, Instant, MissedTickBehavior};
 
@@ -19,12 +21,36 @@ pub async fn handle_play(
     stream: &mut TcpStream,
     max_players: usize,
     region: RegionHandle,
+    sessions: SessionRegistry,
+) -> Result<(), ConnectionError> {
+    let (session_id, outbound) = sessions.register().await;
+    let result = run_play(
+        stream,
+        max_players,
+        region,
+        sessions.clone(),
+        session_id,
+        outbound,
+    )
+    .await;
+    sessions.unregister(session_id).await;
+    result
+}
+
+async fn run_play(
+    stream: &mut TcpStream,
+    max_players: usize,
+    region: RegionHandle,
+    sessions: SessionRegistry,
+    session_id: SessionId,
+    mut outbound: tokio::sync::mpsc::Receiver<PlayOutbound>,
 ) -> Result<(), ConnectionError> {
     let phase = SessionState::Play;
     let bootstrap = play::Bootstrap::new(max_players);
-    let mut session = PlaySession::new(bootstrap);
+    let mut session = PlaySession::new(bootstrap, session_id);
     let (mut reader, mut writer) = stream.split();
-    send_play_bootstrap(&mut writer, bootstrap, &region).await?;
+    let chunks = send_play_bootstrap(&mut writer, bootstrap, &region).await?;
+    sessions.subscribe(session.id, chunks).await;
     session.record_keepalive_sent(1);
     let mut keepalives = time::interval_at(Instant::now() + KEEPALIVE_INTERVAL, KEEPALIVE_INTERVAL);
     keepalives.set_missed_tick_behavior(MissedTickBehavior::Delay);
@@ -35,7 +61,22 @@ pub async fn handle_play(
     loop {
         tokio::select! {
             packet = read_packet(&mut reader, phase) => {
-                handle_play_packet(packet?, phase, &mut session, &region, &mut writer).await?;
+                handle_play_packet(
+                    packet?,
+                    phase,
+                    &mut session,
+                    &region,
+                    &sessions,
+                    &mut writer,
+                ).await?;
+            }
+            message = outbound.recv() => {
+                match message {
+                    Some(PlayOutbound::BlockUpdate { pos, state }) => {
+                        send_block_update(&mut writer, phase, pos, state).await?;
+                    }
+                    None => break Ok(()),
+                }
             }
             _ = keepalives.tick() => {
                 session.record_keepalive_sent(next_keepalive_id);
@@ -60,101 +101,4 @@ pub async fn handle_play(
             }
         }
     }
-}
-
-async fn send_play_bootstrap<W>(
-    stream: &mut W,
-    bootstrap: play::Bootstrap,
-    region: &RegionHandle,
-) -> Result<(), ConnectionError>
-where
-    W: AsyncWrite + Unpin,
-{
-    let phase = SessionState::Play;
-    write_packet(
-        stream,
-        phase,
-        ids::play::LOGIN,
-        &play::encode_login(bootstrap),
-    )
-    .await?;
-    write_packet(
-        stream,
-        phase,
-        ids::play::DEFAULT_SPAWN_POSITION,
-        &play::encode_default_spawn_position(bootstrap),
-    )
-    .await?;
-    write_packet(stream, phase, ids::play::SET_TIME, &play::encode_time(0, 0)).await?;
-    write_packet(
-        stream,
-        phase,
-        ids::play::PLAYER_ABILITIES,
-        &play::encode_player_abilities(),
-    )
-    .await?;
-    write_packet(
-        stream,
-        phase,
-        ids::play::GAME_STATE_CHANGE,
-        &play::encode_start_waiting_for_chunks(),
-    )
-    .await?;
-    write_packet(
-        stream,
-        phase,
-        ids::play::CHUNK_CACHE_CENTER,
-        &play::encode_chunk_cache_center(0, 0),
-    )
-    .await?;
-    write_packet(
-        stream,
-        phase,
-        ids::play::CHUNK_CACHE_RADIUS,
-        &play::encode_chunk_cache_radius(bootstrap.view_distance),
-    )
-    .await?;
-    let chunks = region
-        .spawn_chunks(bootstrap.view_distance)
-        .await
-        .map_err(|source| ConnectionError::Region { phase, source })?;
-    debug_assert_eq!(chunks.len(), bootstrap.chunk_count());
-    write_packet(stream, phase, ids::play::CHUNK_BATCH_START, &[]).await?;
-    for chunk_snapshot in &chunks {
-        write_packet(
-            stream,
-            phase,
-            ids::play::LEVEL_CHUNK_WITH_LIGHT,
-            &chunk::encode_level_chunk_with_light(chunk_snapshot),
-        )
-        .await?;
-        write_packet(
-            stream,
-            phase,
-            ids::play::UPDATE_LIGHT,
-            &chunk::encode_update_light(chunk_snapshot),
-        )
-        .await?;
-    }
-    write_packet(
-        stream,
-        phase,
-        ids::play::CHUNK_BATCH_FINISHED,
-        &chunk::encode_chunk_batch_finished(chunks.len()),
-    )
-    .await?;
-    write_packet(
-        stream,
-        phase,
-        ids::play::PLAYER_POSITION,
-        &play::encode_initial_position(bootstrap),
-    )
-    .await?;
-    write_packet(
-        stream,
-        phase,
-        ids::play::KEEPALIVE,
-        &play::encode_keepalive(1),
-    )
-    .await
 }

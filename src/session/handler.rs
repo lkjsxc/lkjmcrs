@@ -12,6 +12,7 @@ use crate::session::io::{
 };
 use crate::session::play::handle_play;
 use crate::session::profile::{offline_uuid, validate_name};
+use crate::session::registry::SessionRegistry;
 use crate::world::RegionId;
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -21,6 +22,7 @@ use tokio::net::TcpStream;
 pub struct ServerContext {
     pub config: Config,
     pub region: crate::scheduler::RegionHandle,
+    pub sessions: SessionRegistry,
     players: AtomicUsize,
 }
 
@@ -29,6 +31,7 @@ impl ServerContext {
         Arc::new(Self {
             config,
             region: RegionActor::spawn(RegionId(0)),
+            sessions: SessionRegistry::default(),
             players: AtomicUsize::new(0),
         })
     }
@@ -118,6 +121,7 @@ async fn handle_login(
         &mut stream,
         context.config.max_players,
         context.region.clone(),
+        context.sessions.clone(),
     )
     .await;
     context.players.fetch_sub(1, Ordering::Relaxed);

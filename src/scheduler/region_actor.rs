@@ -1,3 +1,4 @@
+use crate::scheduler::{BlockMutation, RegionActorError};
 use crate::world::{BlockPos, BlockState, ChunkPos, ChunkSnapshot, FlatWorld, RegionId};
 use std::collections::HashMap;
 use tokio::sync::{mpsc, oneshot};
@@ -38,7 +39,7 @@ enum RegionCommand {
     SetBlock {
         pos: BlockPos,
         state: BlockState,
-        reply: oneshot::Sender<Option<BlockState>>,
+        reply: oneshot::Sender<BlockMutation>,
     },
     Snapshot {
         reply: oneshot::Sender<usize>,
@@ -82,16 +83,34 @@ impl RegionActor {
                     let _ = reply.send(block);
                 }
                 RegionCommand::SetBlock { pos, state, reply } => {
-                    let block = self
-                        .chunks
-                        .get_mut(&pos.chunk())
-                        .and_then(|chunk| chunk.set_block(pos, state));
-                    let _ = reply.send(block);
+                    let mutation = self.set_block(pos, state);
+                    let _ = reply.send(mutation);
                 }
                 RegionCommand::Snapshot { reply } => {
                     let _ = reply.send(self.applied);
                 }
             }
+        }
+    }
+
+    fn set_block(&mut self, pos: BlockPos, requested: BlockState) -> BlockMutation {
+        let chunk_pos = pos.chunk();
+        let before = self
+            .chunks
+            .get(&chunk_pos)
+            .map(|chunk| chunk.block_at_pos(pos));
+        let after = self
+            .chunks
+            .get_mut(&chunk_pos)
+            .and_then(|chunk| chunk.set_block(pos, requested));
+        let state = after.or(before).unwrap_or(BlockState::Air);
+        BlockMutation {
+            pos,
+            chunk: chunk_pos,
+            requested,
+            state,
+            loaded: before.is_some(),
+            changed: after.is_some() && before != Some(state),
         }
     }
 
@@ -168,7 +187,7 @@ impl RegionHandle {
         &self,
         pos: BlockPos,
         state: BlockState,
-    ) -> Result<Option<BlockState>, RegionActorError> {
+    ) -> Result<BlockMutation, RegionActorError> {
         let (reply, receive) = oneshot::channel();
         self.outbox
             .send(RegionCommand::SetBlock { pos, state, reply })
@@ -176,10 +195,4 @@ impl RegionHandle {
             .map_err(|_| RegionActorError::Closed)?;
         receive.await.map_err(|_| RegionActorError::Closed)
     }
-}
-
-#[derive(Debug, thiserror::Error)]
-pub enum RegionActorError {
-    #[error("region actor is closed")]
-    Closed,
 }

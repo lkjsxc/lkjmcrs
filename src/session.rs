@@ -1,13 +1,19 @@
+pub mod block_actions;
+pub mod bootstrap;
 pub mod configuration;
 pub mod error;
 pub mod handler;
 pub mod io;
+pub mod outbound;
 pub mod play;
 pub mod play_packets;
 #[cfg(test)]
 mod play_packets_tests;
 pub mod play_state;
 pub mod profile;
+pub mod registry;
+#[cfg(test)]
+mod registry_tests;
 pub mod state;
 
 pub use error::ConnectionLogLevel;
