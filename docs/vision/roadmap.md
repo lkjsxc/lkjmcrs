@@ -10,8 +10,8 @@
 
 ## Milestone 2: Survival Core
 
-- Region-owned in-memory block mutation.
-- Creative placement and breaking smoke coverage.
+- Region-owned block mutation.
+- Creative placement, breaking, and multiplayer observer smoke coverage.
 - Persistent chunk storage.
 - Basic block interaction and player movement validation.
 - Entity registry and simple entity ticking.

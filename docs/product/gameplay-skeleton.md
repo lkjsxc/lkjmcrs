@@ -43,8 +43,7 @@ gameplay contract is owned by [survival-core.md](survival-core.md):
 - block mutations are region-owned,
 - initiating clients receive prediction acknowledgements and authoritative
   block updates,
-- the next multiplayer slice fans accepted block updates out to subscribed
-  play sessions.
+- accepted block updates fan out to subscribed play sessions.
 
 ## Out of Scope
 
@@ -55,4 +54,4 @@ gameplay contract is owned by [survival-core.md](survival-core.md):
 - Entity AI.
 - Inventory and recipes.
 - Chat signing.
-- Persistence.
+- Full world persistence beyond sparse block overrides.

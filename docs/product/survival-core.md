@@ -13,8 +13,10 @@ region-ownership architecture.
 - Placement writes a fixed `minecraft:stone` block.
 - Breaking writes `minecraft:air`.
 - Bedrock cannot be replaced or broken.
-- Mutations are in-memory only.
 - Mutations are visible to the initiating client through block update packets.
+- Accepted mutations fan out to subscribed players in the changed chunk.
+- Sparse block overrides persist across server restarts once the persistence
+  slice is implemented.
 
 ## Player Boundary
 
@@ -30,4 +32,4 @@ region-ownership architecture.
 1. All block mutation requests go through the region scheduler.
 2. The deterministic flat world remains the base for chunks without overrides.
 3. Client prediction must be answered with an acknowledgement and a block update.
-4. Persistence waits until mutable chunks have a stable region-owned API.
+4. Persistence stores only sparse overrides above the deterministic flat base.

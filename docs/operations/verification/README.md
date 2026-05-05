@@ -17,6 +17,8 @@ Use this subtree for required compose verification contracts.
   behavior.
 - [multiplayer-mutation-smoke.md](multiplayer-mutation-smoke.md): live
   observer fanout probe behavior.
+- [persistence-smoke.md](persistence-smoke.md): restart behavior for persisted
+  block overrides.
 - [join-boundary.md](join-boundary.md): latest known manual client boundary.
 - [evidence-policy.md](evidence-policy.md): how reports become active
   protocol evidence.

@@ -30,10 +30,12 @@ interaction can be implemented without introducing persistence.
 - Accepted mutations in loaded chunks are published as single-block updates to
   subscribed play sessions.
 - Missing owners or unloaded chunks must not create chunks during this slice.
+- Persistent override writes follow
+  [persistent-overrides.md](persistent-overrides.md).
 
 ## Rules
 
 1. No mutable world state is changed directly from session code.
 2. Chunk snapshots are immutable values produced by region-owned state.
 3. The flat generator remains deterministic and cheap to regenerate.
-4. Persistence is out of scope until this contract is explicitly extended.
+4. Persistence stores sparse overrides only and never replaces flat generation.

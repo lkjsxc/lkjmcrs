@@ -23,4 +23,5 @@ session subscribed to the changed chunk.
 - Both clients must remain in play while time or keepalive packets may arrive
   between mutation packets.
 - The changed block is inside the advertised spawn radius.
-- Failure in this probe blocks acceptance for observer fanout changes.
+- Failure in this probe blocks acceptance for observer fanout or persistence
+  changes that affect mutation visibility.

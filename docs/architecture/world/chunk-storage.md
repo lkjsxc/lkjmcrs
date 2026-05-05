@@ -1,6 +1,6 @@
 # Chunk Storage
 
-## First Milestone
+## Current Model
 
 - Use generated in-memory chunks.
 - Represent block states with compact palette identifiers.
@@ -9,9 +9,19 @@
 - Serialize section data using the protocol contract in
   [../protocol/chunk-packets.md](../protocol/chunk-packets.md).
 
+## Persistent Override Slice
+
+- Persist only sparse block overrides that differ from generated flat terrain.
+- Store overrides in server-owned JSON files under the configured data
+  directory.
+- One chunk file owns one chunk coordinate and schema version.
+- Missing chunk files mean generated flat terrain with no overrides.
+- Empty override sets delete the chunk file.
+- Accepted mutations save before prediction acknowledgement and fanout.
+- Corrupt storage fails startup or mutation instead of being ignored.
+
 ## Future Persistence
 
-- Persistent storage is introduced after block mutation exists.
 - Vanilla Anvil import is a later compatibility feature.
 - Server-owned storage may be designed before Anvil import if it improves
   scheduler locality.

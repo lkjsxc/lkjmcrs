@@ -6,6 +6,7 @@
 - `LKJMCRS_MOTD`: status MOTD, default `lkjmcrs 1.21.11`.
 - `LKJMCRS_MAX_PLAYERS`: status max players, default `100`.
 - `LKJMCRS_ONLINE_MODE`: authentication mode, default `false`.
+- `LKJMCRS_DATA_DIR`: world override storage root, default `data`.
 
 ## Rules
 
@@ -13,3 +14,4 @@
 2. Invalid numeric variables fail startup.
 3. `LKJMCRS_ONLINE_MODE=true` fails startup until online mode is implemented.
 4. Secrets are not required for the first milestone.
+5. `LKJMCRS_DATA_DIR` must be writable by the server process.

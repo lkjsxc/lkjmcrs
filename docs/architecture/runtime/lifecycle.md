@@ -23,4 +23,4 @@
 - Stop accepting new connections.
 - Disconnect active sessions.
 - Stop scheduler workers.
-- Drop disposable in-memory world state.
+- Flush accepted persistent world overrides before acknowledging mutations.

@@ -10,9 +10,10 @@
 - Container port is `25565`.
 - Host port is `${LKJMCRS_PORT:-25565}`.
 - Working mode is offline by default.
+- Runtime data is mounted from the `server-data` named volume to `/data`.
 
 ## Rules
 
 1. Compose runtime must use the same binary built by release Dockerfile.
 2. Verification may use separate cache volumes.
-3. Runtime state remains disposable in the first milestone.
+3. Runtime state persists until `docker compose down -v` removes volumes.
