@@ -13,10 +13,12 @@ Verify the real wire path without depending on an external Minecraft bot crate.
 5. Open a second TCP connection.
 6. Send login handshake and offline login hello.
 7. Complete configuration acknowledgement.
-8. Enter play state and observe keepalive or tick-visible packet.
+8. Enter play state and observe play-ready plus keepalive packets.
 
 ## Rules
 
 - Probe code uses first-party packet framing.
 - Probe failures print the phase name.
 - Probe runs in Docker Compose.
+- Passing smoke proves the internal wire lifecycle, not full stock-client play
+  rendering.

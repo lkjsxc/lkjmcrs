@@ -14,9 +14,9 @@
 - Finish configuration from client.
 - Play login/join packet.
 - Player position sync.
-- Minimal chunk data for a flat spawn area.
 - Keepalive serverbound and clientbound.
 - Basic movement packets accepted from client.
+- First-party play-ready probe packet.
 
 ## Deferred
 
@@ -25,6 +25,7 @@
 - Online-mode session verification.
 - Chat signing.
 - Full registry fidelity.
+- Vanilla-complete chunk packets.
 - Resource pack negotiation.
 - Complete play packet set.
 

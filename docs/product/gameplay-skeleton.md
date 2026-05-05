@@ -2,8 +2,16 @@
 
 ## Goal
 
-Give a vanilla `1.21.11` client enough state to enter a simple world and remain
-connected while the server ticks.
+Give the first-party `1.21.11` wire probe enough state to enter a simple world
+contract and remain connected while the server ticks.
+
+## Vanilla Client Boundary
+
+- Server-list status targets real vanilla client behavior.
+- Full vanilla play rendering is not claimed until registry and chunk packets
+  are complete enough for a stock client.
+- The first milestone proves the server-side play lifecycle with the compose
+  smoke probe.
 
 ## World
 
@@ -22,6 +30,8 @@ connected while the server ticks.
 
 ## Out of Scope
 
+- Full vanilla registry synchronization.
+- Vanilla-complete chunk packet encoding.
 - Block breaking and placement.
 - Entity AI.
 - Inventory and recipes.

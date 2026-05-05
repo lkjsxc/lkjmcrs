@@ -25,7 +25,7 @@ PaperMC/Folia-class platform while staying readable to LLM agents.
 The first useful state is a playable skeleton:
 
 - vanilla client can see the server in the server list,
-- offline-mode login reaches play state,
+- first-party wire probe reaches offline login and play state,
 - player enters a deterministic flat world,
 - server ticks and keepalive behavior are observable,
 - Docker Compose smoke verification proves the wire path.
