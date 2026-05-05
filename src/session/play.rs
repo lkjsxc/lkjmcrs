@@ -127,12 +127,11 @@ async fn run_play(
 
 fn bootstrap_from_profile(max_players: usize, profile: &PlayerProfile) -> play::Bootstrap {
     play::Bootstrap::new(max_players).with_player_state(
-        profile.position.x,
-        profile.position.y,
-        profile.position.z,
-        profile.position.yaw,
-        profile.position.pitch,
-        profile.game_mode.vanilla_id(),
-        profile.game_mode.ability_flags(),
+        (profile.position.x, profile.position.y, profile.position.z),
+        (profile.position.yaw, profile.position.pitch),
+        (
+            profile.game_mode.vanilla_id(),
+            profile.game_mode.ability_flags(),
+        ),
     )
 }

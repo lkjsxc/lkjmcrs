@@ -49,26 +49,23 @@ impl Bootstrap {
 
     pub fn with_player_state(
         mut self,
-        x: f64,
-        y: f64,
-        z: f64,
-        yaw: f32,
-        pitch: f32,
-        game_mode: i8,
-        ability_flags: i8,
+        position: (f64, f64, f64),
+        look: (f32, f32),
+        mode: (i8, i8),
     ) -> Self {
+        let (x, y, z) = position;
         self.player_x = x;
         self.player_y = y;
         self.player_z = z;
-        self.yaw = yaw;
-        self.pitch = pitch;
+        self.yaw = look.0;
+        self.pitch = look.1;
         self.spawn_x = block_coord(x);
         self.spawn_y = block_coord(y);
         self.spawn_z = block_coord(z);
         self.chunk_x = self.spawn_x.div_euclid(16);
         self.chunk_z = self.spawn_z.div_euclid(16);
-        self.game_mode = game_mode;
-        self.ability_flags = ability_flags;
+        self.game_mode = mode.0;
+        self.ability_flags = mode.1;
         self
     }
 
