@@ -9,6 +9,8 @@
 - Keep packet framing and Minecraft protocol types first-party.
 - Keep the current network NBT writer first-party while the candidate
   `simdnbt` releases require nightly Rust in the stable verify image.
+- Use bundled SQLite for player persistence before cross-player systems need a
+  larger external database.
 
 ## Rules
 

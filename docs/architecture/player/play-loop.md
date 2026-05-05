@@ -7,7 +7,7 @@ values deterministic and testable.
 
 ## Session-Local State
 
-Each play session tracks:
+Each play session starts from the loaded player profile and tracks:
 
 - server-local session ID,
 - position `x`, `y`, `z`,
@@ -17,8 +17,9 @@ Each play session tracks:
 - last clientbound keepalive ID,
 - current world age and day time.
 
-The initial state is spawn position `0.5, 80.0, 0.5`, yaw `0.0`, pitch `0.0`,
-and both flags set to `false`.
+New profiles start at position `0.5, 80.0, 0.5`, yaw `0.0`, pitch `0.0`,
+and both flags set to `false`. Returning profiles start from saved position
+and look values.
 
 ## Movement
 
@@ -29,8 +30,9 @@ The first milestone accepts these serverbound movement packets:
 - `0x1f look`,
 - `0x20 status_only`.
 
-Movement packets update session-local state only. They do not mutate world
-chunks, broadcast movement, load chunks, or validate survival physics.
+Movement packets update session-local state only. The final state is persisted
+on disconnect. Movement does not mutate world chunks, broadcast movement, load
+chunks dynamically, or validate survival physics.
 
 The final movement field is one unsigned flags byte:
 

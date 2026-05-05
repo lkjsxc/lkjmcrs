@@ -32,6 +32,6 @@ flat-world base or introducing Anvil compatibility.
 
 ## Out of Scope
 
-- Entity, inventory, time, weather, and player persistence.
+- Entity, time, weather, and inventory-backed gameplay persistence.
 - Anvil region files.
 - Storage migrations beyond rejecting unsupported schema versions.

@@ -12,6 +12,7 @@
 - `app`
 - `config`
 - `net`
+- `player`
 - `probe`
 - `protocol`
 - `quality`

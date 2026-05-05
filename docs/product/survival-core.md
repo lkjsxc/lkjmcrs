@@ -20,7 +20,7 @@ region-ownership architecture.
 
 ## Player Boundary
 
-- Inventory contents are not modeled yet.
+- Inventory contents are persisted as a shell but do not affect gameplay yet.
 - Held item selection may be accepted but has no gameplay effect.
 - Reach distance, survival mining speed, drops, recipes, and item durability are
   not validated in this slice.

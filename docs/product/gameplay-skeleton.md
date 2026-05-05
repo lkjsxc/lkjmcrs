@@ -21,7 +21,7 @@ minimal flat spawn area.
 - Spawn defaults to `0, 80, 0`.
 - World entry sends the vanilla level-chunk readiness game event.
 - The initial world-entry batch covers the full advertised radius `2`.
-- Initial game mode is creative for easier smoke testing.
+- New player profiles default to creative for easier smoke testing.
 - Time starts at `0` and advances by server ticks.
 
 ## Player Behavior
@@ -52,6 +52,6 @@ gameplay contract is owned by [survival-core.md](survival-core.md):
 - Terrain outside the advertised deterministic spawn batch.
 - Survival inventory semantics for block breaking and placement.
 - Entity AI.
-- Inventory and recipes.
+- Full inventory behavior and recipes.
 - Chat signing.
 - Full world persistence beyond sparse block overrides.

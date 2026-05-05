@@ -6,6 +6,7 @@
 docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm verify
 docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build server
 docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm smoke
+docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm profile-reconnect
 docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm persist-place
 docker compose -f docker-compose.yml -f docker-compose.verify.yml restart server
 docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm persist-check
