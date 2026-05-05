@@ -14,8 +14,10 @@
 - Creative placement, breaking, and multiplayer observer smoke coverage.
 - Persistent chunk storage.
 - Basic block interaction and player movement validation.
-- Entity registry and simple entity ticking.
+- Persistent player profiles, gamemode, inventory shell, and vitals shell.
 - Inventory and item stack model.
+- Offline-mode SMP chat and command control surface.
+- Entity registry and simple entity ticking.
 - More complete registry and data-pack handling.
 
 ## Milestone 3: Scale Architecture

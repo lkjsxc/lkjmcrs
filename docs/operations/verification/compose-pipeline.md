@@ -16,15 +16,23 @@ docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
 
 ## Survival Item Slice
 
-Use a separate clean volume because this slice changes new-profile defaults:
+Use the dedicated survival services because this slice changes new-profile
+defaults:
 
 ```bash
-export LKJMCRS_DEFAULT_GAME_MODE=survival
-export LKJMCRS_SURVIVAL_STARTER_STONE=1
-docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build server
+docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build survival-server
 docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm survival-item
 docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
-unset LKJMCRS_DEFAULT_GAME_MODE LKJMCRS_SURVIVAL_STARTER_STONE
+```
+
+## SMP Commands Slice
+
+Use the dedicated SMP services because this slice requires a configured op:
+
+```bash
+docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build smp-server
+docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm smp-commands
+docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
 ```
 
 ## Required Behavior
@@ -36,8 +44,10 @@ unset LKJMCRS_DEFAULT_GAME_MODE LKJMCRS_SURVIVAL_STARTER_STONE
 5. `chunk-stream` verifies load-only movement-driven chunk streaming.
 6. `persist-place` writes a mutation through the public wire path.
 7. `persist-check` verifies that mutation after restart.
-8. Non-zero from any step blocks acceptance.
-9. Final `down -v` removes disposable compose state.
+8. `survival-item` verifies survival profile defaults and item persistence.
+9. `smp-commands` verifies offline chat, commands, permissions, and kick.
+10. Non-zero from any step blocks acceptance.
+11. Final `down -v` removes disposable compose state.
 
 ## Stop Rule
 

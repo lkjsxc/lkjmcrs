@@ -32,9 +32,11 @@
 - Movement-driven `chunk_cache_center` updates and load-only chunk batches for
   newly visible chunks.
 - Stored player position, look, and game mode used during play bootstrap.
-- Creative-style block placement and breaking in loaded spawn chunks.
+- Creative and first survival item-loop placement and breaking in loaded
+  chunks.
 - Block prediction acknowledgements and single-block updates.
 - Single-block updates fanned out to subscribed play sessions.
+- Unsigned offline-mode chat and first slash commands.
 
 ## Deferred
 
@@ -46,7 +48,7 @@
   entries.
 - Full mutable chunk resend packets.
 - Client chunk unload packets.
-- Inventory-backed item use.
+- Full client inventory windows and item synchronization.
 - Resource pack negotiation.
 - Complete play packet set.
 

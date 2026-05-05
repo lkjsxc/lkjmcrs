@@ -81,3 +81,19 @@ The first Survival Core slice adds creative-style mutation packets:
 - `0x3f use_item_on`: places fixed stone beside the targeted face.
 
 See [block-interaction.md](block-interaction.md) for payload details.
+
+## Chat And Commands
+
+The first SMP slice adds offline-mode control packets:
+
+- `0x06 serverbound chat_command`: command text without leading slash.
+- `0x07 serverbound chat_command_signed`: command text plus ignored signature
+  envelope.
+- `0x08 serverbound chat_message`: plain message text plus ignored signature
+  envelope.
+- `0x10 clientbound declare_commands`: minimal command tree.
+- `0x20 clientbound kick_disconnect`: anonymous NBT text reason.
+- `0x34 serverbound held_item_slot`: signed 16-bit selected slot.
+- `0x77 clientbound system_chat`: anonymous NBT text plus action-bar flag.
+
+See [chat-and-commands.md](chat-and-commands.md) for payload details.

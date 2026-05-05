@@ -22,3 +22,4 @@ lifecycle, and play-session visibility contracts.
 - [play-loop.md](play-loop.md): movement, keepalive, and time behavior in play.
 - [chunk-observers.md](chunk-observers.md): chunk subscriptions and block
   update fanout.
+- [smp-commands.md](smp-commands.md): chat, commands, and operator rules.
