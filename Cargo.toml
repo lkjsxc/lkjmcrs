@@ -1,0 +1,22 @@
+[package]
+name = "lkjmcrs"
+version = "0.1.0"
+edition = "2024"
+authors = ["lkjmcrs contributors"]
+description = "Rust Minecraft Java Edition server skeleton targeting 1.21.11"
+license = "Apache-2.0"
+
+[[bin]]
+name = "lkjmcrs"
+path = "src/main.rs"
+
+[dependencies]
+clap = { version = "4", features = ["derive"] }
+md-5 = "0.10"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+tokio = { version = "1", features = ["full"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+uuid = { version = "1", features = ["serde"] }

@@ -1,0 +1,74 @@
+use crate::config::Config;
+use crate::quality;
+use clap::{Parser, Subcommand};
+
+#[derive(Parser)]
+#[command(name = "lkjmcrs")]
+#[command(about = "Rust Minecraft server skeleton")]
+struct Cli {
+    #[command(subcommand)]
+    command: Command,
+}
+
+#[derive(Subcommand)]
+enum Command {
+    Serve,
+    Docs {
+        #[command(subcommand)]
+        command: DocsCommand,
+    },
+    Quality {
+        #[command(subcommand)]
+        command: QualityCommand,
+    },
+    Probe {
+        #[command(subcommand)]
+        command: ProbeCommand,
+    },
+}
+
+#[derive(Subcommand)]
+enum DocsCommand {
+    ValidateTopology,
+}
+
+#[derive(Subcommand)]
+enum QualityCommand {
+    CheckLines,
+}
+
+#[derive(Subcommand)]
+enum ProbeCommand {
+    Status {
+        #[arg(long, default_value = "127.0.0.1:25565")]
+        host: String,
+    },
+    LoginPlay {
+        #[arg(long, default_value = "127.0.0.1:25565")]
+        host: String,
+    },
+}
+
+#[tokio::main]
+pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    tracing_subscriber::fmt()
+        .with_env_filter("lkjmcrs=info")
+        .with_target(false)
+        .init();
+
+    match Cli::parse().command {
+        Command::Serve => crate::net::serve(Config::from_env()?).await?,
+        Command::Docs { command } => match command {
+            DocsCommand::ValidateTopology => quality::validate_docs_topology()?,
+        },
+        Command::Quality { command } => match command {
+            QualityCommand::CheckLines => quality::check_lines()?,
+        },
+        Command::Probe { command } => match command {
+            ProbeCommand::Status { host } => crate::probe::status(&host).await?,
+            ProbeCommand::LoginPlay { host } => crate::probe::login_play(&host).await?,
+        },
+    }
+
+    Ok(())
+}

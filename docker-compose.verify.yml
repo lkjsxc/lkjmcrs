@@ -1,0 +1,32 @@
+services:
+  verify:
+    build:
+      context: .
+      dockerfile: Dockerfile.verify
+    working_dir: /workspace
+    environment:
+      CARGO_TARGET_DIR: /target
+    volumes:
+      - .:/workspace:ro
+      - cargo-registry:/usr/local/cargo/registry
+      - target-cache:/target
+
+  smoke:
+    build:
+      context: .
+      dockerfile: Dockerfile.verify
+    working_dir: /workspace
+    environment:
+      CARGO_TARGET_DIR: /target
+    volumes:
+      - .:/workspace:ro
+      - cargo-registry:/usr/local/cargo/registry
+      - target-cache:/target
+    depends_on:
+      server:
+        condition: service_healthy
+    entrypoint: ["cargo", "run", "--", "probe", "login-play", "--host", "server:25565"]
+
+volumes:
+  cargo-registry:
+  target-cache:
