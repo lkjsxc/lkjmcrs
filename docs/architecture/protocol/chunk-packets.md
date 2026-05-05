@@ -39,6 +39,7 @@ The packet payload is:
 7. light data
 
 The chunk section byte length covers only the raw section data.
+It excludes heightmap data, block entity count/data, and light data.
 
 ## Heightmap Data
 
@@ -89,3 +90,13 @@ For indirect palettes with bits per entry greater than zero:
 - `values_per_long = floor(64 / bits_per_entry)`
 - `raw_long_count = ceil(entry_count / values_per_long)`
 - values do not cross long boundaries
+
+## Regression Anchors
+
+The historical `readerIndex(6345) + length(8) exceeds writerIndex(6345)` crash
+came from a malformed chunk-section stream. The first milestone must keep tests
+that prove the chunk-data byte range is consumed exactly.
+
+For the current flat spawn chunk, the encoded chunk section data length is a
+fixed regression target. If that length changes, update this file and the tests
+in the same batch with the new documented reason.

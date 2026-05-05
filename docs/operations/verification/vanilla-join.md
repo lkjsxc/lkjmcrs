@@ -9,6 +9,7 @@ Capture both:
 
 - server log lines for the connection,
 - the client disconnect text.
+- the server commit being tested.
 
 ## Expected Boundary
 
@@ -21,10 +22,9 @@ During join, a normal client close must not produce a
 
 ## Current Limit
 
-The server now sends minimal registry data for the registries the vanilla
-client reported as required, including the `minecraft:timeline` tag binding
-used by the overworld dimension and the grouped `minecraft:damage_type`
-bootstrap entries used by client-level construction.
+The server now sends the documented minimal registry data, full advertised
+spawn chunk radius, chunk readiness event, light payloads, initial position, and
+periodic keepalives.
 
 The latest documented boundary is tracked in
 [join-boundary.md](join-boundary.md). The server has fixes for every captured
@@ -33,3 +33,6 @@ packet-shape report currently present under `tmp/`.
 The next manual stock-client check must recapture the join result after those
 fixes. If a stock client still disconnects before rendering terrain, record the
 exact new disconnect text before moving the boundary again.
+
+Use [evidence-policy.md](evidence-policy.md) to decide whether a new report
+becomes the active boundary or only confirms a historical regression.
