@@ -23,11 +23,14 @@ During join, a normal client close must not produce a
 
 The server now sends minimal registry data for the registries the vanilla
 client reported as required, including the `minecraft:timeline` tag binding
-used by the overworld dimension.
+used by the overworld dimension and the grouped `minecraft:damage_type`
+bootstrap entries used by client-level construction.
 
-The latest captured boundary is play login failing while constructing the
-client level because `minecraft:damage_type / minecraft:campfire` is missing.
-See [client-reports/damage-type-campfire.md](client-reports/damage-type-campfire.md).
+The latest captured boundary is play packet decoding inside
+`clientbound/minecraft:level_chunk_with_light`. The client reaches level chunk
+section and paletted container decoding, then overruns the packet while reading
+a fixed raw long. See
+[client-reports/level-chunk-with-light.md](client-reports/level-chunk-with-light.md).
 
 If a stock client still disconnects before rendering terrain, record the exact
 new disconnect text here before moving the boundary again.

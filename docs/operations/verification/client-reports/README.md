@@ -10,7 +10,9 @@ Use this subtree for manual Minecraft client disconnect evidence.
 
 ## Child Index
 
+- [level-chunk-with-light.md](level-chunk-with-light.md): latest play packet
+  chunk-section decoding blocker.
 - [damage-type-in-fire.md](damage-type-in-fire.md): first play-login damage
   type blocker.
-- [damage-type-campfire.md](damage-type-campfire.md): latest play-login damage
-  type blocker.
+- [damage-type-campfire.md](damage-type-campfire.md): grouped damage registry
+  bootstrap evidence.

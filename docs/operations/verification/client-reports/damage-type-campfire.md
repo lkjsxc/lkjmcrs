@@ -26,7 +26,11 @@ the next missing built-in damage source. The server should stop iterating one
 missing key at a time and send the vanilla damage sources constructed by
 `DamageSources` during client-level bootstrap.
 
-## Required Follow-Up
+## Outcome
 
-Send a grouped `minecraft:damage_type` registry packet containing the vanilla
-client-level bootstrap damage sources, including `minecraft:campfire`.
+The implementation now sends a grouped `minecraft:damage_type` registry packet
+containing the vanilla client-level bootstrap damage sources, including
+`minecraft:campfire`.
+
+The next captured report moved the boundary to
+`clientbound/minecraft:level_chunk_with_light`.

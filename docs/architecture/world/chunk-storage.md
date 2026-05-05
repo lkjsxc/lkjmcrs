@@ -6,6 +6,8 @@
 - Represent block states with compact palette identifiers.
 - Avoid per-block heap allocation.
 - Keep serialization code separate from world ownership.
+- Serialize section data using the protocol contract in
+  [../protocol/chunk-packets.md](../protocol/chunk-packets.md).
 
 ## Future Persistence
 

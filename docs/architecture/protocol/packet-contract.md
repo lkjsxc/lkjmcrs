@@ -36,8 +36,9 @@ The first milestone declares one registry packet for each of these registries:
 - `0x5c update_view_position`: spawn chunk `0,0`.
 - `0x5d set_chunk_cache_radius`: radius `2`.
 - `0x0c chunk_batch_start`: empty payload.
-- `0x2c map_chunk`: flat chunk data and light arrays.
-- `0x2f update_light`: explicit light data for the same chunk.
+- `0x2c level_chunk_with_light`: flat chunk data and light arrays.
+- `0x2f update_light`: explicit light data for the same chunk, retained for the
+  current join milestone.
 - `0x0b chunk_batch_finished`: batch size.
 - `0x5f spawn_position`: global position in `minecraft:overworld`.
 - `0x6f update_time`: age `0`, time `0`, ticking enabled.

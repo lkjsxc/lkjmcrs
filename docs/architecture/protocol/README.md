@@ -12,6 +12,8 @@ Use this subtree for Minecraft `1.21.11` wire contracts.
 
 - [version-1-21-11.md](version-1-21-11.md): exact compatibility constants.
 - [packet-contract.md](packet-contract.md): packet IDs and payload contracts.
+- [chunk-packets.md](chunk-packets.md): chunk packet and paletted container
+  wire shape.
 - [packet-scope.md](packet-scope.md): packets implemented in the first milestone.
 - [dynamic-registries.md](dynamic-registries.md): minimal registry data policy.
 - [state-machine.md](state-machine.md): handshake, status, login, config, play flow.
