@@ -20,12 +20,15 @@ pub(super) fn validate_known_packs(data: Vec<u8>) -> Result<(), Box<dyn std::err
     Ok(())
 }
 
-pub(super) fn validate_login_success(data: Vec<u8>) -> Result<(), Box<dyn std::error::Error>> {
+pub(super) fn validate_login_success(
+    data: Vec<u8>,
+    expected_name: &str,
+) -> Result<(), Box<dyn std::error::Error>> {
     let mut cursor = Cursor::new(data);
     let _uuid = codec::read_uuid(&mut cursor)?;
     let username = codec::read_string(&mut cursor)?;
     let properties = codec::read_var_i32(&mut cursor)?;
-    if username != "Probe" || properties != 0 {
+    if username != expected_name || properties != 0 {
         return Err(Box::new(ProbeError::Phase("login success payload")));
     }
     if cursor.position() != cursor.get_ref().len() as u64 {

@@ -47,6 +47,10 @@ enum ProbeCommand {
         #[arg(long, default_value = "127.0.0.1:25565")]
         host: String,
     },
+    MultiplayerMutation {
+        #[arg(long, default_value = "127.0.0.1:25565")]
+        host: String,
+    },
 }
 
 #[tokio::main]
@@ -67,6 +71,9 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Command::Probe { command } => match command {
             ProbeCommand::Status { host } => crate::probe::status(&host).await?,
             ProbeCommand::LoginPlay { host } => crate::probe::login_play(&host).await?,
+            ProbeCommand::MultiplayerMutation { host } => {
+                crate::probe::multiplayer_mutation(&host).await?
+            }
         },
     }
 

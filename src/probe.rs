@@ -2,21 +2,18 @@ use crate::protocol::codec;
 mod block_mutation;
 mod chunk;
 mod live_play;
+mod multiplayer_mutation;
+mod play_client;
 mod validation;
 
-use crate::probe::validation::{
-    validate_chunk_batch_finished, validate_chunk_radius, validate_game_state_change,
-    validate_known_packs, validate_login_success, validate_position_packet, validate_status_json,
-};
+use crate::probe::play_client::PlayClient;
+use crate::probe::validation::validate_status_json;
 use crate::protocol::PROTOCOL_VERSION;
-use crate::protocol::configuration;
 use crate::protocol::ids;
-use crate::protocol::play;
-use crate::protocol::types::{Handshake, LoginStart, NextState};
+use crate::protocol::types::{Handshake, NextState};
 use std::io::Cursor;
 use thiserror::Error;
 use tokio::net::TcpStream;
-use uuid::Uuid;
 
 #[derive(Debug, Error)]
 enum ProbeError {
@@ -46,92 +43,9 @@ pub async fn status(host: &str) -> Result<(), Box<dyn std::error::Error>> {
 }
 
 pub async fn login_play(host: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let mut stream = TcpStream::connect(host).await?;
-    send_handshake(&mut stream, host, NextState::Login).await?;
-    let profile_id = Uuid::from_u128(0);
-    let login = LoginStart::encode("Probe", profile_id);
-    codec::write_packet(&mut stream, ids::login::START, &login).await?;
-    let success = expect(&mut stream, ids::login::SUCCESS, "login success").await?;
-    validate_login_success(success.data)?;
-    codec::write_packet(&mut stream, ids::login::ACKNOWLEDGED, &[]).await?;
-    let known = expect(
-        &mut stream,
-        ids::config::SELECT_KNOWN_PACKS,
-        "select known packs",
-    )
-    .await?;
-    validate_known_packs(known.data)?;
-    codec::write_packet(
-        &mut stream,
-        ids::config::SERVERBOUND_SELECT_KNOWN_PACKS,
-        &configuration::encode_select_known_packs(),
-    )
-    .await?;
-    for _ in 0..configuration::registry_packet_count() {
-        expect(&mut stream, ids::config::REGISTRY_DATA, "registry data").await?;
-    }
-    expect(&mut stream, ids::config::TAGS, "configuration tags").await?;
-    let features = expect(&mut stream, ids::config::FEATURE_FLAGS, "feature flags").await?;
-    if features.data != configuration::encode_enabled_features() {
-        return Err(Box::new(ProbeError::Phase("feature flags payload")));
-    }
-    expect(&mut stream, ids::config::FINISH, "finish config").await?;
-    codec::write_packet(&mut stream, ids::config::FINISH, &[]).await?;
-    expect(&mut stream, ids::play::LOGIN, "play login").await?;
-    expect(&mut stream, ids::play::DEFAULT_SPAWN_POSITION, "spawn").await?;
-    expect(&mut stream, ids::play::SET_TIME, "time").await?;
-    expect(&mut stream, ids::play::PLAYER_ABILITIES, "abilities").await?;
-    let game_state_change =
-        expect(&mut stream, ids::play::GAME_STATE_CHANGE, "chunk readiness").await?;
-    validate_game_state_change(game_state_change.data)?;
-    expect(&mut stream, ids::play::CHUNK_CACHE_CENTER, "chunk center").await?;
-    let radius = expect(&mut stream, ids::play::CHUNK_CACHE_RADIUS, "chunk radius").await?;
-    let chunk_count = validate_chunk_radius(radius.data)?;
-    expect(&mut stream, ids::play::CHUNK_BATCH_START, "chunk batch").await?;
-    for _ in 0..chunk_count {
-        let chunk = expect(
-            &mut stream,
-            ids::play::LEVEL_CHUNK_WITH_LIGHT,
-            "level chunk with light",
-        )
-        .await?;
-        chunk::validate_level_chunk_with_light(chunk.data)?;
-        let light = expect(&mut stream, ids::play::UPDATE_LIGHT, "update light").await?;
-        chunk::validate_update_light(light.data)?;
-    }
-    let finished = expect(
-        &mut stream,
-        ids::play::CHUNK_BATCH_FINISHED,
-        "chunk batch finished",
-    )
-    .await?;
-    validate_chunk_batch_finished(finished.data, chunk_count)?;
-    let position = expect(&mut stream, ids::play::PLAYER_POSITION, "position").await?;
-    validate_position_packet(position.data)?;
-    let mut confirm = Vec::new();
-    codec::write_var_i32(&mut confirm, play::Bootstrap::new(100).teleport_id());
-    codec::write_packet(
-        &mut stream,
-        ids::play::SERVERBOUND_TELEPORT_CONFIRM,
-        &confirm,
-    )
-    .await?;
-    live_play::send_position_look(&mut stream).await?;
-    let keepalive = expect(&mut stream, ids::play::KEEPALIVE, "keepalive").await?;
-    let keepalive_id = codec::read_i64(&mut Cursor::new(keepalive.data))?;
-    if keepalive_id != 1 {
-        return Err(Box::new(ProbeError::Phase("keepalive id")));
-    }
-    let mut keepalive_response = Vec::new();
-    codec::write_i64(&mut keepalive_response, keepalive_id);
-    codec::write_packet(
-        &mut stream,
-        ids::play::SERVERBOUND_KEEPALIVE,
-        &keepalive_response,
-    )
-    .await?;
-    block_mutation::place_and_break(&mut stream).await?;
-    let next_keepalive = live_play::expect_keepalive_after_time(&mut stream).await?;
+    let mut client = PlayClient::connect(host, "Probe").await?;
+    block_mutation::place_and_break(&mut client.stream).await?;
+    let next_keepalive = live_play::expect_keepalive_after_time(&mut client.stream).await?;
     if next_keepalive != 2 {
         return Err(Box::new(ProbeError::Phase("periodic keepalive id")));
     }
@@ -139,7 +53,13 @@ pub async fn login_play(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-async fn send_handshake(
+pub async fn multiplayer_mutation(host: &str) -> Result<(), Box<dyn std::error::Error>> {
+    multiplayer_mutation::run(host).await?;
+    println!("multiplayer-mutation probe ok");
+    Ok(())
+}
+
+pub(super) async fn send_handshake(
     stream: &mut TcpStream,
     host: &str,
     next_state: NextState,
@@ -153,7 +73,7 @@ async fn send_handshake(
     codec::write_packet(stream, ids::HANDSHAKE, &handshake.encode()).await
 }
 
-async fn expect(
+pub(super) async fn expect(
     stream: &mut TcpStream,
     id: i32,
     phase: &'static str,

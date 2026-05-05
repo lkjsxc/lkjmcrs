@@ -25,7 +25,7 @@ services:
     depends_on:
       server:
         condition: service_healthy
-    entrypoint: ["cargo", "run", "--", "probe", "login-play", "--host", "server:25565"]
+    entrypoint: ["cargo", "run", "--", "probe", "multiplayer-mutation", "--host", "server:25565"]
 
 volumes:
   cargo-registry:

@@ -15,7 +15,7 @@ pub(super) async fn place_and_break(
     expect_ack_and_update(stream, BREAK_SEQUENCE, 0).await
 }
 
-async fn send_use_item_on(
+pub(super) async fn send_use_item_on(
     stream: &mut TcpStream,
     sequence: i32,
 ) -> Result<(), Box<dyn std::error::Error>> {
@@ -33,7 +33,7 @@ async fn send_use_item_on(
     Ok(())
 }
 
-async fn send_start_destroy(
+pub(super) async fn send_start_destroy(
     stream: &mut TcpStream,
     sequence: i32,
 ) -> Result<(), Box<dyn std::error::Error>> {
@@ -46,7 +46,7 @@ async fn send_start_destroy(
     Ok(())
 }
 
-async fn expect_ack_and_update(
+pub(super) async fn expect_ack_and_update(
     stream: &mut TcpStream,
     sequence: i32,
     block_state: i32,
@@ -63,7 +63,7 @@ async fn expect_ack_and_update(
     validate_update(update.data, block_state)
 }
 
-async fn read_next_non_time(
+pub(super) async fn read_next_non_time(
     stream: &mut TcpStream,
     phase: &'static str,
 ) -> Result<codec::Packet, Box<dyn std::error::Error>> {
@@ -76,7 +76,7 @@ async fn read_next_non_time(
     }
 }
 
-fn validate_ack(data: Vec<u8>, sequence: i32) -> Result<(), Box<dyn std::error::Error>> {
+pub(super) fn validate_ack(data: Vec<u8>, sequence: i32) -> Result<(), Box<dyn std::error::Error>> {
     let mut cursor = Cursor::new(data);
     if codec::read_var_i32(&mut cursor)? != sequence {
         return Err(Box::new(ProbeError::Phase("block mutation ack sequence")));
@@ -87,7 +87,7 @@ fn validate_ack(data: Vec<u8>, sequence: i32) -> Result<(), Box<dyn std::error::
     Ok(())
 }
 
-fn validate_update(data: Vec<u8>, state: i32) -> Result<(), Box<dyn std::error::Error>> {
+pub(super) fn validate_update(data: Vec<u8>, state: i32) -> Result<(), Box<dyn std::error::Error>> {
     let mut cursor = Cursor::new(data);
     if codec::read_position(&mut cursor)? != (0, 80, 0) {
         return Err(Box::new(ProbeError::Phase("block mutation update pos")));
