@@ -14,6 +14,7 @@ mod codec_tests;
 pub mod configuration;
 pub mod ids;
 pub mod login;
+pub mod movement;
 pub mod nbt;
 pub mod play;
 #[cfg(test)]

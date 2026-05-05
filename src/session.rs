@@ -3,6 +3,8 @@ pub mod error;
 pub mod handler;
 pub mod io;
 pub mod play;
+pub mod play_packets;
+pub mod play_state;
 pub mod profile;
 pub mod state;
 

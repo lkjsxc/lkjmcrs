@@ -1,5 +1,6 @@
 use crate::protocol::codec;
 mod chunk;
+mod live_play;
 mod validation;
 
 use crate::probe::validation::{
@@ -114,6 +115,7 @@ pub async fn login_play(host: &str) -> Result<(), Box<dyn std::error::Error>> {
         &confirm,
     )
     .await?;
+    live_play::send_position_look(&mut stream).await?;
     let keepalive = expect(&mut stream, ids::play::KEEPALIVE, "keepalive").await?;
     let keepalive_id = codec::read_i64(&mut Cursor::new(keepalive.data))?;
     if keepalive_id != 1 {
@@ -127,8 +129,8 @@ pub async fn login_play(host: &str) -> Result<(), Box<dyn std::error::Error>> {
         &keepalive_response,
     )
     .await?;
-    let next_keepalive = expect(&mut stream, ids::play::KEEPALIVE, "periodic keepalive").await?;
-    if codec::read_i64(&mut Cursor::new(next_keepalive.data))? != 2 {
+    let next_keepalive = live_play::expect_keepalive_after_time(&mut stream).await?;
+    if next_keepalive != 2 {
         return Err(Box::new(ProbeError::Phase("periodic keepalive id")));
     }
     println!("login-play probe ok");

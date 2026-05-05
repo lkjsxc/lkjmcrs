@@ -16,8 +16,8 @@ Verify the real wire path without depending on an external Minecraft bot crate.
 8. Validate login success has no trailing payload bytes.
 9. Complete known-pack, registry, tag, and feature-flag configuration.
 10. Enter play state and validate play login, the level-chunk readiness game
-    event, the advertised chunk radius, level chunks, light, position, and
-    keepalive packets.
+    event, the advertised chunk radius, level chunks, light, position,
+    movement, time, and keepalive packets.
 
 ## Chunk Assertions
 
@@ -37,6 +37,13 @@ captured client regressions:
 The smoke probe must answer the bootstrap keepalive and still observe the next
 periodic keepalive. This proves the play loop can read client packets and keep
 writing timed server packets during terrain loading.
+
+## Play Loop Assertions
+
+- The probe sends a vanilla-shaped `position_look` movement packet after
+  teleport confirm.
+- The probe must observe at least one periodic time packet before the next
+  keepalive.
 
 ## Rules
 

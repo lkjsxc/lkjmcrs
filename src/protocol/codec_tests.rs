@@ -1,5 +1,6 @@
 use crate::protocol::codec::{
-    CodecError, read_error_to_codec, read_packet, read_var_i32, write_position, write_var_i32,
+    CodecError, read_bool, read_error_to_codec, read_f32, read_f64, read_packet, read_var_i32,
+    write_position, write_var_i32,
 };
 use std::io::Cursor;
 use tokio::io::{AsyncWriteExt, duplex};
@@ -18,6 +19,18 @@ fn position_encoding_matches_protocol_layout() {
     let mut bytes = Vec::new();
     write_position(&mut bytes, 0, 80, 0);
     assert_eq!(bytes, [0, 0, 0, 0, 0, 0, 0, 80]);
+}
+
+#[test]
+fn scalar_readers_decode_big_endian_payloads() {
+    let mut bytes = Vec::new();
+    bytes.push(1);
+    bytes.extend_from_slice(&90.0f32.to_be_bytes());
+    bytes.extend_from_slice(&80.5f64.to_be_bytes());
+    let mut cursor = Cursor::new(bytes);
+    assert!(read_bool(&mut cursor).unwrap());
+    assert_eq!(read_f32(&mut cursor).unwrap(), 90.0);
+    assert_eq!(read_f64(&mut cursor).unwrap(), 80.5);
 }
 
 #[tokio::test]
