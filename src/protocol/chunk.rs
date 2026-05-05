@@ -60,8 +60,11 @@ fn encode_section(out: &mut Vec<u8>, chunk: &ChunkSnapshot, min_y: i32) {
 fn section_states(chunk: &ChunkSnapshot, min_y: i32) -> Vec<i32> {
     let mut states = Vec::with_capacity(4096);
     for y in 0..16 {
-        let state = block_state_id(chunk.block_at(min_y + y));
-        states.extend(std::iter::repeat_n(state, 256));
+        for z in 0..16 {
+            for x in 0..16 {
+                states.push(block_state_id(chunk.block_at_local(x, min_y + y, z)));
+            }
+        }
     }
     states
 }

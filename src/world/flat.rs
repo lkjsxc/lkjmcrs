@@ -29,13 +29,20 @@ impl FlatWorld {
     }
 
     pub fn spawn_chunks(&self, radius: i32) -> Vec<ChunkSnapshot> {
-        let mut chunks = Vec::new();
+        self.spawn_chunk_positions(radius)
+            .into_iter()
+            .map(|pos| self.chunk_snapshot(pos))
+            .collect()
+    }
+
+    pub fn spawn_chunk_positions(&self, radius: i32) -> Vec<ChunkPos> {
+        let mut positions = Vec::new();
         for z in -radius..=radius {
             for x in -radius..=radius {
-                chunks.push(self.chunk_snapshot(ChunkPos::new(x, z)));
+                positions.push(ChunkPos::new(x, z));
             }
         }
-        chunks
+        positions
     }
 }
 

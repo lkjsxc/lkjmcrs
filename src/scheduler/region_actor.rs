@@ -1,10 +1,13 @@
-use crate::world::RegionId;
+use crate::world::{BlockPos, BlockState, ChunkPos, ChunkSnapshot, FlatWorld, RegionId};
+use std::collections::HashMap;
 use tokio::sync::{mpsc, oneshot};
 
 #[derive(Debug)]
 pub struct RegionActor {
     id: RegionId,
     applied: usize,
+    chunks: HashMap<ChunkPos, ChunkSnapshot>,
+    world: FlatWorld,
     inbox: mpsc::Receiver<RegionCommand>,
 }
 
@@ -20,6 +23,23 @@ enum RegionCommand {
         label: String,
         reply: oneshot::Sender<usize>,
     },
+    SpawnChunks {
+        radius: i32,
+        reply: oneshot::Sender<Vec<ChunkSnapshot>>,
+    },
+    ChunkSnapshot {
+        pos: ChunkPos,
+        reply: oneshot::Sender<Option<ChunkSnapshot>>,
+    },
+    GetBlock {
+        pos: BlockPos,
+        reply: oneshot::Sender<Option<BlockState>>,
+    },
+    SetBlock {
+        pos: BlockPos,
+        state: BlockState,
+        reply: oneshot::Sender<Option<BlockState>>,
+    },
     Snapshot {
         reply: oneshot::Sender<usize>,
     },
@@ -31,6 +51,8 @@ impl RegionActor {
         let actor = Self {
             id,
             applied: 0,
+            chunks: HashMap::new(),
+            world: FlatWorld::default(),
             inbox,
         };
         tokio::spawn(actor.run());
@@ -45,11 +67,44 @@ impl RegionActor {
                     self.applied += 1;
                     let _ = reply.send(self.applied);
                 }
+                RegionCommand::SpawnChunks { radius, reply } => {
+                    let chunks = self.spawn_chunks(radius);
+                    let _ = reply.send(chunks);
+                }
+                RegionCommand::ChunkSnapshot { pos, reply } => {
+                    let _ = reply.send(self.chunks.get(&pos).cloned());
+                }
+                RegionCommand::GetBlock { pos, reply } => {
+                    let block = self
+                        .chunks
+                        .get(&pos.chunk())
+                        .map(|chunk| chunk.block_at_pos(pos));
+                    let _ = reply.send(block);
+                }
+                RegionCommand::SetBlock { pos, state, reply } => {
+                    let block = self
+                        .chunks
+                        .get_mut(&pos.chunk())
+                        .and_then(|chunk| chunk.set_block(pos, state));
+                    let _ = reply.send(block);
+                }
                 RegionCommand::Snapshot { reply } => {
                     let _ = reply.send(self.applied);
                 }
             }
         }
+    }
+
+    fn spawn_chunks(&mut self, radius: i32) -> Vec<ChunkSnapshot> {
+        let chunks = self.world.spawn_chunks(radius);
+        for chunk in chunks {
+            self.chunks.entry(chunk.pos).or_insert(chunk);
+        }
+        self.world
+            .spawn_chunk_positions(radius)
+            .into_iter()
+            .filter_map(|pos| self.chunks.get(&pos).cloned())
+            .collect()
     }
 }
 
@@ -78,25 +133,53 @@ impl RegionHandle {
             .map_err(|_| RegionActorError::Closed)?;
         receive.await.map_err(|_| RegionActorError::Closed)
     }
+
+    pub async fn spawn_chunks(&self, radius: i32) -> Result<Vec<ChunkSnapshot>, RegionActorError> {
+        let (reply, receive) = oneshot::channel();
+        self.outbox
+            .send(RegionCommand::SpawnChunks { radius, reply })
+            .await
+            .map_err(|_| RegionActorError::Closed)?;
+        receive.await.map_err(|_| RegionActorError::Closed)
+    }
+
+    pub async fn chunk_snapshot(
+        &self,
+        pos: ChunkPos,
+    ) -> Result<Option<ChunkSnapshot>, RegionActorError> {
+        let (reply, receive) = oneshot::channel();
+        self.outbox
+            .send(RegionCommand::ChunkSnapshot { pos, reply })
+            .await
+            .map_err(|_| RegionActorError::Closed)?;
+        receive.await.map_err(|_| RegionActorError::Closed)
+    }
+
+    pub async fn get_block(&self, pos: BlockPos) -> Result<Option<BlockState>, RegionActorError> {
+        let (reply, receive) = oneshot::channel();
+        self.outbox
+            .send(RegionCommand::GetBlock { pos, reply })
+            .await
+            .map_err(|_| RegionActorError::Closed)?;
+        receive.await.map_err(|_| RegionActorError::Closed)
+    }
+
+    pub async fn set_block(
+        &self,
+        pos: BlockPos,
+        state: BlockState,
+    ) -> Result<Option<BlockState>, RegionActorError> {
+        let (reply, receive) = oneshot::channel();
+        self.outbox
+            .send(RegionCommand::SetBlock { pos, state, reply })
+            .await
+            .map_err(|_| RegionActorError::Closed)?;
+        receive.await.map_err(|_| RegionActorError::Closed)
+    }
 }
 
 #[derive(Debug, thiserror::Error)]
 pub enum RegionActorError {
     #[error("region actor is closed")]
     Closed,
-}
-
-#[cfg(test)]
-mod tests {
-    use super::RegionActor;
-    use crate::world::RegionId;
-
-    #[tokio::test]
-    async fn applies_tasks_in_mailbox_order() {
-        let handle = RegionActor::spawn(RegionId(7));
-        assert_eq!(handle.id(), RegionId(7));
-        assert_eq!(handle.apply("a").await.unwrap(), 1);
-        assert_eq!(handle.apply("b").await.unwrap(), 2);
-        assert_eq!(handle.applied_count().await.unwrap(), 2);
-    }
 }

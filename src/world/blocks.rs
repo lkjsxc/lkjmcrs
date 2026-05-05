@@ -1,8 +1,10 @@
-use crate::world::ChunkPos;
+use crate::world::{BlockPos, ChunkPos};
+use std::collections::HashMap;
 
 pub const CHUNK_WIDTH: usize = 16;
 pub const CHUNK_HEIGHT: usize = 384;
 pub const MIN_Y: i32 = -64;
+pub const MAX_Y: i32 = MIN_Y + CHUNK_HEIGHT as i32 - 1;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub enum BlockState {
@@ -18,6 +20,7 @@ pub struct ChunkSnapshot {
     pub pos: ChunkPos,
     palette: [BlockState; 5],
     layers: Vec<u8>,
+    overrides: HashMap<u16, BlockState>,
 }
 
 impl ChunkSnapshot {
@@ -32,19 +35,57 @@ impl ChunkSnapshot {
                 BlockState::GrassBlock,
             ],
             layers: build_flat_layers(),
+            overrides: HashMap::new(),
         }
     }
 
     pub fn block_at(&self, y: i32) -> BlockState {
+        self.block_at_local(0, y, 0)
+    }
+
+    pub fn block_at_local(&self, x: usize, y: i32, z: usize) -> BlockState {
+        if !valid_local(x, z) {
+            return BlockState::Air;
+        }
+        if let Some(state) = self.overrides.get(&local_key(x, y, z)) {
+            return *state;
+        }
+        self.base_block_at(y)
+    }
+
+    pub fn block_at_pos(&self, pos: BlockPos) -> BlockState {
+        if pos.chunk() != self.pos {
+            return BlockState::Air;
+        }
+        self.block_at_local(pos.local_x(), pos.y, pos.local_z())
+    }
+
+    pub fn set_block(&mut self, pos: BlockPos, state: BlockState) -> Option<BlockState> {
+        if pos.chunk() != self.pos || !in_world(pos.y) {
+            return None;
+        }
+        if self.base_block_at(pos.y) == BlockState::Bedrock {
+            return Some(BlockState::Bedrock);
+        }
+        let key = local_key(pos.local_x(), pos.y, pos.local_z());
+        if state == self.base_block_at(pos.y) {
+            self.overrides.remove(&key);
+        } else {
+            self.overrides.insert(key, state);
+        }
+        Some(self.block_at_pos(pos))
+    }
+
+    pub fn unique_palette_len(&self) -> usize {
+        self.palette.len()
+    }
+
+    fn base_block_at(&self, y: i32) -> BlockState {
         let index = y - MIN_Y;
         if !(0..CHUNK_HEIGHT as i32).contains(&index) {
             return BlockState::Air;
         }
         self.palette[self.layers[index as usize] as usize]
-    }
-
-    pub fn unique_palette_len(&self) -> usize {
-        self.palette.len()
     }
 }
 
@@ -63,10 +104,23 @@ fn build_flat_layers() -> Vec<u8> {
     layers
 }
 
+fn in_world(y: i32) -> bool {
+    (MIN_Y..=MAX_Y).contains(&y)
+}
+
+fn valid_local(x: usize, z: usize) -> bool {
+    x < CHUNK_WIDTH && z < CHUNK_WIDTH
+}
+
+fn local_key(x: usize, y: i32, z: usize) -> u16 {
+    let y_index = (y - MIN_Y) as u16;
+    ((y_index & 0x01ff) << 8) | ((z as u16) << 4) | x as u16
+}
+
 #[cfg(test)]
 mod tests {
     use super::{BlockState, ChunkSnapshot};
-    use crate::world::ChunkPos;
+    use crate::world::{BlockPos, ChunkPos};
 
     #[test]
     fn flat_chunk_layers_match_contract() {
@@ -77,5 +131,29 @@ mod tests {
         assert_eq!(chunk.block_at(78), BlockState::Dirt);
         assert_eq!(chunk.block_at(79), BlockState::GrassBlock);
         assert_eq!(chunk.block_at(80), BlockState::Air);
+    }
+
+    #[test]
+    fn sparse_overrides_mutate_only_target_blocks() {
+        let mut chunk = ChunkSnapshot::flat(ChunkPos::new(-1, 0));
+        let pos = BlockPos::new(-1, 80, 0);
+        assert_eq!(
+            chunk.set_block(pos, BlockState::Stone),
+            Some(BlockState::Stone)
+        );
+        assert_eq!(chunk.block_at_pos(pos), BlockState::Stone);
+        assert_eq!(chunk.block_at_local(14, 80, 0), BlockState::Air);
+        assert_eq!(chunk.set_block(pos, BlockState::Air), Some(BlockState::Air));
+    }
+
+    #[test]
+    fn bedrock_is_immutable() {
+        let mut chunk = ChunkSnapshot::flat(ChunkPos::new(0, 0));
+        let pos = BlockPos::new(0, 0, 0);
+        assert_eq!(
+            chunk.set_block(pos, BlockState::Air),
+            Some(BlockState::Bedrock)
+        );
+        assert_eq!(chunk.block_at_pos(pos), BlockState::Bedrock);
     }
 }
