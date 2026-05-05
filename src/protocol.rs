@@ -14,6 +14,8 @@ pub mod login;
 pub mod nbt;
 pub mod play;
 pub mod registry;
+#[cfg(test)]
+mod registry_tests;
 pub mod registry_values;
 pub mod registry_variants;
 pub mod status;

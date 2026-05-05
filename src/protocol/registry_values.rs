@@ -6,6 +6,7 @@ use crate::protocol::registry_variants::{
 
 pub const DIMENSION_REGISTRY: &str = "minecraft:dimension_type";
 pub const BIOME_REGISTRY: &str = "minecraft:worldgen/biome";
+pub const DAMAGE_TYPE_REGISTRY: &str = "minecraft:damage_type";
 pub const TIMELINE_REGISTRY: &str = "minecraft:timeline";
 
 pub struct RegistryEntry {
@@ -22,6 +23,7 @@ pub fn required_registries() -> Vec<RegistryEntry> {
             overworld_dimension(),
         ),
         entry(BIOME_REGISTRY, "minecraft:plains", plains_biome()),
+        entry(DAMAGE_TYPE_REGISTRY, "minecraft:in_fire", in_fire_damage()),
         entry(
             "minecraft:cat_variant",
             "minecraft:all_black",
@@ -125,5 +127,14 @@ fn plains_biome() -> Compound {
                 nbt::string("#78a7ff"),
             )])),
         ),
+    ])
+}
+
+fn in_fire_damage() -> Compound {
+    nbt::compound(vec![
+        ("message_id", nbt::string("inFire")),
+        ("scaling", nbt::string("when_caused_by_living_non_player")),
+        ("exhaustion", Tag::Float(0.1)),
+        ("effects", nbt::string("burning")),
     ])
 }
