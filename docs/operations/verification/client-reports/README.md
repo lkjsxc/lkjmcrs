@@ -14,13 +14,15 @@ Use this subtree for manual Minecraft client disconnect evidence.
   terrain-loading timeout after the full-radius chunk batch fix.
 - [terrain-radius-timeout.md](terrain-radius-timeout.md): fixed terrain-loading
   timeout caused by advertised radius and sent chunk-count mismatch.
-- [play-keepalive-timeout.md](play-keepalive-timeout.md): latest post-chunk
+- [play-keepalive-timeout.md](play-keepalive-timeout.md): fixed post-chunk
   timeout after heightmap sizing was fixed.
-- [heightmap-long-count.md](heightmap-long-count.md): latest terrain-load
+- [heightmap-long-count.md](heightmap-long-count.md): fixed terrain-load
   warning after chunk-section decoding was fixed.
-- [level-chunk-with-light.md](level-chunk-with-light.md): latest play packet
+- [level-chunk-with-light.md](level-chunk-with-light.md): fixed play packet
   chunk-section decoding blocker.
 - [damage-type-in-fire.md](damage-type-in-fire.md): first play-login damage
   type blocker.
 - [damage-type-campfire.md](damage-type-campfire.md): grouped damage registry
   bootstrap evidence.
+
+See [../join-boundary.md](../join-boundary.md) for the active manual boundary.

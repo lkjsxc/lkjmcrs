@@ -31,3 +31,8 @@ values-per-long packing with `7` values per `i64`, producing `37` longs.
 
 Update heightmap encoding to use fixed values-per-long packing and add tests
 that parse `level_chunk_with_light` heightmaps with `37` longs each.
+
+## Resolution
+
+Implemented fixed values-per-long heightmap storage and tests for two `37`-long
+heightmaps per `level_chunk_with_light` packet.

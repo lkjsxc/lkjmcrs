@@ -31,3 +31,9 @@ sending play keepalives while the session is open.
 Change the play loop so packet reads and periodic keepalive writes can progress
 together. Send clientbound keepalives every `10` seconds and keep accepting
 movement, teleport-confirm, chunk-batch, and keepalive responses.
+
+## Resolution
+
+Implemented a play loop that selects between serverbound reads and periodic
+clientbound keepalive writes. The smoke probe now waits for the second
+keepalive to prove the session is not blocked after bootstrap.

@@ -35,3 +35,8 @@ Update the chunk section encoder to match the vanilla `1.21.11` paletted
 container contract. Section containers write a bits-per-entry byte, a palette
 payload, and then a fixed-size raw long array. They do not write a VarInt
 long-array length inside the section data.
+
+## Resolution
+
+Implemented fixed-size raw long encoding for section paletted containers and
+added parser-style tests that consume the full chunk-data payload exactly.

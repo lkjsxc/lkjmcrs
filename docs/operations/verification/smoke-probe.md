@@ -15,9 +15,21 @@ Verify the real wire path without depending on an external Minecraft bot crate.
 7. Acknowledge login success.
 8. Validate login success has no trailing payload bytes.
 9. Complete known-pack, registry, tag, and feature-flag configuration.
-10. Enter play state and observe play login, the level-chunk readiness game
-    event, the full advertised chunk radius, light, position, and keepalive
-    packets.
+10. Enter play state and validate play login, the level-chunk readiness game
+    event, the advertised chunk radius, level chunks, light, position, and
+    keepalive packets.
+
+## Chunk Assertions
+
+The smoke probe must validate enough live chunk payload data to catch the
+captured client regressions:
+
+- advertised radius `2` yields `25` chunks,
+- each `level_chunk_with_light` payload has exactly consumed chunk data,
+- heightmaps use `37` raw longs for each `9`-bit `256`-entry heightmap,
+- section paletted containers omit VarInt raw-long lengths,
+- biome containers use the plains single-value shape,
+- the batch-finished size equals the observed chunk count.
 
 ## Rules
 
