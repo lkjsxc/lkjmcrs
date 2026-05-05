@@ -12,13 +12,18 @@ Verify the real wire path without depending on an external Minecraft bot crate.
 4. Send ping and validate matching pong.
 5. Open a second TCP connection.
 6. Send login handshake and offline login hello.
-7. Complete configuration acknowledgement.
-8. Enter play state and observe play-ready plus keepalive packets.
+7. Acknowledge login success.
+8. Validate login success has no trailing payload bytes.
+9. Complete known-pack, registry, tag, and feature-flag configuration.
+10. Enter play state and observe play login, chunk, light, position, and
+    keepalive packets.
 
 ## Rules
 
 - Probe code uses first-party packet framing.
 - Probe failures print the phase name.
 - Probe runs in Docker Compose.
-- Passing smoke proves the internal wire lifecycle, not full stock-client play
-  rendering.
+- Probe assertions must use vanilla-shaped packet IDs and payloads, not
+  probe-only play marker packets.
+- Passing smoke proves the first-party login/configuration/play boundary, not
+  final stock-client terrain rendering.

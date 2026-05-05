@@ -17,14 +17,16 @@
 4. Server sends login success for offline mode.
 5. Client sends login acknowledged.
 6. Connection enters configuration.
-7. Server sends minimal configuration data.
-8. Server sends finish configuration.
-9. Client acknowledges finish configuration.
-10. Connection enters play.
+7. Server sends known-pack selection.
+8. Client selects `minecraft:core`.
+9. Server sends minimal registry data and tags.
+10. Server sends feature flags and finish configuration.
+11. Client acknowledges finish configuration.
+12. Connection enters play.
 
 ## Play Flow
 
 - Server sends initial play state and spawn position.
-- Server sends flat chunks around spawn.
+- Server sends a `3x3` flat chunk and light batch around spawn.
 - Server sends periodic keepalive.
 - Client movement updates session position.

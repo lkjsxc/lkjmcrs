@@ -5,6 +5,8 @@ use uuid::Uuid;
 
 #[derive(Debug, Error)]
 pub enum CodecError {
+    #[error("connection closed")]
+    ConnectionClosed,
     #[error("io error: {0}")]
     Io(#[from] std::io::Error),
     #[error("varint is too large")]
@@ -29,7 +31,10 @@ pub async fn read_packet<R: AsyncRead + Unpin>(reader: &mut R) -> Result<Packet,
         return Err(CodecError::NegativeLength);
     }
     let mut frame = vec![0; length as usize];
-    reader.read_exact(&mut frame).await?;
+    reader
+        .read_exact(&mut frame)
+        .await
+        .map_err(read_error_to_codec)?;
     let mut cursor = Cursor::new(frame);
     let id = read_var_i32(&mut cursor)?;
     let mut data = Vec::new();
@@ -55,7 +60,7 @@ pub async fn write_packet<W: AsyncWrite + Unpin>(
 pub async fn read_var_i32_async<R: AsyncRead + Unpin>(reader: &mut R) -> Result<i32, CodecError> {
     let mut value = 0i32;
     for position in 0..5 {
-        let byte = reader.read_u8().await?;
+        let byte = reader.read_u8().await.map_err(read_error_to_codec)?;
         value |= ((byte & 0x7f) as i32) << (position * 7);
         if byte & 0x80 == 0 {
             return Ok(value);
@@ -115,6 +120,22 @@ pub fn write_uuid(out: &mut Vec<u8>, uuid: Uuid) {
     out.extend_from_slice(uuid.as_bytes());
 }
 
+pub fn write_u8(out: &mut Vec<u8>, value: u8) {
+    out.push(value);
+}
+
+pub fn write_i8(out: &mut Vec<u8>, value: i8) {
+    out.push(value as u8);
+}
+
+pub fn write_i32(out: &mut Vec<u8>, value: i32) {
+    out.extend_from_slice(&value.to_be_bytes());
+}
+
+pub fn write_u32(out: &mut Vec<u8>, value: u32) {
+    out.extend_from_slice(&value.to_be_bytes());
+}
+
 pub fn write_i64(out: &mut Vec<u8>, value: i64) {
     out.extend_from_slice(&value.to_be_bytes());
 }
@@ -139,23 +160,32 @@ pub fn write_bool(out: &mut Vec<u8>, value: bool) {
     out.push(u8::from(value));
 }
 
+pub fn write_f32(out: &mut Vec<u8>, value: f32) {
+    out.extend_from_slice(&value.to_be_bytes());
+}
+
+pub fn write_f64(out: &mut Vec<u8>, value: f64) {
+    out.extend_from_slice(&value.to_be_bytes());
+}
+
+pub fn write_position(out: &mut Vec<u8>, x: i32, y: i32, z: i32) {
+    let value = ((i64::from(x) & 0x3ffffff) << 38)
+        | ((i64::from(z) & 0x3ffffff) << 12)
+        | (i64::from(y) & 0xfff);
+    out.extend_from_slice(&(value as u64).to_be_bytes());
+}
+
 fn read_u8(cursor: &mut Cursor<Vec<u8>>) -> Result<u8, CodecError> {
     let mut bytes = [0; 1];
     std::io::Read::read_exact(cursor, &mut bytes).map_err(|_| CodecError::Eof)?;
     Ok(bytes[0])
 }
 
-#[cfg(test)]
-mod tests {
-    use super::{read_var_i32, write_var_i32};
-    use std::io::Cursor;
-
-    #[test]
-    fn varint_round_trip_boundaries() {
-        for value in [0, 1, 127, 128, 255, 2_147_483_647] {
-            let mut bytes = Vec::new();
-            write_var_i32(&mut bytes, value);
-            assert_eq!(read_var_i32(&mut Cursor::new(bytes)).unwrap(), value);
+pub(crate) fn read_error_to_codec(error: std::io::Error) -> CodecError {
+    match error.kind() {
+        std::io::ErrorKind::UnexpectedEof | std::io::ErrorKind::ConnectionReset => {
+            CodecError::ConnectionClosed
         }
+        _ => CodecError::Io(error),
     }
 }

@@ -9,14 +9,24 @@
 - Login hello from client.
 - Login success from server.
 - Login acknowledged from client.
-- Minimal configuration packets.
+- Configuration client settings accepted.
+- Known pack selection for `minecraft:core`.
+- Minimal registry data for overworld, plains, required variants, and timeline.
+- Tags for declared dynamic registries.
+- Enabled features with `minecraft:vanilla`.
 - Finish configuration from server.
 - Finish configuration from client.
-- Play login/join packet.
-- Player position sync.
-- Keepalive serverbound and clientbound.
+- Play login/join packet with `minecraft:overworld` spawn info.
+- Chunk cache center and radius.
+- Flat map chunks around spawn.
+- Chunk batch start and finish.
+- Light data for spawn chunks.
+- Default spawn position.
+- Time update.
+- Player abilities.
+- Initial player position sync.
+- Keepalive serverbound and clientbound in play.
 - Basic movement packets accepted from client.
-- First-party play-ready probe packet.
 
 ## Deferred
 
@@ -24,10 +34,34 @@
 - Encryption.
 - Online-mode session verification.
 - Chat signing.
-- Full registry fidelity.
-- Vanilla-complete chunk packets.
+- Full vanilla registry coverage beyond the minimal first milestone entries.
+- Persistent or mutable chunk packets.
 - Resource pack negotiation.
 - Complete play packet set.
+
+## Current Vanilla Boundary
+
+The server-list status path is vanilla-shaped for `1.21.11`.
+The login path reaches configuration, negotiates the vanilla core pack,
+loads the required non-empty registries, enters play, and sends a deterministic
+`3x3` flat spawn chunk batch. Full terrain rendering by a stock client still
+requires manual evidence because the registry and chunk set is intentionally
+minimal.
+
+## Next Join Sequence
+
+1. Client sends handshake with protocol `774` and next state `login`.
+2. Client sends login start.
+3. Server sends login success.
+4. Client sends login acknowledged.
+5. Client may send configuration settings.
+6. Server sends known packs with `minecraft:core` version `1.21.11`.
+7. Client replies with selected known packs.
+8. Server sends registry data and tags.
+9. Server sends enabled features with `minecraft:vanilla`.
+10. Server sends finish configuration.
+11. Client acknowledges finish configuration.
+12. Server sends play login, flat chunks, light, position, and keepalive.
 
 ## Rule
 

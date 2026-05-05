@@ -2,16 +2,17 @@
 
 ## Goal
 
-Give the first-party `1.21.11` wire probe enough state to enter a simple world
-contract and remain connected while the server ticks.
+Give a stock offline-mode `1.21.11` client enough protocol state to pass
+`login_finished`, complete configuration, enter play, and receive a minimal
+flat spawn area.
 
 ## Vanilla Client Boundary
 
 - Server-list status targets real vanilla client behavior.
-- Full vanilla play rendering is not claimed until registry and chunk packets
-  are complete enough for a stock client.
-- The first milestone proves the server-side play lifecycle with the compose
-  smoke probe.
+- The first-party probe proves login, configuration, registry, chunk, light,
+  position, and keepalive packet order.
+- Stock-client rendering is accepted only after manual evidence is captured in
+  the verification docs.
 
 ## World
 
@@ -31,7 +32,8 @@ contract and remain connected while the server ticks.
 ## Out of Scope
 
 - Full vanilla registry synchronization.
-- Vanilla-complete chunk packet encoding.
+- Full variant registry contents beyond one valid entry per required registry.
+- Terrain outside the deterministic spawn batch.
 - Block breaking and placement.
 - Entity AI.
 - Inventory and recipes.

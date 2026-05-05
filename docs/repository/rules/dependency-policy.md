@@ -6,6 +6,9 @@
 - Use Tokio for async runtime.
 - Use small, well-maintained crates for CLI, logging, errors, and UUIDs.
 - Avoid Minecraft server frameworks during the first milestone.
+- Keep packet framing and Minecraft protocol types first-party.
+- Keep the current network NBT writer first-party while the candidate
+  `simdnbt` releases require nightly Rust in the stable verify image.
 
 ## Rules
 

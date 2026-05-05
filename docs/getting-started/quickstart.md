@@ -23,8 +23,8 @@ The smoke probe checks:
 - status request,
 - ping round trip,
 - offline login path,
-- configuration to play transition,
-- keepalive/tick behavior.
+- known-pack, registry, tag, and feature-flag configuration,
+- initial chunk, light, position, and keepalive packets.
 
 ## Stop and Clean State
 

@@ -1,5 +1,5 @@
 use crate::config::Config;
-use crate::session::ServerContext;
+use crate::session::{ConnectionLogLevel, ServerContext};
 use tokio::net::TcpListener;
 
 pub async fn serve(config: Config) -> Result<(), Box<dyn std::error::Error>> {
@@ -12,7 +12,18 @@ pub async fn serve(config: Config) -> Result<(), Box<dyn std::error::Error>> {
         let context = context.clone();
         tokio::spawn(async move {
             if let Err(error) = crate::session::handle_connection(stream, context).await {
-                tracing::warn!(%peer, %error, "connection closed with error");
+                let phase = error.phase();
+                match error.log_level() {
+                    ConnectionLogLevel::Debug => {
+                        tracing::debug!(%peer, phase = %phase, %error, "connection closed");
+                    }
+                    ConnectionLogLevel::Info => {
+                        tracing::info!(%peer, phase = %phase, %error, "connection closed");
+                    }
+                    ConnectionLogLevel::Warn => {
+                        tracing::warn!(%peer, phase = %phase, %error, "connection error");
+                    }
+                }
             }
         });
     }

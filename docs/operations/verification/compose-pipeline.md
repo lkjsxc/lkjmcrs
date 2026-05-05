@@ -4,7 +4,7 @@
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm verify
-docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d server
+docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build server
 docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm smoke
 docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
 ```
