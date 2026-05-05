@@ -13,3 +13,4 @@ Use this subtree for required compose verification contracts.
 - [compose-pipeline.md](compose-pipeline.md): required compose commands.
 - [smoke-probe.md](smoke-probe.md): wire smoke behavior.
 - [vanilla-join.md](vanilla-join.md): manual stock-client join checks.
+- [damage-type-login.md](damage-type-login.md): current play-login registry evidence.

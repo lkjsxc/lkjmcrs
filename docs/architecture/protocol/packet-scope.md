@@ -11,7 +11,8 @@
 - Login acknowledged from client.
 - Configuration client settings accepted.
 - Known pack selection for `minecraft:core`.
-- Minimal registry data for overworld, plains, required variants, and timeline.
+- Minimal registry data for overworld, plains, damage type, required variants,
+  and timeline.
 - Tags for declared dynamic registries.
 - Enabled features with `minecraft:vanilla`.
 - Finish configuration from server.
@@ -34,7 +35,8 @@
 - Encryption.
 - Online-mode session verification.
 - Chat signing.
-- Full vanilla registry coverage beyond the minimal first milestone entries.
+- Full vanilla registry coverage beyond evidence-driven first milestone
+  entries.
 - Persistent or mutable chunk packets.
 - Resource pack negotiation.
 - Complete play packet set.
@@ -47,6 +49,14 @@ loads the required non-empty registries, enters play, and sends a deterministic
 `3x3` flat spawn chunk batch. Full terrain rendering by a stock client still
 requires manual evidence because the registry and chunk set is intentionally
 minimal.
+
+Dynamic registries are intentionally minimal and evidence-driven. They are not
+full vanilla coverage. `minecraft:damage_type` is required before play login can
+construct the client level because vanilla play login expects
+`minecraft:damage_type / minecraft:in_fire` to exist.
+
+The target remains stock Minecraft Java Edition `1.21.11`. Fabric or modded
+client reports may be recorded only when they expose a vanilla protocol gap.
 
 ## Next Join Sequence
 

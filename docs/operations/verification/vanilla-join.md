@@ -23,6 +23,11 @@ During join, a normal client close must not produce a
 
 The server now sends minimal registry data for the registries the vanilla
 client reported as required, including the `minecraft:timeline` tag binding
-used by the overworld dimension. If a stock client still disconnects before
-rendering terrain, record the exact new disconnect text here before moving the
-boundary again.
+used by the overworld dimension.
+
+The latest captured boundary is play login failing while constructing the
+client level because `minecraft:damage_type / minecraft:in_fire` is missing.
+See [damage-type-login.md](damage-type-login.md).
+
+If a stock client still disconnects before rendering terrain, record the exact
+new disconnect text here before moving the boundary again.

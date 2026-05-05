@@ -22,6 +22,7 @@ The first milestone declares:
 
 - `minecraft:dimension_type` with `minecraft:overworld` at registry ID `0`.
 - `minecraft:worldgen/biome` with `minecraft:plains` at registry ID `0`.
+- `minecraft:damage_type` with `minecraft:in_fire` at registry ID `0`.
 - Minimal non-empty variant registries required by the vanilla client:
   cat, chicken, cow, frog, painting, pig, wolf sound, wolf, and zombie nautilus.
 - `minecraft:timeline` with `minecraft:day` at registry ID `0`.
