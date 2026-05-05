@@ -36,7 +36,8 @@ The first milestone declares one registry packet for each of these registries:
 - `0x5c update_view_position`: spawn chunk `0,0`.
 - `0x5d set_chunk_cache_radius`: radius `2`.
 - `0x0c chunk_batch_start`: empty payload.
-- `0x2c level_chunk_with_light`: flat chunk data and light arrays.
+- `0x2c level_chunk_with_light`: `25` flat chunks for radius `2`, with chunk
+  data and light arrays.
 - `0x2f update_light`: explicit light data for the same chunk, retained for the
   current join milestone.
 - `0x0b chunk_batch_finished`: batch size.
@@ -45,6 +46,11 @@ The first milestone declares one registry packet for each of these registries:
 - `0x3e abilities`: permissive initial ability flags.
 - `0x46 position`: spawn teleport with teleport ID `1`.
 - `0x2b keep_alive`: signed 64-bit keepalive ID.
+
+The `level_chunk_with_light` count is derived from
+`(radius * 2 + 1) ^ 2`. The first milestone uses radius `2`, so the bootstrap
+must send `25` chunks. A smaller `3x3` batch is invalid because it advertises
+terrain the client never receives during initial world entry.
 
 ## Flat Chunk IDs
 

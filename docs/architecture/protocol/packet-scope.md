@@ -46,10 +46,11 @@
 The server-list status path is vanilla-shaped for `1.21.11`.
 The login path reaches configuration, negotiates the vanilla core pack,
 loads the required non-empty registries, enters play, and sends a deterministic
-`3x3` flat spawn chunk batch. Full terrain rendering by a stock client still
-requires manual evidence because the registry and chunk set is intentionally
-minimal. The active manual boundary is heightmap long-array sizing inside
-`clientbound/minecraft:level_chunk_with_light`.
+`5x5` flat spawn chunk batch for advertised radius `2`. Full terrain rendering
+by a stock client still requires manual evidence because the registry and chunk
+set is intentionally minimal. The active manual boundary is terrain-loading
+timeout after the server advertised radius `2` but sent only a `3x3` chunk
+batch.
 
 Dynamic registries are intentionally minimal and evidence-driven. They are not
 full vanilla coverage. `minecraft:damage_type` is required before play login can
@@ -72,7 +73,8 @@ client reports may be recorded only when they expose a vanilla protocol gap.
 9. Server sends enabled features with `minecraft:vanilla`.
 10. Server sends finish configuration.
 11. Client acknowledges finish configuration.
-12. Server sends play login, flat chunks, light, position, and keepalive.
+12. Server sends play login, the full advertised flat chunk radius, light,
+    position, and keepalive.
 
 ## Rule
 

@@ -13,9 +13,14 @@ for the current debugging boundary.
 The play bootstrap sends:
 
 1. `chunk_batch_start`
-2. nine `level_chunk_with_light` packets for a `3x3` spawn area
+2. one `level_chunk_with_light` packet for every chunk in the advertised
+   chunk-cache radius
 3. one `update_light` packet after each chunk
 4. `chunk_batch_finished`
+
+The advertised radius is authoritative. A radius of `2` means the initial
+terrain batch is a `5x5` square centered on chunk `0,0`, for `25` chunks total.
+Do not advertise a larger radius than the bootstrap sends.
 
 The explicit `update_light` packet is intentionally retained during the current
 join milestone even though `level_chunk_with_light` already carries light data.

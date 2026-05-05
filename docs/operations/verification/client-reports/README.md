@@ -10,6 +10,8 @@ Use this subtree for manual Minecraft client disconnect evidence.
 
 ## Child Index
 
+- [terrain-radius-timeout.md](terrain-radius-timeout.md): latest terrain-loading
+  timeout caused by advertised radius and sent chunk-count mismatch.
 - [play-keepalive-timeout.md](play-keepalive-timeout.md): latest post-chunk
   timeout after heightmap sizing was fixed.
 - [heightmap-long-count.md](heightmap-long-count.md): latest terrain-load

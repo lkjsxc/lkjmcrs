@@ -19,6 +19,7 @@ flat spawn area.
 - One dimension: `minecraft:overworld`.
 - Flat deterministic terrain.
 - Spawn defaults to `0, 80, 0`.
+- The initial world-entry batch covers the full advertised radius `2`.
 - Initial game mode is creative for easier smoke testing.
 - Time starts at `0` and advances by server ticks.
 
@@ -34,7 +35,7 @@ flat spawn area.
 
 - Full vanilla registry synchronization.
 - Full variant registry contents beyond one valid entry per required registry.
-- Terrain outside the deterministic spawn batch.
+- Terrain outside the advertised deterministic spawn batch.
 - Block breaking and placement.
 - Entity AI.
 - Inventory and recipes.
