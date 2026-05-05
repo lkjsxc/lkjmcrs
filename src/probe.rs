@@ -1,9 +1,15 @@
 use crate::protocol::codec;
-use crate::protocol::configuration::{self, KnownPack};
+mod validation;
+
+use crate::probe::validation::{
+    validate_chunk_batch_finished, validate_chunk_radius, validate_known_packs,
+    validate_login_success, validate_position_packet, validate_status_json,
+};
+use crate::protocol::PROTOCOL_VERSION;
+use crate::protocol::configuration;
 use crate::protocol::ids;
 use crate::protocol::play;
 use crate::protocol::types::{Handshake, LoginStart, NextState};
-use crate::protocol::{MINECRAFT_VERSION, PROTOCOL_VERSION};
 use std::io::Cursor;
 use thiserror::Error;
 use tokio::net::TcpStream;
@@ -70,9 +76,10 @@ pub async fn login_play(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     codec::write_packet(&mut stream, ids::config::FINISH, &[]).await?;
     expect(&mut stream, ids::play::LOGIN, "play login").await?;
     expect(&mut stream, ids::play::CHUNK_CACHE_CENTER, "chunk center").await?;
-    expect(&mut stream, ids::play::CHUNK_CACHE_RADIUS, "chunk radius").await?;
+    let radius = expect(&mut stream, ids::play::CHUNK_CACHE_RADIUS, "chunk radius").await?;
+    let chunk_count = validate_chunk_radius(radius.data)?;
     expect(&mut stream, ids::play::CHUNK_BATCH_START, "chunk batch").await?;
-    for _ in 0..9 {
+    for _ in 0..chunk_count {
         expect(
             &mut stream,
             ids::play::LEVEL_CHUNK_WITH_LIGHT,
@@ -81,12 +88,13 @@ pub async fn login_play(host: &str) -> Result<(), Box<dyn std::error::Error>> {
         .await?;
         expect(&mut stream, ids::play::UPDATE_LIGHT, "update light").await?;
     }
-    expect(
+    let finished = expect(
         &mut stream,
         ids::play::CHUNK_BATCH_FINISHED,
         "chunk batch finished",
     )
     .await?;
+    validate_chunk_batch_finished(finished.data, chunk_count)?;
     expect(&mut stream, ids::play::DEFAULT_SPAWN_POSITION, "spawn").await?;
     expect(&mut stream, ids::play::SET_TIME, "time").await?;
     expect(&mut stream, ids::play::PLAYER_ABILITIES, "abilities").await?;
@@ -137,44 +145,4 @@ async fn expect(
     } else {
         Err(Box::new(ProbeError::Phase(phase)))
     }
-}
-
-fn validate_status_json(json: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let value: serde_json::Value = serde_json::from_str(json)?;
-    let version = &value["version"];
-    if version["name"] != MINECRAFT_VERSION || version["protocol"] != PROTOCOL_VERSION {
-        return Err(Box::new(ProbeError::Phase("status version")));
-    }
-    Ok(())
-}
-
-fn validate_known_packs(data: Vec<u8>) -> Result<(), Box<dyn std::error::Error>> {
-    let packs = configuration::decode_known_packs(data)?;
-    if packs != vec![KnownPack::vanilla_core()] {
-        return Err(Box::new(ProbeError::Phase("known packs payload")));
-    }
-    Ok(())
-}
-
-fn validate_login_success(data: Vec<u8>) -> Result<(), Box<dyn std::error::Error>> {
-    let mut cursor = Cursor::new(data);
-    let _uuid = codec::read_uuid(&mut cursor)?;
-    let username = codec::read_string(&mut cursor)?;
-    let properties = codec::read_var_i32(&mut cursor)?;
-    if username != "Probe" || properties != 0 {
-        return Err(Box::new(ProbeError::Phase("login success payload")));
-    }
-    if cursor.position() != cursor.get_ref().len() as u64 {
-        return Err(Box::new(ProbeError::Phase("login success trailing bytes")));
-    }
-    Ok(())
-}
-
-fn validate_position_packet(data: Vec<u8>) -> Result<(), Box<dyn std::error::Error>> {
-    let mut cursor = Cursor::new(data);
-    let teleport_id = codec::read_var_i32(&mut cursor)?;
-    if teleport_id != play::Bootstrap::new(100).teleport_id() {
-        return Err(Box::new(ProbeError::Phase("teleport id")));
-    }
-    Ok(())
 }

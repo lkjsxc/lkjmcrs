@@ -91,7 +91,8 @@ where
         &play::encode_chunk_cache_radius(bootstrap.view_distance),
     )
     .await?;
-    let chunks = FlatWorld::default().spawn_chunks(1);
+    let chunks = FlatWorld::default().spawn_chunks(bootstrap.view_distance);
+    debug_assert_eq!(chunks.len(), bootstrap.chunk_count());
     write_packet(stream, phase, ids::play::CHUNK_BATCH_START, &[]).await?;
     for chunk_snapshot in &chunks {
         write_packet(

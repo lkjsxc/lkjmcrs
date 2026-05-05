@@ -2,6 +2,7 @@ use crate::protocol::codec;
 
 const OVERWORLD: &str = "minecraft:overworld";
 const TELEPORT_ID: i32 = 1;
+const DEFAULT_CHUNK_RADIUS: i32 = 2;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Bootstrap {
@@ -19,8 +20,8 @@ impl Bootstrap {
         Self {
             entity_id: 1,
             max_players: max_players as i32,
-            view_distance: 2,
-            simulation_distance: 2,
+            view_distance: DEFAULT_CHUNK_RADIUS,
+            simulation_distance: DEFAULT_CHUNK_RADIUS,
             spawn_x: 0,
             spawn_y: 80,
             spawn_z: 0,
@@ -30,6 +31,16 @@ impl Bootstrap {
     pub const fn teleport_id(self) -> i32 {
         TELEPORT_ID
     }
+
+    pub fn chunk_count(self) -> usize {
+        chunk_count_for_radius(self.view_distance)
+    }
+}
+
+pub fn chunk_count_for_radius(radius: i32) -> usize {
+    assert!(radius >= 0, "chunk radius must be non-negative");
+    let width = radius as usize * 2 + 1;
+    width * width
 }
 
 pub fn encode_login(bootstrap: Bootstrap) -> Vec<u8> {
@@ -146,7 +157,9 @@ mod tests {
     #[test]
     fn chunk_cache_packets_are_varints() {
         assert_eq!(encode_chunk_cache_center(0, 0), vec![0, 0]);
-        assert_eq!(encode_chunk_cache_radius(2), vec![2]);
+        let bootstrap = Bootstrap::new(100);
+        assert_eq!(encode_chunk_cache_radius(bootstrap.view_distance), vec![2]);
+        assert_eq!(bootstrap.chunk_count(), 25);
     }
 
     #[test]

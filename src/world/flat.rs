@@ -48,5 +48,6 @@ mod tests {
         let world = FlatWorld::default();
         assert_eq!(world.spawn(), (0.0, 80.0, 0.0));
         assert_eq!(world.spawn_chunks(1).len(), 9);
+        assert_eq!(world.spawn_chunks(2).len(), 25);
     }
 }
