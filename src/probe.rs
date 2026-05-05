@@ -3,7 +3,7 @@ mod chunk;
 mod validation;
 
 use crate::probe::validation::{
-    validate_chunk_batch_finished, validate_chunk_radius, validate_game_event,
+    validate_chunk_batch_finished, validate_chunk_radius, validate_game_state_change,
     validate_known_packs, validate_login_success, validate_position_packet, validate_status_json,
 };
 use crate::protocol::PROTOCOL_VERSION;
@@ -79,8 +79,9 @@ pub async fn login_play(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     expect(&mut stream, ids::play::DEFAULT_SPAWN_POSITION, "spawn").await?;
     expect(&mut stream, ids::play::SET_TIME, "time").await?;
     expect(&mut stream, ids::play::PLAYER_ABILITIES, "abilities").await?;
-    let game_event = expect(&mut stream, ids::play::GAME_EVENT, "chunk readiness").await?;
-    validate_game_event(game_event.data)?;
+    let game_state_change =
+        expect(&mut stream, ids::play::GAME_STATE_CHANGE, "chunk readiness").await?;
+    validate_game_state_change(game_state_change.data)?;
     expect(&mut stream, ids::play::CHUNK_CACHE_CENTER, "chunk center").await?;
     let radius = expect(&mut stream, ids::play::CHUNK_CACHE_RADIUS, "chunk radius").await?;
     let chunk_count = validate_chunk_radius(radius.data)?;

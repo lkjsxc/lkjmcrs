@@ -29,7 +29,7 @@ fn spawn_position_encodes_global_position() {
 }
 
 #[test]
-fn time_abilities_and_game_event_are_stable() {
+fn time_abilities_and_game_state_change_are_stable() {
     assert_eq!(
         encode_time(0, 0),
         vec![0; 16].into_iter().chain([1]).collect::<Vec<_>>()

@@ -95,7 +95,7 @@ where
     write_packet(
         stream,
         phase,
-        ids::play::GAME_EVENT,
+        ids::play::GAME_STATE_CHANGE,
         &play::encode_start_waiting_for_chunks(),
     )
     .await?;
