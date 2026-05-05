@@ -3,7 +3,7 @@ use crate::protocol::codec;
 use crate::world::blocks::MIN_Y;
 use crate::world::{BlockState, ChunkSnapshot};
 
-pub(super) const SECTION_COUNT: usize = 24;
+pub const SECTION_COUNT: usize = 24;
 const LIGHT_SECTION_COUNT: usize = SECTION_COUNT + 2;
 const FULL_LIGHT: [u8; 2048] = [0xff; 2048];
 

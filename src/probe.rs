@@ -1,4 +1,5 @@
 use crate::protocol::codec;
+mod chunk;
 mod validation;
 
 use crate::probe::validation::{
@@ -85,12 +86,13 @@ pub async fn login_play(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     let chunk_count = validate_chunk_radius(radius.data)?;
     expect(&mut stream, ids::play::CHUNK_BATCH_START, "chunk batch").await?;
     for _ in 0..chunk_count {
-        expect(
+        let chunk = expect(
             &mut stream,
             ids::play::LEVEL_CHUNK_WITH_LIGHT,
             "level chunk with light",
         )
         .await?;
+        chunk::validate_level_chunk_with_light(chunk.data)?;
         expect(&mut stream, ids::play::UPDATE_LIGHT, "update light").await?;
     }
     let finished = expect(
