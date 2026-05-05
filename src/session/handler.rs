@@ -13,7 +13,7 @@ use crate::session::io::{
 use crate::session::play::handle_play;
 use crate::session::profile::{offline_uuid, validate_name};
 use crate::session::registry::SessionRegistry;
-use crate::world::RegionId;
+use crate::world::{RegionId, WorldStorage};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use tokio::net::TcpStream;
@@ -28,9 +28,11 @@ pub struct ServerContext {
 
 impl ServerContext {
     pub fn new(config: Config) -> Arc<Self> {
+        let region =
+            RegionActor::spawn_persistent(RegionId(0), WorldStorage::new(&config.data_dir));
         Arc::new(Self {
             config,
-            region: RegionActor::spawn(RegionId(0)),
+            region,
             sessions: SessionRegistry::default(),
             players: AtomicUsize::new(0),
         })

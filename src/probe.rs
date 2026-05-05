@@ -3,6 +3,7 @@ mod block_mutation;
 mod chunk;
 mod live_play;
 mod multiplayer_mutation;
+mod persistence;
 mod play_client;
 mod validation;
 
@@ -56,6 +57,18 @@ pub async fn login_play(host: &str) -> Result<(), Box<dyn std::error::Error>> {
 pub async fn multiplayer_mutation(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     multiplayer_mutation::run(host).await?;
     println!("multiplayer-mutation probe ok");
+    Ok(())
+}
+
+pub async fn persist_place(host: &str) -> Result<(), Box<dyn std::error::Error>> {
+    persistence::place(host).await?;
+    println!("persist-place probe ok");
+    Ok(())
+}
+
+pub async fn persist_check(host: &str) -> Result<(), Box<dyn std::error::Error>> {
+    persistence::check(host).await?;
+    println!("persist-check probe ok");
     Ok(())
 }
 

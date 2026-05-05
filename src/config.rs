@@ -1,4 +1,4 @@
-use std::{env, net::SocketAddr};
+use std::{env, net::SocketAddr, path::PathBuf};
 use thiserror::Error;
 
 #[derive(Clone, Debug)]
@@ -7,6 +7,7 @@ pub struct Config {
     pub motd: String,
     pub max_players: usize,
     pub online_mode: bool,
+    pub data_dir: PathBuf,
 }
 
 #[derive(Debug, Error)]
@@ -27,6 +28,7 @@ impl Config {
         let motd = env_value("LKJMCRS_MOTD", "lkjmcrs 1.21.11");
         let max_players = env_value("LKJMCRS_MAX_PLAYERS", "100").parse()?;
         let online_mode = parse_bool(&env_value("LKJMCRS_ONLINE_MODE", "false"))?;
+        let data_dir = PathBuf::from(env_value("LKJMCRS_DATA_DIR", "data"));
 
         if online_mode {
             return Err(ConfigError::OnlineMode);
@@ -37,6 +39,7 @@ impl Config {
             motd,
             max_players,
             online_mode,
+            data_dir,
         })
     }
 }

@@ -10,6 +10,9 @@ services:
       LKJMCRS_MOTD: ${LKJMCRS_MOTD:-lkjmcrs 1.21.11}
       LKJMCRS_MAX_PLAYERS: ${LKJMCRS_MAX_PLAYERS:-100}
       LKJMCRS_ONLINE_MODE: ${LKJMCRS_ONLINE_MODE:-false}
+      LKJMCRS_DATA_DIR: /data
+    volumes:
+      - server-data:/data
     ports:
       - "${LKJMCRS_PORT:-25565}:25565"
     healthcheck:
@@ -17,3 +20,6 @@ services:
       interval: 5s
       timeout: 5s
       retries: 20
+
+volumes:
+  server-data:

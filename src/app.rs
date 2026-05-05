@@ -51,6 +51,14 @@ enum ProbeCommand {
         #[arg(long, default_value = "127.0.0.1:25565")]
         host: String,
     },
+    PersistPlace {
+        #[arg(long, default_value = "127.0.0.1:25565")]
+        host: String,
+    },
+    PersistCheck {
+        #[arg(long, default_value = "127.0.0.1:25565")]
+        host: String,
+    },
 }
 
 #[tokio::main]
@@ -74,6 +82,8 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
             ProbeCommand::MultiplayerMutation { host } => {
                 crate::probe::multiplayer_mutation(&host).await?
             }
+            ProbeCommand::PersistPlace { host } => crate::probe::persist_place(&host).await?,
+            ProbeCommand::PersistCheck { host } => crate::probe::persist_check(&host).await?,
         },
     }
 

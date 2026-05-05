@@ -80,6 +80,20 @@ impl ChunkSnapshot {
         self.palette.len()
     }
 
+    pub fn override_count(&self) -> usize {
+        self.overrides.len()
+    }
+
+    pub fn override_entries(&self) -> Vec<(BlockPos, BlockState)> {
+        let mut entries = self
+            .overrides
+            .iter()
+            .map(|(key, state)| (self.pos.global_block_pos(*key), *state))
+            .collect::<Vec<_>>();
+        entries.sort_by_key(|(pos, _)| (pos.x, pos.y, pos.z));
+        entries
+    }
+
     fn base_block_at(&self, y: i32) -> BlockState {
         let index = y - MIN_Y;
         if !(0..CHUNK_HEIGHT as i32).contains(&index) {
@@ -117,6 +131,19 @@ fn local_key(x: usize, y: i32, z: usize) -> u16 {
     ((y_index & 0x01ff) << 8) | ((z as u16) << 4) | x as u16
 }
 
+impl ChunkPos {
+    fn global_block_pos(self, key: u16) -> BlockPos {
+        let x = (key & 0x000f) as i32;
+        let z = ((key >> 4) & 0x000f) as i32;
+        let y = ((key >> 8) as i32) + MIN_Y;
+        BlockPos::new(
+            self.x * CHUNK_WIDTH as i32 + x,
+            y,
+            self.z * CHUNK_WIDTH as i32 + z,
+        )
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::{BlockState, ChunkSnapshot};
@@ -144,6 +171,14 @@ mod tests {
         assert_eq!(chunk.block_at_pos(pos), BlockState::Stone);
         assert_eq!(chunk.block_at_local(14, 80, 0), BlockState::Air);
         assert_eq!(chunk.set_block(pos, BlockState::Air), Some(BlockState::Air));
+    }
+
+    #[test]
+    fn override_entries_return_global_positions() {
+        let mut chunk = ChunkSnapshot::flat(ChunkPos::new(-1, 0));
+        let pos = BlockPos::new(-1, 80, 0);
+        chunk.set_block(pos, BlockState::Stone);
+        assert_eq!(chunk.override_entries(), vec![(pos, BlockState::Stone)]);
     }
 
     #[test]
