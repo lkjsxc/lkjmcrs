@@ -2,7 +2,7 @@
 
 ## 2026-05-05
 
-Commit tested: `485c906`.
+Implementation commit tested: `ebff7b1`.
 
 Compose commands:
 
@@ -14,8 +14,9 @@ Results:
 
 - `verify`: pass.
 - `smoke`: pass, `login-play probe ok`.
+- Rust tests: `55` passed.
 - docs maximum line count: `103`.
-- source maximum line count: `191`.
+- source maximum line count: `180`.
 - Manual join: user-reported success in the task prompt, with no raw client log
   attached.
 

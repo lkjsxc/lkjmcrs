@@ -2,8 +2,8 @@
 
 ## Current State
 
-As of commit `485c906`, all captured packet-shape failures in `tmp/` have
-implemented regression fixes and compose smoke coverage.
+As of implementation commit `ebff7b1`, all captured packet-shape failures in
+`tmp/` have implemented regression fixes and compose smoke coverage.
 
 A successful player join was reported in the task prompt on `2026-05-05` after
 the `0x26 game_state_change` fix. No raw client log was attached, so this is
@@ -37,7 +37,7 @@ smoke coverage:
 No active disconnect boundary is known after the reported successful join and
 live smoke verification. The next active boundary is the first newer stock
 Minecraft Java Edition `1.21.11` disconnect or gameplay blocker recorded
-against commit `485c906` or later.
+against implementation commit `ebff7b1` or later.
 
 ## Evidence Rules
 
