@@ -12,4 +12,5 @@ Use this subtree for chunk, region, and world-data contracts.
 
 - [flat-world.md](flat-world.md): deterministic first world.
 - [chunk-storage.md](chunk-storage.md): chunk representation and persistence boundary.
+- [mutable-chunks.md](mutable-chunks.md): sparse in-memory block overrides.
 - [region-index.md](region-index.md): compact coordinate and ownership index.

@@ -69,3 +69,15 @@ Default block-state IDs are pinned from `minecraft-data` `1.21.11`:
 - grass block default: `9`
 - dirt: `10`
 - bedrock: `85`
+
+## Block Interaction
+
+The first Survival Core slice adds creative-style mutation packets:
+
+- `0x04 block_changed_ack`: acknowledges a client prediction sequence.
+- `0x08 block_update`: sends one packed position and one block-state ID.
+- `0x28 player_action`: starts or stops block breaking.
+- `0x3c swing`: accepted and ignored.
+- `0x3f use_item_on`: places fixed stone beside the targeted face.
+
+See [block-interaction.md](block-interaction.md) for payload details.

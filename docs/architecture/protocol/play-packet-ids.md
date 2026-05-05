@@ -8,8 +8,10 @@ the `1.21.11` protocol table and must be updated as one batch with
 
 ## Clientbound IDs Used By The First Milestone
 
+- `0x04 block_changed_ack`
 - `0x0b chunk_batch_finished`
 - `0x0c chunk_batch_start`
+- `0x08 block_update`
 - `0x26 game_state_change`
 - `0x2b keep_alive`
 - `0x2c map_chunk`, locally named `level_chunk_with_light`
@@ -32,8 +34,11 @@ the `1.21.11` protocol table and must be updated as one batch with
 - `0x1e position_look`
 - `0x1f look`
 - `0x20 flying`
+- `0x28 player_action`
 - `0x2b player_loaded`
 - `0x2c pong`
+- `0x3c swing`
+- `0x3f use_item_on`
 
 ## Regression Rule
 

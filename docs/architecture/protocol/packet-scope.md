@@ -29,6 +29,8 @@
 - Initial player position sync.
 - Keepalive serverbound and clientbound in play.
 - Basic movement packets decoded from client and stored on the session.
+- Creative-style block placement and breaking in loaded spawn chunks.
+- Block prediction acknowledgements and single-block updates.
 
 ## Deferred
 
@@ -39,6 +41,7 @@
 - Full vanilla registry coverage beyond evidence-driven first milestone
   entries.
 - Persistent or mutable chunk packets.
+- Inventory-backed item use.
 - Resource pack negotiation.
 - Complete play packet set.
 
