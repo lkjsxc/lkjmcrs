@@ -1,12 +1,12 @@
-use crate::player::PlayerProfile;
 use crate::player::store_rows::{load_profile, save_profile};
+use crate::player::{PlayerDefaults, PlayerProfile};
 use rusqlite::Connection;
 use std::fs;
 use std::path::{Path, PathBuf};
 use thiserror::Error;
 use uuid::Uuid;
 
-const SCHEMA_VERSION: i32 = 1;
+const SCHEMA_VERSION: i32 = 2;
 
 #[derive(Debug, Clone)]
 pub struct PlayerStore {
@@ -27,6 +27,8 @@ pub enum PlayerStoreError {
     InvalidGameMode(String),
     #[error("invalid stored inventory slot")]
     InvalidInventorySlot,
+    #[error("invalid stored selected hotbar slot")]
+    InvalidSelectedHotbarSlot,
 }
 
 impl PlayerStore {
@@ -42,12 +44,13 @@ impl PlayerStore {
         &self,
         uuid: Uuid,
         name: String,
+        defaults: PlayerDefaults,
     ) -> Result<PlayerProfile, PlayerStoreError> {
         let path = self.path.clone();
         tokio::task::spawn_blocking(move || {
             let connection = open_checked(&path)?;
             let mut profile = load_profile(&connection, uuid)?
-                .unwrap_or_else(|| PlayerProfile::new(uuid, name.clone()));
+                .unwrap_or_else(|| PlayerProfile::new_with_defaults(uuid, name.clone(), defaults));
             profile.name = name;
             Ok(profile)
         })
@@ -86,6 +89,7 @@ fn initialize_schema(connection: &Connection) -> Result<(), PlayerStoreError> {
           z REAL NOT NULL,
           yaw REAL NOT NULL,
           pitch REAL NOT NULL,
+          selected_hotbar_slot INTEGER NOT NULL,
           health REAL NOT NULL,
           hunger INTEGER NOT NULL,
           saturation REAL NOT NULL
@@ -98,7 +102,7 @@ fn initialize_schema(connection: &Connection) -> Result<(), PlayerStoreError> {
           data TEXT,
           PRIMARY KEY (uuid, slot)
         );
-        PRAGMA user_version = 1;
+        PRAGMA user_version = 2;
         ",
     )?;
     Ok(())

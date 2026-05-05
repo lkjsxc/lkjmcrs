@@ -9,7 +9,7 @@ use crate::session::chunk_stream::ChunkStream;
 use crate::session::error::ConnectionError;
 use crate::session::io::{read_packet, write_packet};
 use crate::session::outbound::PlayOutbound;
-use crate::session::play_packets::handle_play_packet;
+use crate::session::play_packets::{PlayPacketContext, handle_play_packet};
 use crate::session::play_state::PlaySession;
 use crate::session::registry::{SessionId, SessionRegistry};
 use tokio::net::TcpStream;
@@ -85,9 +85,12 @@ async fn run_play(
                         phase,
                         &mut session,
                         &mut chunk_stream,
-                        &region,
-                        &sessions,
-                        &mut writer,
+                        profile,
+                        PlayPacketContext {
+                            region: &region,
+                            sessions: &sessions,
+                            writer: &mut writer,
+                        },
                     ).await,
                     Err(error) => Err(error),
                 }

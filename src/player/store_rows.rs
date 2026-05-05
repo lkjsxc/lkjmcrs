@@ -3,7 +3,7 @@ use crate::player::{GameMode, Inventory, InventorySlot, PlayerPosition, PlayerPr
 use rusqlite::{Connection, OptionalExtension, params};
 use uuid::Uuid;
 
-type ProfileRow = (String, String, f64, f64, f64, f64, f64, f64, i64, f64);
+type ProfileRow = (String, String, f64, f64, f64, f64, f64, i64, f64, i64, f64);
 
 pub(super) fn load_profile(
     connection: &Connection,
@@ -11,7 +11,8 @@ pub(super) fn load_profile(
 ) -> Result<Option<PlayerProfile>, PlayerStoreError> {
     let row = connection
         .query_row(
-            "SELECT name, game_mode, x, y, z, yaw, pitch, health, hunger, saturation
+            "SELECT name, game_mode, x, y, z, yaw, pitch, selected_hotbar_slot,
+             health, hunger, saturation
              FROM player_profiles WHERE uuid = ?1",
             [uuid.to_string()],
             |row| {
@@ -23,9 +24,10 @@ pub(super) fn load_profile(
                     row.get::<_, f64>(4)?,
                     row.get::<_, f64>(5)?,
                     row.get::<_, f64>(6)?,
-                    row.get::<_, f64>(7)?,
-                    row.get::<_, i64>(8)?,
-                    row.get::<_, f64>(9)?,
+                    row.get::<_, i64>(7)?,
+                    row.get::<_, f64>(8)?,
+                    row.get::<_, i64>(9)?,
+                    row.get::<_, f64>(10)?,
                 ))
             },
         )
@@ -38,6 +40,7 @@ pub(super) fn save_profile(
     connection: &mut Connection,
     profile: &PlayerProfile,
 ) -> Result<(), PlayerStoreError> {
+    checked_hotbar(i64::from(profile.inventory.selected_hotbar_slot))?;
     let tx = connection.transaction()?;
     let uuid = profile.uuid.to_string();
     tx.execute(
@@ -51,6 +54,7 @@ pub(super) fn save_profile(
             profile.position.z,
             profile.position.yaw,
             profile.position.pitch,
+            profile.inventory.selected_hotbar_slot,
             profile.vitals.health,
             profile.vitals.hunger,
             profile.vitals.saturation
@@ -60,7 +64,7 @@ pub(super) fn save_profile(
         "DELETE FROM player_inventory_slots WHERE uuid = ?1",
         [profile.uuid.to_string()],
     )?;
-    for slot in &profile.inventory.slots {
+    for slot in profile.inventory.slots.iter().filter(|slot| slot.count > 0) {
         save_slot(&tx, profile.uuid, slot)?;
     }
     tx.commit()?;
@@ -86,12 +90,13 @@ fn profile_from_row(
             pitch: row.6 as f32,
         },
         inventory: Inventory {
+            selected_hotbar_slot: checked_hotbar(row.7)?,
             slots: load_slots(connection, uuid)?,
         },
         vitals: Vitals {
-            health: row.7 as f32,
-            hunger: checked_u8(row.8)?,
-            saturation: row.9 as f32,
+            health: row.8 as f32,
+            hunger: checked_u8(row.9)?,
+            saturation: row.10 as f32,
         },
     })
 }
@@ -153,13 +158,24 @@ fn checked_u8(value: i64) -> Result<u8, PlayerStoreError> {
     u8::try_from(value).map_err(|_| PlayerStoreError::InvalidInventorySlot)
 }
 
+fn checked_hotbar(value: i64) -> Result<u8, PlayerStoreError> {
+    let slot = checked_u8(value)?;
+    if slot <= 8 {
+        Ok(slot)
+    } else {
+        Err(PlayerStoreError::InvalidSelectedHotbarSlot)
+    }
+}
+
 fn profile_upsert_sql() -> &'static str {
     "INSERT INTO player_profiles
-     (uuid, name, game_mode, x, y, z, yaw, pitch, health, hunger, saturation)
-     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)
+     (uuid, name, game_mode, x, y, z, yaw, pitch, selected_hotbar_slot,
+      health, hunger, saturation)
+     VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12)
      ON CONFLICT(uuid) DO UPDATE SET
      name=excluded.name, game_mode=excluded.game_mode, x=excluded.x,
      y=excluded.y, z=excluded.z, yaw=excluded.yaw, pitch=excluded.pitch,
+     selected_hotbar_slot=excluded.selected_hotbar_slot,
      health=excluded.health, hunger=excluded.hunger,
      saturation=excluded.saturation"
 }

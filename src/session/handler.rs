@@ -1,5 +1,5 @@
 use crate::config::Config;
-use crate::player::PlayerStore;
+use crate::player::{PlayerDefaults, PlayerStore};
 use crate::protocol::codec;
 use crate::protocol::ids;
 use crate::protocol::types::{Handshake, LoginStart, NextState};
@@ -121,7 +121,7 @@ async fn handle_login(
     let uuid = offline_uuid(&login.name);
     let profile = context
         .player_store
-        .load_or_create(uuid, login.name.clone())
+        .load_or_create(uuid, login.name.clone(), player_defaults(&context.config))
         .await
         .map_err(|source| ConnectionError::Player { phase, source })?;
     send_login_success(&mut stream, &login.name, uuid).await?;
@@ -139,6 +139,13 @@ async fn handle_login(
     .await;
     context.players.fetch_sub(1, Ordering::Relaxed);
     play_result
+}
+
+fn player_defaults(config: &Config) -> PlayerDefaults {
+    PlayerDefaults {
+        game_mode: config.default_game_mode,
+        survival_starter_stone: config.survival_starter_stone,
+    }
 }
 
 async fn send_disconnect(stream: &mut TcpStream, reason: &str) -> Result<(), ConnectionError> {

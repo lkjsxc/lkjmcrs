@@ -1,3 +1,4 @@
+use crate::player::GameMode;
 use std::{env, net::SocketAddr, path::PathBuf};
 use thiserror::Error;
 
@@ -8,6 +9,8 @@ pub struct Config {
     pub max_players: usize,
     pub online_mode: bool,
     pub data_dir: PathBuf,
+    pub default_game_mode: GameMode,
+    pub survival_starter_stone: u8,
 }
 
 #[derive(Debug, Error)]
@@ -20,6 +23,12 @@ pub enum ConfigError {
     OnlineMode,
     #[error("invalid LKJMCRS_ONLINE_MODE: {0}")]
     OnlineModeValue(String),
+    #[error("invalid LKJMCRS_DEFAULT_GAME_MODE: {0}")]
+    DefaultGameMode(String),
+    #[error("invalid LKJMCRS_SURVIVAL_STARTER_STONE: {0}")]
+    StarterStone(String),
+    #[error("LKJMCRS_SURVIVAL_STARTER_STONE must be between 0 and 64")]
+    StarterStoneRange,
 }
 
 impl Config {
@@ -29,6 +38,10 @@ impl Config {
         let max_players = env_value("LKJMCRS_MAX_PLAYERS", "100").parse()?;
         let online_mode = parse_bool(&env_value("LKJMCRS_ONLINE_MODE", "false"))?;
         let data_dir = PathBuf::from(env_value("LKJMCRS_DATA_DIR", "data"));
+        let default_game_mode =
+            parse_game_mode(&env_value("LKJMCRS_DEFAULT_GAME_MODE", "creative"))?;
+        let survival_starter_stone =
+            parse_starter_stone(&env_value("LKJMCRS_SURVIVAL_STARTER_STONE", "0"))?;
 
         if online_mode {
             return Err(ConfigError::OnlineMode);
@@ -40,6 +53,8 @@ impl Config {
             max_players,
             online_mode,
             data_dir,
+            default_game_mode,
+            survival_starter_stone,
         })
     }
 }
@@ -56,14 +71,38 @@ fn parse_bool(value: &str) -> Result<bool, ConfigError> {
     }
 }
 
+fn parse_game_mode(value: &str) -> Result<GameMode, ConfigError> {
+    GameMode::parse(value).ok_or_else(|| ConfigError::DefaultGameMode(value.to_string()))
+}
+
+fn parse_starter_stone(value: &str) -> Result<u8, ConfigError> {
+    let parsed: u8 = value
+        .parse()
+        .map_err(|_| ConfigError::StarterStone(value.to_string()))?;
+    if parsed <= 64 {
+        Ok(parsed)
+    } else {
+        Err(ConfigError::StarterStoneRange)
+    }
+}
+
 #[cfg(test)]
 mod tests {
-    use super::parse_bool;
+    use super::{parse_bool, parse_game_mode, parse_starter_stone};
+    use crate::player::GameMode;
 
     #[test]
     fn parses_bool_values() {
         assert!(parse_bool("true").unwrap());
         assert!(!parse_bool("false").unwrap());
         assert!(parse_bool("wat").is_err());
+    }
+
+    #[test]
+    fn parses_profile_defaults() {
+        assert_eq!(parse_game_mode("survival").unwrap(), GameMode::Survival);
+        assert!(parse_game_mode("adventure").is_err());
+        assert_eq!(parse_starter_stone("64").unwrap(), 64);
+        assert!(parse_starter_stone("65").is_err());
     }
 }

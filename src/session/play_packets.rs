@@ -1,3 +1,4 @@
+use crate::player::PlayerProfile;
 use crate::protocol::block_interaction::BlockInteraction;
 use crate::protocol::codec::{self, Packet};
 use crate::protocol::ids;
@@ -12,26 +13,37 @@ use crate::session::play_state::PlaySession;
 use crate::session::registry::SessionRegistry;
 use std::io::Cursor;
 
-pub async fn handle_play_packet(
+pub struct PlayPacketContext<'a, W>
+where
+    W: tokio::io::AsyncWrite + Unpin,
+{
+    pub region: &'a RegionHandle,
+    pub sessions: &'a SessionRegistry,
+    pub writer: &'a mut W,
+}
+
+pub async fn handle_play_packet<W>(
     packet: Packet,
     phase: SessionState,
     session: &mut PlaySession,
     chunk_stream: &mut ChunkStream,
-    region: &RegionHandle,
-    sessions: &SessionRegistry,
-    writer: &mut (impl tokio::io::AsyncWrite + Unpin),
-) -> Result<(), ConnectionError> {
+    profile: &mut PlayerProfile,
+    context: PlayPacketContext<'_, W>,
+) -> Result<(), ConnectionError>
+where
+    W: tokio::io::AsyncWrite + Unpin,
+{
     if let Some(movement) = Movement::decode(packet.id, packet.data.clone())
         .map_err(|error| codec_error(phase, error))?
     {
         session.apply_movement(movement);
-        let context = StreamContext {
-            region,
-            sessions,
+        let stream_context = StreamContext {
+            region: context.region,
+            sessions: context.sessions,
             session_id: session.id,
         };
         chunk_stream
-            .stream_after_movement(session.x, session.z, phase, context, writer)
+            .stream_after_movement(session.x, session.z, phase, stream_context, context.writer)
             .await?;
         tracing::debug!(phase = %phase, packet_id = packet.id, "movement packet applied");
         return Ok(());
@@ -40,7 +52,15 @@ pub async fn handle_play_packet(
     if let Some(interaction) = BlockInteraction::decode(packet.id, packet.data.clone())
         .map_err(|error| codec_error(phase, error))?
     {
-        handle_block_interaction(interaction, phase, region, sessions, writer).await?;
+        handle_block_interaction(
+            interaction,
+            phase,
+            context.region,
+            context.sessions,
+            context.writer,
+            profile,
+        )
+        .await?;
         return Ok(());
     }
 

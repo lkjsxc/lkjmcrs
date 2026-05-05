@@ -7,6 +7,7 @@ mod multiplayer_mutation;
 mod persistence;
 mod play_client;
 mod profile_reconnect;
+mod survival_item;
 mod validation;
 
 use crate::probe::play_client::PlayClient;
@@ -83,6 +84,12 @@ pub async fn profile_reconnect(host: &str) -> Result<(), Box<dyn std::error::Err
 pub async fn chunk_stream(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     chunk_stream::run(host).await?;
     println!("chunk-stream probe ok");
+    Ok(())
+}
+
+pub async fn survival_item(host: &str) -> Result<(), Box<dyn std::error::Error>> {
+    survival_item::run(host).await?;
+    println!("survival-item probe ok");
     Ok(())
 }
 

@@ -1,4 +1,5 @@
 pub mod block_actions;
+mod block_rules;
 pub mod bootstrap;
 pub mod chunk_stream;
 pub mod configuration;

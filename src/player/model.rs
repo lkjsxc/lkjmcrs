@@ -18,6 +18,7 @@ pub struct PlayerPosition {
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct Inventory {
+    pub selected_hotbar_slot: u8,
     pub slots: Vec<InventorySlot>,
 }
 
@@ -44,6 +45,12 @@ pub struct PlayerProfile {
     pub position: PlayerPosition,
     pub inventory: Inventory,
     pub vitals: Vitals,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct PlayerDefaults {
+    pub game_mode: GameMode,
+    pub survival_starter_stone: u8,
 }
 
 impl GameMode {
@@ -81,6 +88,15 @@ impl GameMode {
     }
 }
 
+impl Default for PlayerDefaults {
+    fn default() -> Self {
+        Self {
+            game_mode: GameMode::default_new_player(),
+            survival_starter_stone: 0,
+        }
+    }
+}
+
 impl Default for PlayerPosition {
     fn default() -> Self {
         Self {
@@ -105,12 +121,20 @@ impl Default for Vitals {
 
 impl PlayerProfile {
     pub fn new(uuid: Uuid, name: impl Into<String>) -> Self {
+        Self::new_with_defaults(uuid, name, PlayerDefaults::default())
+    }
+
+    pub fn new_with_defaults(
+        uuid: Uuid,
+        name: impl Into<String>,
+        defaults: PlayerDefaults,
+    ) -> Self {
         Self {
             uuid,
             name: name.into(),
-            game_mode: GameMode::default_new_player(),
+            game_mode: defaults.game_mode,
             position: PlayerPosition::default(),
-            inventory: Inventory::default(),
+            inventory: Inventory::for_new_profile(defaults),
             vitals: Vitals::default(),
         }
     }
@@ -118,7 +142,7 @@ impl PlayerProfile {
 
 #[cfg(test)]
 mod tests {
-    use super::{GameMode, PlayerProfile};
+    use super::{GameMode, PlayerDefaults, PlayerProfile};
     use uuid::Uuid;
 
     #[test]
@@ -128,7 +152,25 @@ mod tests {
         assert_eq!(profile.game_mode, GameMode::Creative);
         assert_eq!((profile.position.x, profile.position.y), (0.5, 80.0));
         assert_eq!(profile.vitals.health, 20.0);
+        assert_eq!(profile.inventory.selected_hotbar_slot, 0);
         assert!(profile.inventory.slots.is_empty());
+    }
+
+    #[test]
+    fn survival_defaults_seed_starter_stone() {
+        let profile = PlayerProfile::new_with_defaults(
+            Uuid::from_u128(8),
+            "SurvivalProbe",
+            PlayerDefaults {
+                game_mode: GameMode::Survival,
+                survival_starter_stone: 3,
+            },
+        );
+
+        assert_eq!(profile.game_mode, GameMode::Survival);
+        assert_eq!(profile.inventory.selected_hotbar_slot, 0);
+        assert_eq!(profile.inventory.slots[0].item_id, "minecraft:stone");
+        assert_eq!(profile.inventory.slots[0].count, 3);
     }
 
     #[test]
