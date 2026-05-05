@@ -1,140 +1,146 @@
 use crate::protocol::nbt::{self, Compound, Tag};
+use crate::protocol::registry_damage;
 use crate::protocol::registry_variants::{
     asset_variant, model_asset_variant, painting_variant, timeline_day, wolf_sound_variant,
     wolf_variant,
 };
+use crate::protocol::registry_world::{overworld_dimension, plains_biome};
 
 pub const DIMENSION_REGISTRY: &str = "minecraft:dimension_type";
 pub const BIOME_REGISTRY: &str = "minecraft:worldgen/biome";
 pub const DAMAGE_TYPE_REGISTRY: &str = "minecraft:damage_type";
 pub const TIMELINE_REGISTRY: &str = "minecraft:timeline";
 
+pub struct RegistryData {
+    pub id: &'static str,
+    pub entries: Vec<RegistryEntry>,
+    pub tags: Vec<TagGroup>,
+}
+
 pub struct RegistryEntry {
-    pub registry: &'static str,
     pub key: &'static str,
     pub value: Compound,
 }
 
-pub fn required_registries() -> Vec<RegistryEntry> {
+pub struct TagGroup {
+    pub name: &'static str,
+    pub entries: &'static [i32],
+}
+
+pub fn required_registries() -> Vec<RegistryData> {
     vec![
-        entry(
+        one_entry(
             DIMENSION_REGISTRY,
             "minecraft:overworld",
             overworld_dimension(),
+            vec![],
         ),
-        entry(BIOME_REGISTRY, "minecraft:plains", plains_biome()),
-        entry(DAMAGE_TYPE_REGISTRY, "minecraft:in_fire", in_fire_damage()),
-        entry(
+        one_entry(BIOME_REGISTRY, "minecraft:plains", plains_biome(), vec![]),
+        registry_damage::damage_type_registry(),
+        one_entry(
             "minecraft:cat_variant",
             "minecraft:all_black",
             asset_variant("minecraft:entity/cat/all_black"),
+            vec![],
         ),
-        entry(
+        one_entry(
             "minecraft:chicken_variant",
             "minecraft:cold",
             model_asset_variant("cold", "minecraft:entity/chicken/cold_chicken"),
+            vec![],
         ),
-        entry(
+        one_entry(
             "minecraft:cow_variant",
             "minecraft:cold",
             model_asset_variant("cold", "minecraft:entity/cow/cold_cow"),
+            vec![],
         ),
-        entry(
+        one_entry(
             "minecraft:frog_variant",
             "minecraft:cold",
             asset_variant("minecraft:entity/frog/cold_frog"),
+            vec![],
         ),
-        entry(
+        one_entry(
             "minecraft:painting_variant",
             "minecraft:alban",
             painting_variant(),
+            vec![],
         ),
-        entry(
+        one_entry(
             "minecraft:pig_variant",
             "minecraft:cold",
             model_asset_variant("cold", "minecraft:entity/pig/cold_pig"),
+            vec![],
         ),
-        entry(TIMELINE_REGISTRY, "minecraft:day", timeline_day()),
-        entry(
+        one_entry(
+            TIMELINE_REGISTRY,
+            "minecraft:day",
+            timeline_day(),
+            vec![tag("minecraft:in_overworld", &[0])],
+        ),
+        one_entry(
             "minecraft:wolf_sound_variant",
             "minecraft:angry",
             wolf_sound_variant(),
+            vec![],
         ),
-        entry("minecraft:wolf_variant", "minecraft:ashen", wolf_variant()),
-        entry(
+        one_entry(
+            "minecraft:wolf_variant",
+            "minecraft:ashen",
+            wolf_variant(),
+            vec![],
+        ),
+        one_entry(
             "minecraft:zombie_nautilus_variant",
             "minecraft:temperate",
             asset_variant("minecraft:entity/nautilus/zombie_nautilus"),
+            vec![],
         ),
     ]
 }
 
-fn entry(registry: &'static str, key: &'static str, value: Compound) -> RegistryEntry {
-    RegistryEntry {
-        registry,
-        key,
-        value,
-    }
+pub fn registry(
+    id: &'static str,
+    entries: Vec<RegistryEntry>,
+    tags: Vec<TagGroup>,
+) -> RegistryData {
+    RegistryData { id, entries, tags }
 }
 
-fn overworld_dimension() -> Compound {
-    nbt::compound(vec![
-        ("timelines", nbt::string("#minecraft:in_overworld")),
-        ("ambient_light", Tag::Float(0.0)),
-        ("monster_spawn_block_light_limit", Tag::Int(0)),
-        ("coordinate_scale", Tag::Double(1.0)),
-        ("logical_height", Tag::Int(384)),
-        ("infiniburn", nbt::string("#minecraft:infiniburn_overworld")),
-        ("attributes", visual_attributes()),
-        ("min_y", Tag::Int(-64)),
-        ("monster_spawn_light_level", uniform_light_level()),
-        ("has_ceiling", Tag::Byte(0)),
-        ("has_skylight", Tag::Byte(1)),
-        ("height", Tag::Int(384)),
-    ])
+pub fn entry(key: &'static str, value: Compound) -> RegistryEntry {
+    RegistryEntry { key, value }
 }
 
-fn visual_attributes() -> Tag {
-    Tag::Compound(nbt::compound(vec![
-        ("minecraft:visual/fog_color", nbt::string("#c0d8ff")),
-        ("minecraft:visual/cloud_height", Tag::Float(192.33)),
-        ("minecraft:visual/sky_color", nbt::string("#78a7ff")),
-        ("minecraft:visual/cloud_color", nbt::string("#ccffffff")),
-    ]))
+pub fn tag(name: &'static str, entries: &'static [i32]) -> TagGroup {
+    TagGroup { name, entries }
 }
 
-fn uniform_light_level() -> Tag {
-    Tag::Compound(nbt::compound(vec![
-        ("min_inclusive", Tag::Int(0)),
-        ("max_inclusive", Tag::Int(7)),
-        ("type", nbt::string("minecraft:uniform")),
-    ]))
+fn one_entry(
+    id: &'static str,
+    key: &'static str,
+    value: Compound,
+    tags: Vec<TagGroup>,
+) -> RegistryData {
+    registry(id, vec![entry(key, value)], tags)
 }
 
-fn plains_biome() -> Compound {
-    nbt::compound(vec![
-        (
-            "effects",
-            Tag::Compound(nbt::compound(vec![("water_color", nbt::string("#3f76e4"))])),
-        ),
-        ("has_precipitation", Tag::Byte(1)),
-        ("temperature", Tag::Float(0.8)),
-        ("downfall", Tag::Float(0.4)),
-        (
-            "attributes",
-            Tag::Compound(nbt::compound(vec![(
-                "minecraft:visual/sky_color",
-                nbt::string("#78a7ff"),
-            )])),
-        ),
-    ])
-}
-
-fn in_fire_damage() -> Compound {
-    nbt::compound(vec![
-        ("message_id", nbt::string("inFire")),
+pub fn damage_type(
+    message_id: &'static str,
+    exhaustion: f32,
+    effects: Option<&'static str>,
+    death_message_type: Option<&'static str>,
+) -> Compound {
+    let mut values = vec![
+        ("message_id", nbt::string(message_id)),
         ("scaling", nbt::string("when_caused_by_living_non_player")),
-        ("exhaustion", Tag::Float(0.1)),
-        ("effects", nbt::string("burning")),
-    ])
+        ("exhaustion", Tag::Float(exhaustion)),
+    ];
+    if let Some(effects) = effects {
+        values.push(("effects", nbt::string(effects)));
+    }
+    if let Some(message_type) = death_message_type {
+        values.push(("death_message_type", nbt::string(message_type)));
+    }
+    nbt::compound(values)
 }
