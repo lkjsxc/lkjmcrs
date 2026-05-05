@@ -14,6 +14,14 @@ struct SectionShape {
 }
 
 #[test]
+fn level_chunk_heightmaps_use_fixed_storage_long_counts() {
+    let chunk = ChunkSnapshot::flat(ChunkPos::new(0, 0));
+    let packet = encode_level_chunk_with_light(&chunk);
+
+    assert_eq!(parse_heightmap_long_counts(packet), vec![37, 37]);
+}
+
+#[test]
 fn level_chunk_packet_sections_consume_exact_chunk_data() {
     let chunk = ChunkSnapshot::flat(ChunkPos::new(0, 0));
     let packet = encode_level_chunk_with_light(&chunk);
@@ -44,7 +52,7 @@ fn level_chunk_and_update_light_packets_remain_separate() {
 fn parse_level_chunk_sections(packet: Vec<u8>) -> Vec<SectionShape> {
     let mut cursor = Cursor::new(packet);
     skip_bytes(&mut cursor, 8);
-    skip_heightmaps(&mut cursor);
+    let _heightmaps = parse_heightmaps(&mut cursor);
     let chunk_data_len = codec::read_var_i32(&mut cursor).unwrap() as u64;
     let chunk_data_start = cursor.position();
     let sections = (0..SECTION_COUNT)
@@ -55,13 +63,22 @@ fn parse_level_chunk_sections(packet: Vec<u8>) -> Vec<SectionShape> {
     sections
 }
 
-fn skip_heightmaps(cursor: &mut Cursor<Vec<u8>>) {
+fn parse_heightmap_long_counts(packet: Vec<u8>) -> Vec<i32> {
+    let mut cursor = Cursor::new(packet);
+    skip_bytes(&mut cursor, 8);
+    parse_heightmaps(&mut cursor)
+}
+
+fn parse_heightmaps(cursor: &mut Cursor<Vec<u8>>) -> Vec<i32> {
     let heightmap_count = codec::read_var_i32(cursor).unwrap();
+    let mut long_counts = Vec::new();
     for _ in 0..heightmap_count {
         let _heightmap_type = codec::read_var_i32(cursor).unwrap();
         let long_count = codec::read_var_i32(cursor).unwrap();
+        long_counts.push(long_count);
         skip_bytes(cursor, long_count as u64 * 8);
     }
+    long_counts
 }
 
 fn parse_section(cursor: &mut Cursor<Vec<u8>>) -> SectionShape {

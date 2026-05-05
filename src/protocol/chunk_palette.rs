@@ -42,7 +42,7 @@ where
     }
 }
 
-fn fixed_packed_longs<I>(values: I, bits: u8, count: usize) -> Vec<u64>
+pub fn fixed_packed_longs<I>(values: I, bits: u8, count: usize) -> Vec<u64>
 where
     I: IntoIterator<Item = u64>,
 {

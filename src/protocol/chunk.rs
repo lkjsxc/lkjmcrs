@@ -74,24 +74,7 @@ fn write_heightmaps(out: &mut Vec<u8>) {
 
 fn write_heightmap(out: &mut Vec<u8>, ty: i32) {
     codec::write_var_i32(out, ty);
-    write_packed_longs(out, std::iter::repeat_n(80_u64, 256), 9, 256);
-}
-
-fn write_packed_longs<I>(out: &mut Vec<u8>, values: I, bits: u8, count: usize)
-where
-    I: IntoIterator<Item = u64>,
-{
-    let mut longs = vec![0_u64; (count * bits as usize).div_ceil(64)];
-    let mask = (1_u64 << bits) - 1;
-    for (index, value) in values.into_iter().enumerate() {
-        let bit_index = index * bits as usize;
-        let long_index = bit_index / 64;
-        let offset = bit_index % 64;
-        longs[long_index] |= (value & mask) << offset;
-        if offset + bits as usize > 64 {
-            longs[long_index + 1] |= (value & mask) >> (64 - offset);
-        }
-    }
+    let longs = chunk_palette::fixed_packed_longs(std::iter::repeat_n(80_u64, 256), 9, 256);
     codec::write_var_i32(out, longs.len() as i32);
     for value in longs {
         codec::write_i64(out, value as i64);
