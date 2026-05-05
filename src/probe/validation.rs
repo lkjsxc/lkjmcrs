@@ -12,6 +12,11 @@ pub(super) struct PositionPacket {
     pub pitch: f32,
 }
 
+#[derive(Debug, Clone, Copy)]
+pub(super) struct LoginPacket {
+    pub game_mode: i8,
+}
+
 pub(super) fn validate_status_json(json: &str) -> Result<(), Box<dyn std::error::Error>> {
     let value: serde_json::Value = serde_json::from_str(json)?;
     let version = &value["version"];
@@ -69,6 +74,29 @@ pub(super) fn decode_position_packet(
         yaw,
         pitch,
     })
+}
+
+pub(super) fn decode_login_packet(
+    data: Vec<u8>,
+) -> Result<LoginPacket, Box<dyn std::error::Error>> {
+    let mut cursor = Cursor::new(data);
+    let _entity_id = codec::read_i32(&mut cursor)?;
+    let _hardcore = codec::read_bool(&mut cursor)?;
+    let dimension_count = codec::read_var_i32(&mut cursor)?;
+    for _ in 0..dimension_count {
+        let _dimension = codec::read_string(&mut cursor)?;
+    }
+    for _ in 0..3 {
+        let _ = codec::read_var_i32(&mut cursor)?;
+    }
+    for _ in 0..3 {
+        let _ = codec::read_bool(&mut cursor)?;
+    }
+    let _dimension_type = codec::read_var_i32(&mut cursor)?;
+    let _dimension = codec::read_string(&mut cursor)?;
+    let _seed = codec::read_i64(&mut cursor)?;
+    let game_mode = codec::read_u8(&mut cursor)? as i8;
+    Ok(LoginPacket { game_mode })
 }
 
 pub(super) fn validate_chunk_radius(data: Vec<u8>) -> Result<usize, Box<dyn std::error::Error>> {

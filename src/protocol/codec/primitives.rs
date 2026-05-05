@@ -67,8 +67,24 @@ pub fn write_i8(out: &mut Vec<u8>, value: i8) {
     out.push(value as u8);
 }
 
+pub fn read_i16(cursor: &mut Cursor<Vec<u8>>) -> Result<i16, CodecError> {
+    let mut bytes = [0; 2];
+    std::io::Read::read_exact(cursor, &mut bytes).map_err(|_| CodecError::Eof)?;
+    Ok(i16::from_be_bytes(bytes))
+}
+
+pub fn write_i16(out: &mut Vec<u8>, value: i16) {
+    out.extend_from_slice(&value.to_be_bytes());
+}
+
 pub fn write_i32(out: &mut Vec<u8>, value: i32) {
     out.extend_from_slice(&value.to_be_bytes());
+}
+
+pub fn read_i32(cursor: &mut Cursor<Vec<u8>>) -> Result<i32, CodecError> {
+    let mut bytes = [0; 4];
+    std::io::Read::read_exact(cursor, &mut bytes).map_err(|_| CodecError::Eof)?;
+    Ok(i32::from_be_bytes(bytes))
 }
 
 pub fn write_u32(out: &mut Vec<u8>, value: u32) {

@@ -1,12 +1,15 @@
 use crate::player::PlayerProfile;
 use crate::protocol::block_interaction::BlockInteraction;
+use crate::protocol::chat::{self, PlayChat};
 use crate::protocol::codec::{self, Packet};
 use crate::protocol::ids;
 use crate::protocol::movement::Movement;
 use crate::scheduler::RegionHandle;
 use crate::session::SessionState;
 use crate::session::block_actions::handle_block_interaction;
+use crate::session::chat::send_system_chat;
 use crate::session::chunk_stream::{ChunkStream, StreamContext};
+use crate::session::command_dispatch::{self, CommandDispatchContext};
 use crate::session::error::ConnectionError;
 use crate::session::io::codec_error;
 use crate::session::play_state::PlaySession;
@@ -19,6 +22,7 @@ where
 {
     pub region: &'a RegionHandle,
     pub sessions: &'a SessionRegistry,
+    pub max_players: usize,
     pub writer: &'a mut W,
 }
 
@@ -64,6 +68,13 @@ where
         return Ok(());
     }
 
+    if let Some(chat) =
+        chat::decode(packet.id, packet.data.clone()).map_err(|error| codec_error(phase, error))?
+    {
+        handle_chat(chat, phase, session, profile, context).await?;
+        return Ok(());
+    }
+
     match packet.id {
         ids::play::SERVERBOUND_TELEPORT_CONFIRM
         | ids::play::SERVERBOUND_CHUNK_BATCH_RECEIVED
@@ -90,6 +101,48 @@ where
         }
     }
     Ok(())
+}
+
+async fn handle_chat<W>(
+    chat: PlayChat,
+    phase: SessionState,
+    session: &mut PlaySession,
+    profile: &mut PlayerProfile,
+    context: PlayPacketContext<'_, W>,
+) -> Result<(), ConnectionError>
+where
+    W: tokio::io::AsyncWrite + Unpin,
+{
+    match chat {
+        PlayChat::Message(message) => {
+            context
+                .sessions
+                .broadcast_system_chat(format!("<{}> {message}", profile.name))
+                .await;
+            Ok(())
+        }
+        PlayChat::Command(command) => {
+            command_dispatch::dispatch(
+                &command,
+                session,
+                profile,
+                CommandDispatchContext {
+                    phase,
+                    max_players: context.max_players,
+                    sessions: context.sessions,
+                    writer: context.writer,
+                },
+            )
+            .await
+        }
+        PlayChat::HeldSlot(slot) if (0..=8).contains(&slot) => {
+            profile.inventory.selected_hotbar_slot = slot as u8;
+            Ok(())
+        }
+        PlayChat::HeldSlot(_) => {
+            send_system_chat(context.writer, phase, "Invalid held item slot").await
+        }
+    }
 }
 
 pub(super) fn decode_keepalive(data: Vec<u8>) -> Result<i64, codec::CodecError> {

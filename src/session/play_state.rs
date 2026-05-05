@@ -6,6 +6,7 @@ use crate::session::registry::SessionId;
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct PlaySession {
     pub id: SessionId,
+    pub is_op: bool,
     pub x: f64,
     pub y: f64,
     pub z: f64,
@@ -19,9 +20,10 @@ pub struct PlaySession {
 }
 
 impl PlaySession {
-    pub fn new(bootstrap: Bootstrap, id: SessionId) -> Self {
+    pub fn new(bootstrap: Bootstrap, id: SessionId, is_op: bool) -> Self {
         Self {
             id,
+            is_op,
             x: bootstrap.player_x,
             y: bootstrap.player_y,
             z: bootstrap.player_z,
@@ -92,6 +94,14 @@ impl PlaySession {
         };
     }
 
+    pub fn move_to_spawn(&mut self) {
+        self.x = 0.5;
+        self.y = 80.0;
+        self.z = 0.5;
+        self.yaw = 0.0;
+        self.pitch = 0.0;
+    }
+
     fn update_position(
         &mut self,
         x: f64,
@@ -127,7 +137,7 @@ mod tests {
 
     #[test]
     fn movement_updates_session_local_state() {
-        let mut session = PlaySession::new(Bootstrap::new(100), SessionId(1));
+        let mut session = PlaySession::new(Bootstrap::new(100), SessionId(1), false);
         session.apply_movement(Movement::PositionLook {
             x: 2.0,
             y: 81.0,
@@ -147,7 +157,7 @@ mod tests {
 
     #[test]
     fn time_advances_by_ticks() {
-        let mut session = PlaySession::new(Bootstrap::new(100), SessionId(1));
+        let mut session = PlaySession::new(Bootstrap::new(100), SessionId(1), false);
         session.advance_time(20);
         assert_eq!(session.age, 20);
         assert_eq!(session.day_time, 20);

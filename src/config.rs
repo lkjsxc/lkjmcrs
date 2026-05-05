@@ -11,6 +11,7 @@ pub struct Config {
     pub data_dir: PathBuf,
     pub default_game_mode: GameMode,
     pub survival_starter_stone: u8,
+    pub ops: Vec<String>,
 }
 
 #[derive(Debug, Error)]
@@ -42,6 +43,7 @@ impl Config {
             parse_game_mode(&env_value("LKJMCRS_DEFAULT_GAME_MODE", "creative"))?;
         let survival_starter_stone =
             parse_starter_stone(&env_value("LKJMCRS_SURVIVAL_STARTER_STONE", "0"))?;
+        let ops = parse_ops(&env_value("LKJMCRS_OPS", ""));
 
         if online_mode {
             return Err(ConfigError::OnlineMode);
@@ -55,7 +57,12 @@ impl Config {
             data_dir,
             default_game_mode,
             survival_starter_stone,
+            ops,
         })
+    }
+
+    pub fn is_op(&self, name: &str) -> bool {
+        self.ops.iter().any(|op| op.eq_ignore_ascii_case(name))
     }
 }
 
@@ -86,8 +93,18 @@ fn parse_starter_stone(value: &str) -> Result<u8, ConfigError> {
     }
 }
 
+fn parse_ops(value: &str) -> Vec<String> {
+    value
+        .split(',')
+        .map(str::trim)
+        .filter(|name| !name.is_empty())
+        .map(ToOwned::to_owned)
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
+    use super::parse_ops;
     use super::{parse_bool, parse_game_mode, parse_starter_stone};
     use crate::player::GameMode;
 
@@ -104,5 +121,11 @@ mod tests {
         assert!(parse_game_mode("adventure").is_err());
         assert_eq!(parse_starter_stone("64").unwrap(), 64);
         assert!(parse_starter_stone("65").is_err());
+    }
+
+    #[test]
+    fn parses_ops_list() {
+        assert_eq!(parse_ops("Admin, Guest "), vec!["Admin", "Guest"]);
+        assert!(parse_ops("").is_empty());
     }
 }

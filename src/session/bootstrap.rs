@@ -1,4 +1,5 @@
 use crate::protocol::chunk;
+use crate::protocol::commands;
 use crate::protocol::ids;
 use crate::protocol::play;
 use crate::scheduler::RegionHandle;
@@ -37,6 +38,13 @@ where
         phase,
         ids::play::PLAYER_ABILITIES,
         &play::encode_player_abilities_for(bootstrap),
+    )
+    .await?;
+    write_packet(
+        stream,
+        phase,
+        ids::play::DECLARE_COMMANDS,
+        &commands::encode_declare_commands(),
     )
     .await?;
     write_packet(

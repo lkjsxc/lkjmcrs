@@ -128,6 +128,7 @@ async fn handle_login(
     expect_packet(&mut stream, phase, ids::login::ACKNOWLEDGED).await?;
     handle_configuration(&mut stream).await?;
     context.players.fetch_add(1, Ordering::Relaxed);
+    let is_op = context.config.is_op(&login.name);
     let play_result = handle_play(
         &mut stream,
         context.config.max_players,
@@ -135,6 +136,7 @@ async fn handle_login(
         context.sessions.clone(),
         profile,
         context.player_store.clone(),
+        is_op,
     )
     .await;
     context.players.fetch_sub(1, Ordering::Relaxed);

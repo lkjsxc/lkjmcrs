@@ -1,4 +1,45 @@
 services:
+  survival-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      LKJMCRS_BIND: 0.0.0.0:25565
+      LKJMCRS_MOTD: lkjmcrs 1.21.11 survival
+      LKJMCRS_MAX_PLAYERS: 100
+      LKJMCRS_ONLINE_MODE: "false"
+      LKJMCRS_DATA_DIR: /data
+      LKJMCRS_DEFAULT_GAME_MODE: survival
+      LKJMCRS_SURVIVAL_STARTER_STONE: 1
+    volumes:
+      - survival-server-data:/data
+    healthcheck:
+      test: ["CMD", "lkjmcrs", "probe", "status", "--host", "127.0.0.1:25565"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  smp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      LKJMCRS_BIND: 0.0.0.0:25565
+      LKJMCRS_MOTD: lkjmcrs 1.21.11 smp
+      LKJMCRS_MAX_PLAYERS: 100
+      LKJMCRS_ONLINE_MODE: "false"
+      LKJMCRS_DATA_DIR: /data
+      LKJMCRS_DEFAULT_GAME_MODE: creative
+      LKJMCRS_SURVIVAL_STARTER_STONE: 0
+      LKJMCRS_OPS: Admin
+    volumes:
+      - smp-server-data:/data
+    healthcheck:
+      test: ["CMD", "lkjmcrs", "probe", "status", "--host", "127.0.0.1:25565"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
   verify:
     build:
       context: .
@@ -103,10 +144,28 @@ services:
       - cargo-registry:/usr/local/cargo/registry
       - target-cache:/target
     depends_on:
-      server:
+      survival-server:
         condition: service_healthy
-    entrypoint: ["cargo", "run", "--", "probe", "survival-item", "--host", "server:25565"]
+    entrypoint: ["cargo", "run", "--", "probe", "survival-item", "--host", "survival-server:25565"]
+
+  smp-commands:
+    build:
+      context: .
+      dockerfile: Dockerfile.verify
+    working_dir: /workspace
+    environment:
+      CARGO_TARGET_DIR: /target
+    volumes:
+      - .:/workspace:ro
+      - cargo-registry:/usr/local/cargo/registry
+      - target-cache:/target
+    depends_on:
+      smp-server:
+        condition: service_healthy
+    entrypoint: ["cargo", "run", "--", "probe", "smp-commands", "--host", "smp-server:25565"]
 
 volumes:
   cargo-registry:
   target-cache:
+  survival-server-data:
+  smp-server-data:

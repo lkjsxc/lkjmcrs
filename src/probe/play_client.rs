@@ -3,8 +3,9 @@ use crate::probe::chunk;
 use crate::probe::live_play;
 use crate::probe::persistence;
 use crate::probe::validation::{
-    PositionPacket, decode_position_packet, validate_chunk_batch_finished, validate_chunk_radius,
-    validate_game_state_change, validate_known_packs, validate_login_success,
+    LoginPacket, PositionPacket, decode_login_packet, decode_position_packet,
+    validate_chunk_batch_finished, validate_chunk_radius, validate_game_state_change,
+    validate_known_packs, validate_login_success,
 };
 use crate::protocol::configuration;
 use crate::protocol::types::{LoginStart, NextState};
@@ -14,7 +15,9 @@ use uuid::Uuid;
 
 pub(super) struct PlayClient {
     pub stream: TcpStream,
+    pub login: LoginPacket,
     pub initial_position: PositionPacket,
+    pub declared_commands: bool,
 }
 
 impl PlayClient {
@@ -35,10 +38,13 @@ impl PlayClient {
         validate_login_success(success.data, name)?;
         codec::write_packet(&mut stream, ids::login::ACKNOWLEDGED, &[]).await?;
         complete_configuration(&mut stream).await?;
-        let initial_position = complete_play_bootstrap(&mut stream, expected_block).await?;
+        let (login, declared_commands, initial_position) =
+            complete_play_bootstrap(&mut stream, expected_block).await?;
         Ok(Self {
             stream,
+            login,
             initial_position,
+            declared_commands,
         })
     }
 }
@@ -73,11 +79,13 @@ async fn complete_configuration(stream: &mut TcpStream) -> Result<(), Box<dyn st
 async fn complete_play_bootstrap(
     stream: &mut TcpStream,
     expected_block: Option<i32>,
-) -> Result<PositionPacket, Box<dyn std::error::Error>> {
-    super::expect(stream, ids::play::LOGIN, "play login").await?;
+) -> Result<(LoginPacket, bool, PositionPacket), Box<dyn std::error::Error>> {
+    let login = super::expect(stream, ids::play::LOGIN, "play login").await?;
+    let login = decode_login_packet(login.data)?;
     super::expect(stream, ids::play::DEFAULT_SPAWN_POSITION, "spawn").await?;
     super::expect(stream, ids::play::SET_TIME, "time").await?;
     super::expect(stream, ids::play::PLAYER_ABILITIES, "abilities").await?;
+    super::expect(stream, ids::play::DECLARE_COMMANDS, "declare commands").await?;
     let game_state_change =
         super::expect(stream, ids::play::GAME_STATE_CHANGE, "chunk readiness").await?;
     validate_game_state_change(game_state_change.data)?;
@@ -88,7 +96,7 @@ async fn complete_play_bootstrap(
     let position = super::expect(stream, ids::play::PLAYER_POSITION, "position").await?;
     let initial_position = decode_position_packet(position.data)?;
     confirm_and_keepalive(stream).await?;
-    Ok(initial_position)
+    Ok((login, true, initial_position))
 }
 
 async fn expect_chunks(

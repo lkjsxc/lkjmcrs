@@ -2,7 +2,7 @@
 
 ## 2026-05-06
 
-Implementation tested: working tree based on `be596fa`.
+Implementation tested: working tree after `d9f6e0f`.
 
 Compose commands:
 
@@ -15,12 +15,12 @@ Compose commands:
 - `docker compose -f docker-compose.yml -f docker-compose.verify.yml restart server`
 - `docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm persist-check`
 - `docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v`
-- `export LKJMCRS_DEFAULT_GAME_MODE=survival`
-- `export LKJMCRS_SURVIVAL_STARTER_STONE=1`
-- `docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build server`
+- `docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build survival-server`
 - `docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm survival-item`
 - `docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v`
-- `unset LKJMCRS_DEFAULT_GAME_MODE LKJMCRS_SURVIVAL_STARTER_STONE`
+- `docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build smp-server`
+- `docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm smp-commands`
+- `docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v`
 
 Results:
 
@@ -31,6 +31,12 @@ Results:
 - `persist-place`: pass, `persist-place probe ok`.
 - `persist-check`: pass after restart, `persist-check probe ok`.
 - `survival-item`: pass, `survival-item probe ok`.
+- `smp-commands`: pass, `smp-commands probe ok`.
+- SMP commands smoke: pass, `Admin` and `Guest` received the declared command
+  tree, `Guest` chat reached `Admin` as system chat, `Guest` was denied
+  operator-only `/say`, `Admin` changed `Guest` to survival, the survival mode
+  persisted across reconnect, and `Admin` kicked `Guest` with a play disconnect
+  reason.
 - Survival item smoke: pass, a new survival profile received one starter
   stone, consumed it on successful placement, reconciled a second empty-slot
   placement without mutation, broke the placed block for a simple drop, saved
@@ -53,7 +59,7 @@ Results:
   probe.
 - Movement flags regression: pass, movement probe now sends one protocol `774`
   flags byte.
-- Rust tests: `90` passed.
+- Rust tests: `97` passed.
 - docs maximum line count: `103`.
 - source maximum line count: `194`.
 - Manual join: user-reported success in the task prompt, with no raw client log

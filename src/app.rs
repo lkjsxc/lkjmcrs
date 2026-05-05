@@ -71,6 +71,10 @@ enum ProbeCommand {
         #[arg(long, default_value = "127.0.0.1:25565")]
         host: String,
     },
+    SmpCommands {
+        #[arg(long, default_value = "127.0.0.1:25565")]
+        host: String,
+    },
 }
 
 #[tokio::main]
@@ -101,6 +105,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             ProbeCommand::ChunkStream { host } => crate::probe::chunk_stream(&host).await?,
             ProbeCommand::SurvivalItem { host } => crate::probe::survival_item(&host).await?,
+            ProbeCommand::SmpCommands { host } => crate::probe::smp_commands(&host).await?,
         },
     }
 

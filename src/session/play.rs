@@ -5,8 +5,10 @@ use crate::scheduler::RegionHandle;
 use crate::session::SessionState;
 use crate::session::block_actions::send_block_update;
 use crate::session::bootstrap::send_play_bootstrap;
+use crate::session::chat::{send_kick, send_system_chat};
 use crate::session::chunk_stream::ChunkStream;
 use crate::session::error::ConnectionError;
+use crate::session::game_mode::apply_game_mode;
 use crate::session::io::{read_packet, write_packet};
 use crate::session::outbound::PlayOutbound;
 use crate::session::play_packets::{PlayPacketContext, handle_play_packet};
@@ -19,6 +21,12 @@ const KEEPALIVE_INTERVAL: Duration = Duration::from_secs(10);
 const TIME_INTERVAL: Duration = Duration::from_secs(1);
 const TIME_STEP_TICKS: i64 = 20;
 
+struct RegisteredSession {
+    id: SessionId,
+    outbound: tokio::sync::mpsc::Receiver<PlayOutbound>,
+    is_op: bool,
+}
+
 pub async fn handle_play(
     stream: &mut TcpStream,
     max_players: usize,
@@ -26,15 +34,20 @@ pub async fn handle_play(
     sessions: SessionRegistry,
     mut profile: PlayerProfile,
     player_store: PlayerStore,
+    is_op: bool,
 ) -> Result<(), ConnectionError> {
-    let (session_id, outbound) = sessions.register().await;
+    let (session_id, outbound) = sessions.register(&profile).await;
+    let registered = RegisteredSession {
+        id: session_id,
+        outbound,
+        is_op,
+    };
     let result = run_play(
         stream,
         max_players,
         region,
         sessions.clone(),
-        session_id,
-        outbound,
+        registered,
         &mut profile,
     )
     .await;
@@ -55,13 +68,13 @@ async fn run_play(
     max_players: usize,
     region: RegionHandle,
     sessions: SessionRegistry,
-    session_id: SessionId,
-    mut outbound: tokio::sync::mpsc::Receiver<PlayOutbound>,
+    registered: RegisteredSession,
     profile: &mut PlayerProfile,
 ) -> Result<(), ConnectionError> {
     let phase = SessionState::Play;
     let bootstrap = bootstrap_from_profile(max_players, profile);
-    let mut session = PlaySession::new(bootstrap, session_id);
+    let mut session = PlaySession::new(bootstrap, registered.id, registered.is_op);
+    let mut outbound = registered.outbound;
     let mut chunk_stream = ChunkStream::new(
         crate::world::ChunkPos::new(bootstrap.chunk_x, bootstrap.chunk_z),
         bootstrap.view_distance,
@@ -89,6 +102,7 @@ async fn run_play(
                         PlayPacketContext {
                             region: &region,
                             sessions: &sessions,
+                            max_players,
                             writer: &mut writer,
                         },
                     ).await,
@@ -99,6 +113,22 @@ async fn run_play(
                 match message {
                     Some(PlayOutbound::BlockUpdate { pos, state }) => {
                         send_block_update(&mut writer, phase, pos, state).await
+                    }
+                    Some(PlayOutbound::SystemChat { message }) => {
+                        send_system_chat(&mut writer, phase, &message).await
+                    }
+                    Some(PlayOutbound::ApplyGameMode { game_mode }) => {
+                        apply_game_mode(
+                            &mut writer,
+                            phase,
+                            max_players,
+                            profile,
+                            game_mode,
+                        ).await
+                    }
+                    Some(PlayOutbound::Kick { reason }) => {
+                        send_kick(&mut writer, phase, &reason).await?;
+                        break Ok(());
                     }
                     None => break Ok(()),
                 }

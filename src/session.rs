@@ -1,9 +1,13 @@
 pub mod block_actions;
 mod block_rules;
 pub mod bootstrap;
+pub mod chat;
 pub mod chunk_stream;
+pub mod command_dispatch;
+pub mod commands;
 pub mod configuration;
 pub mod error;
+pub mod game_mode;
 pub mod handler;
 pub mod io;
 pub mod outbound;

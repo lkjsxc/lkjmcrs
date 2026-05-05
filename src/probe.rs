@@ -7,6 +7,7 @@ mod multiplayer_mutation;
 mod persistence;
 mod play_client;
 mod profile_reconnect;
+mod smp_commands;
 mod survival_item;
 mod validation;
 
@@ -90,6 +91,12 @@ pub async fn chunk_stream(host: &str) -> Result<(), Box<dyn std::error::Error>> 
 pub async fn survival_item(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     survival_item::run(host).await?;
     println!("survival-item probe ok");
+    Ok(())
+}
+
+pub async fn smp_commands(host: &str) -> Result<(), Box<dyn std::error::Error>> {
+    smp_commands::run(host).await?;
+    println!("smp-commands probe ok");
     Ok(())
 }
 
