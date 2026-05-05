@@ -26,10 +26,15 @@ The first milestone accepts these serverbound movement packets:
 - `0x1d position`,
 - `0x1e position_look`,
 - `0x1f look`,
-- `0x20 flying`.
+- `0x20 status_only`.
 
 Movement packets update session-local state only. They do not mutate world
 chunks, broadcast movement, load chunks, or validate survival physics.
+
+The final movement field is one unsigned flags byte:
+
+- bit `0x01`: on ground,
+- bit `0x02`: horizontal collision.
 
 Payload decoding must reject trailing bytes in tests. Runtime handling may log
 malformed movement and close through the normal connection error path.

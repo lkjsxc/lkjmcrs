@@ -49,42 +49,61 @@ impl Movement {
     }
 
     fn decode_position(cursor: &mut Cursor<Vec<u8>>) -> Result<Self, CodecError> {
+        let x = codec::read_f64(cursor)?;
+        let y = codec::read_f64(cursor)?;
+        let z = codec::read_f64(cursor)?;
+        let (on_ground, horizontal_collision) = read_flags(cursor)?;
         Ok(Self::Position {
-            x: codec::read_f64(cursor)?,
-            y: codec::read_f64(cursor)?,
-            z: codec::read_f64(cursor)?,
-            on_ground: codec::read_bool(cursor)?,
-            horizontal_collision: codec::read_bool(cursor)?,
+            x,
+            y,
+            z,
+            on_ground,
+            horizontal_collision,
         })
     }
 
     fn decode_position_look(cursor: &mut Cursor<Vec<u8>>) -> Result<Self, CodecError> {
+        let x = codec::read_f64(cursor)?;
+        let y = codec::read_f64(cursor)?;
+        let z = codec::read_f64(cursor)?;
+        let yaw = codec::read_f32(cursor)?;
+        let pitch = codec::read_f32(cursor)?;
+        let (on_ground, horizontal_collision) = read_flags(cursor)?;
         Ok(Self::PositionLook {
-            x: codec::read_f64(cursor)?,
-            y: codec::read_f64(cursor)?,
-            z: codec::read_f64(cursor)?,
-            yaw: codec::read_f32(cursor)?,
-            pitch: codec::read_f32(cursor)?,
-            on_ground: codec::read_bool(cursor)?,
-            horizontal_collision: codec::read_bool(cursor)?,
+            x,
+            y,
+            z,
+            yaw,
+            pitch,
+            on_ground,
+            horizontal_collision,
         })
     }
 
     fn decode_look(cursor: &mut Cursor<Vec<u8>>) -> Result<Self, CodecError> {
+        let yaw = codec::read_f32(cursor)?;
+        let pitch = codec::read_f32(cursor)?;
+        let (on_ground, horizontal_collision) = read_flags(cursor)?;
         Ok(Self::Look {
-            yaw: codec::read_f32(cursor)?,
-            pitch: codec::read_f32(cursor)?,
-            on_ground: codec::read_bool(cursor)?,
-            horizontal_collision: codec::read_bool(cursor)?,
+            yaw,
+            pitch,
+            on_ground,
+            horizontal_collision,
         })
     }
 
     fn decode_flying(cursor: &mut Cursor<Vec<u8>>) -> Result<Self, CodecError> {
+        let (on_ground, horizontal_collision) = read_flags(cursor)?;
         Ok(Self::Flying {
-            on_ground: codec::read_bool(cursor)?,
-            horizontal_collision: codec::read_bool(cursor)?,
+            on_ground,
+            horizontal_collision,
         })
     }
+}
+
+fn read_flags(cursor: &mut Cursor<Vec<u8>>) -> Result<(bool, bool), CodecError> {
+    let flags = codec::read_u8(cursor)?;
+    Ok((flags & 0x01 != 0, flags & 0x02 != 0))
 }
 
 #[cfg(test)]
@@ -100,8 +119,7 @@ mod tests {
         codec::write_f64(&mut data, -2.5);
         codec::write_f32(&mut data, 90.0);
         codec::write_f32(&mut data, 30.0);
-        codec::write_bool(&mut data, true);
-        codec::write_bool(&mut data, false);
+        codec::write_u8(&mut data, 0x01);
 
         assert_eq!(
             Movement::decode(ids::play::SERVERBOUND_POSITION_LOOK, data).unwrap(),
@@ -119,7 +137,18 @@ mod tests {
 
     #[test]
     fn rejects_movement_trailing_bytes() {
-        let data = vec![0, 0, 0];
+        let data = vec![0, 0];
         assert!(Movement::decode(ids::play::SERVERBOUND_FLYING, data).is_err());
+    }
+
+    #[test]
+    fn decodes_status_only_flags_byte() {
+        assert_eq!(
+            Movement::decode(ids::play::SERVERBOUND_FLYING, vec![0x03]).unwrap(),
+            Some(Movement::Flying {
+                on_ground: true,
+                horizontal_collision: true,
+            })
+        );
     }
 }

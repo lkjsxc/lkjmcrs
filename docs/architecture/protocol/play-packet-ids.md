@@ -33,7 +33,7 @@ the `1.21.11` protocol table and must be updated as one batch with
 - `0x1d position`
 - `0x1e position_look`
 - `0x1f look`
-- `0x20 flying`
+- `0x20 move_player_status_only`
 - `0x28 player_action`
 - `0x2b player_loaded`
 - `0x2c pong`
