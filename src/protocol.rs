@@ -5,6 +5,9 @@ pub const DATA_PACK_VERSION: (i32, i32) = (94, 1);
 pub const RESOURCE_PACK_VERSION: (i32, i32) = (75, 0);
 
 pub mod chunk;
+mod chunk_palette;
+#[cfg(test)]
+mod chunk_tests;
 pub mod codec;
 #[cfg(test)]
 mod codec_tests;

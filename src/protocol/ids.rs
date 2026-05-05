@@ -29,7 +29,7 @@ pub mod play {
     pub const CHUNK_BATCH_FINISHED: i32 = 0x0b;
     pub const CHUNK_BATCH_START: i32 = 0x0c;
     pub const KEEPALIVE: i32 = 0x2b;
-    pub const MAP_CHUNK: i32 = 0x2c;
+    pub const LEVEL_CHUNK_WITH_LIGHT: i32 = 0x2c;
     pub const UPDATE_LIGHT: i32 = 0x2f;
     pub const LOGIN: i32 = 0x30;
     pub const PLAYER_ABILITIES: i32 = 0x3e;
@@ -79,7 +79,7 @@ mod tests {
         assert_eq!(play::CHUNK_BATCH_FINISHED, 0x0b);
         assert_eq!(play::CHUNK_BATCH_START, 0x0c);
         assert_eq!(play::KEEPALIVE, 0x2b);
-        assert_eq!(play::MAP_CHUNK, 0x2c);
+        assert_eq!(play::LEVEL_CHUNK_WITH_LIGHT, 0x2c);
         assert_eq!(play::UPDATE_LIGHT, 0x2f);
         assert_eq!(play::LOGIN, 0x30);
         assert_eq!(play::PLAYER_ABILITIES, 0x3e);

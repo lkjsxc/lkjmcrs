@@ -68,8 +68,8 @@ async fn send_play_bootstrap(
         write_packet(
             stream,
             phase,
-            ids::play::MAP_CHUNK,
-            &chunk::encode_map_chunk(chunk_snapshot),
+            ids::play::LEVEL_CHUNK_WITH_LIGHT,
+            &chunk::encode_level_chunk_with_light(chunk_snapshot),
         )
         .await?;
         write_packet(

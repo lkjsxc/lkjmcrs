@@ -73,7 +73,12 @@ pub async fn login_play(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     expect(&mut stream, ids::play::CHUNK_CACHE_RADIUS, "chunk radius").await?;
     expect(&mut stream, ids::play::CHUNK_BATCH_START, "chunk batch").await?;
     for _ in 0..9 {
-        expect(&mut stream, ids::play::MAP_CHUNK, "map chunk").await?;
+        expect(
+            &mut stream,
+            ids::play::LEVEL_CHUNK_WITH_LIGHT,
+            "level chunk with light",
+        )
+        .await?;
         expect(&mut stream, ids::play::UPDATE_LIGHT, "update light").await?;
     }
     expect(

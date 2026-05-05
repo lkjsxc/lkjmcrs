@@ -1,8 +1,9 @@
+use crate::protocol::chunk_palette;
 use crate::protocol::codec;
 use crate::world::blocks::MIN_Y;
 use crate::world::{BlockState, ChunkSnapshot};
 
-const SECTION_COUNT: usize = 24;
+pub(super) const SECTION_COUNT: usize = 24;
 const LIGHT_SECTION_COUNT: usize = SECTION_COUNT + 2;
 const FULL_LIGHT: [u8; 2048] = [0xff; 2048];
 
@@ -12,7 +13,7 @@ const GRASS_BLOCK_ID: i32 = 9;
 const DIRT_ID: i32 = 10;
 const BEDROCK_ID: i32 = 85;
 
-pub fn encode_map_chunk(chunk: &ChunkSnapshot) -> Vec<u8> {
+pub fn encode_level_chunk_with_light(chunk: &ChunkSnapshot) -> Vec<u8> {
     let mut out = Vec::new();
     codec::write_i32(&mut out, chunk.pos.x);
     codec::write_i32(&mut out, chunk.pos.z);
@@ -52,10 +53,8 @@ fn encode_section(out: &mut Vec<u8>, chunk: &ChunkSnapshot, min_y: i32) {
     let states = section_states(chunk, min_y);
     let block_count = states.iter().filter(|state| **state != AIR_ID).count();
     codec::write_u16(out, block_count as u16);
-    write_paletted_container(out, &states);
-    codec::write_u8(out, 0);
-    codec::write_var_i32(out, 0);
-    codec::write_var_i32(out, 0);
+    chunk_palette::write_block_states(out, &states);
+    chunk_palette::write_single_value(out, 0);
 }
 
 fn section_states(chunk: &ChunkSnapshot, min_y: i32) -> Vec<i32> {
@@ -65,35 +64,6 @@ fn section_states(chunk: &ChunkSnapshot, min_y: i32) -> Vec<i32> {
         states.extend(std::iter::repeat_n(state, 256));
     }
     states
-}
-
-fn write_paletted_container(out: &mut Vec<u8>, states: &[i32]) {
-    let palette = palette(states);
-    if palette.len() == 1 {
-        codec::write_u8(out, 0);
-        codec::write_var_i32(out, palette[0]);
-        codec::write_var_i32(out, 0);
-        return;
-    }
-    codec::write_u8(out, 4);
-    codec::write_var_i32(out, palette.len() as i32);
-    for state in &palette {
-        codec::write_var_i32(out, *state);
-    }
-    let indexes = states
-        .iter()
-        .map(|state| palette.iter().position(|item| item == state).unwrap() as u64);
-    write_packed_longs(out, indexes, 4, states.len());
-}
-
-fn palette(states: &[i32]) -> Vec<i32> {
-    let mut palette = Vec::new();
-    for state in states {
-        if !palette.contains(state) {
-            palette.push(*state);
-        }
-    }
-    palette
 }
 
 fn write_heightmaps(out: &mut Vec<u8>) {
@@ -160,7 +130,7 @@ fn block_state_id(state: BlockState) -> i32 {
 #[cfg(test)]
 mod tests {
     use super::{BEDROCK_ID, DIRT_ID, GRASS_BLOCK_ID, STONE_ID, block_state_id};
-    use crate::protocol::chunk::{encode_map_chunk, encode_update_light};
+    use crate::protocol::chunk::{encode_level_chunk_with_light, encode_update_light};
     use crate::world::{BlockState, ChunkPos, ChunkSnapshot};
 
     #[test]
@@ -174,7 +144,7 @@ mod tests {
     #[test]
     fn chunk_and_light_packets_are_non_empty() {
         let chunk = ChunkSnapshot::flat(ChunkPos::new(0, 0));
-        assert!(encode_map_chunk(&chunk).len() > 4096);
+        assert!(encode_level_chunk_with_light(&chunk).len() > 4096);
         assert!(encode_update_light(&chunk).len() > 4096);
     }
 }
