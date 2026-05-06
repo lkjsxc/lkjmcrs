@@ -1,6 +1,7 @@
 use crate::config::Config;
 use crate::quality;
 use clap::{Parser, Subcommand};
+use std::path::PathBuf;
 
 #[derive(Parser)]
 #[command(name = "lkjmcrs")]
@@ -12,7 +13,10 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
-    Serve,
+    Serve {
+        #[arg(long, default_value = "config/default.json")]
+        config: PathBuf,
+    },
     Docs {
         #[command(subcommand)]
         command: DocsCommand,
@@ -71,6 +75,10 @@ enum ProbeCommand {
         #[arg(long, default_value = "127.0.0.1:25565")]
         host: String,
     },
+    InventorySync {
+        #[arg(long, default_value = "127.0.0.1:25565")]
+        host: String,
+    },
     SmpCommands {
         #[arg(long, default_value = "127.0.0.1:25565")]
         host: String,
@@ -85,7 +93,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .init();
 
     match Cli::parse().command {
-        Command::Serve => crate::net::serve(Config::from_env()?).await?,
+        Command::Serve { config } => crate::net::serve(Config::from_path(config)?).await?,
         Command::Docs { command } => match command {
             DocsCommand::ValidateTopology => quality::validate_docs_topology()?,
         },
@@ -105,6 +113,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             ProbeCommand::ChunkStream { host } => crate::probe::chunk_stream(&host).await?,
             ProbeCommand::SurvivalItem { host } => crate::probe::survival_item(&host).await?,
+            ProbeCommand::InventorySync { host } => crate::probe::inventory_sync(&host).await?,
             ProbeCommand::SmpCommands { host } => crate::probe::smp_commands(&host).await?,
         },
     }

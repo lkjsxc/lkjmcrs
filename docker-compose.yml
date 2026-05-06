@@ -5,18 +5,11 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    environment:
-      LKJMCRS_BIND: 0.0.0.0:25565
-      LKJMCRS_MOTD: ${LKJMCRS_MOTD:-lkjmcrs 1.21.11}
-      LKJMCRS_MAX_PLAYERS: ${LKJMCRS_MAX_PLAYERS:-100}
-      LKJMCRS_ONLINE_MODE: ${LKJMCRS_ONLINE_MODE:-false}
-      LKJMCRS_DATA_DIR: /data
-      LKJMCRS_DEFAULT_GAME_MODE: ${LKJMCRS_DEFAULT_GAME_MODE:-creative}
-      LKJMCRS_SURVIVAL_STARTER_STONE: ${LKJMCRS_SURVIVAL_STARTER_STONE:-0}
+    command: ["serve", "--config", "config/default.json"]
     volumes:
-      - server-data:/data
+      - server-data:/app/data
     ports:
-      - "${LKJMCRS_PORT:-25565}:25565"
+      - "${HOST_PORT:-25565}:25565"
     healthcheck:
       test: ["CMD", "lkjmcrs", "probe", "status", "--host", "127.0.0.1:25565"]
       interval: 5s

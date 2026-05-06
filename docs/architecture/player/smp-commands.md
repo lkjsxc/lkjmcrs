@@ -7,9 +7,9 @@ Keep the first multiplayer control surface explicit, small, and testable.
 ## Permission Model
 
 - Offline player names are the permission identity in this slice.
-- `LKJMCRS_OPS` is a comma-separated list of operator names.
+- `ops` is a JSON array of operator names.
 - Name comparison is ASCII case-insensitive.
-- Empty `LKJMCRS_OPS` means no operator-only commands are available.
+- Empty `ops` means no operator-only commands are available.
 
 ## Runtime Model
 
@@ -38,7 +38,7 @@ Keep the first multiplayer control surface explicit, small, and testable.
 
 ## Out of Scope
 
-- Persistent permissions beyond environment config.
+- Persistent permissions beyond JSON config.
 - Command suggestions beyond the declared command tree.
 - Full Brigadier parser coverage.
 - Chat signing and signed message verification.

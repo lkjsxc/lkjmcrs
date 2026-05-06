@@ -8,9 +8,10 @@
 
 - Image is built from the local Dockerfile.
 - Container port is `25565`.
-- Host port is `${LKJMCRS_PORT:-25565}`.
+- Host port is `${HOST_PORT:-25565}`.
 - Working mode is offline by default.
-- Runtime data is mounted from the `server-data` named volume to `/data`.
+- Runtime data is mounted from the `server-data` named volume to `/app/data`.
+- The service runs `lkjmcrs serve --config config/default.json`.
 
 ## Rules
 

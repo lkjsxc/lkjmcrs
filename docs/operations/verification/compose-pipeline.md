@@ -12,27 +12,9 @@ docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm chunk
 docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm persist-place
 docker compose -f docker-compose.yml -f docker-compose.verify.yml restart server
 docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm persist-check
-docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
-```
-
-## Survival Item Slice
-
-Use the dedicated survival services because this slice changes new-profile
-defaults:
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
 docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build survival-server
 docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm survival-item
-docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
-```
-
-## SMP Commands Slice
-
-Use the dedicated SMP services because this slice requires a configured op:
-
-```bash
-docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
+docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm inventory-sync
 docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build smp-server
 docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm smp-commands
 docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
@@ -48,10 +30,12 @@ docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
 6. `persist-place` writes a mutation through the public wire path.
 7. `persist-check` verifies that mutation after restart.
 8. `survival-item` verifies survival profile defaults and item persistence.
-9. `smp-commands` verifies offline chat, permissions, travel commands, and kick.
-10. Non-zero from any step blocks acceptance.
-11. Initial `down -v` removes stale named volumes before stateful probes.
-12. Final `down -v` removes disposable compose state.
+9. `inventory-sync` verifies client-visible hotbar and player inventory sync.
+10. `smp-commands` verifies offline chat, permissions, travel commands, and
+    kick.
+11. Non-zero from any step blocks acceptance.
+12. Initial `down -v` removes stale named volumes before stateful probes.
+13. Final `down -v` removes disposable compose state.
 
 ## Stop Rule
 

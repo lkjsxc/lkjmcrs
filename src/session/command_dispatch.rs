@@ -1,6 +1,7 @@
 use crate::player::{GameMode, PlayerProfile, PlayerStore};
 use crate::session::SessionState;
 use crate::session::chat::send_system_chat;
+use crate::session::chunk_stream::ChunkStream;
 use crate::session::commands::{self, ServerCommand};
 use crate::session::error::ConnectionError;
 use crate::session::game_mode::apply_game_mode;
@@ -15,6 +16,8 @@ where
 {
     pub phase: SessionState,
     pub max_players: usize,
+    pub region: &'a crate::scheduler::RegionHandle,
+    pub chunk_stream: &'a mut ChunkStream,
     pub player_store: &'a PlayerStore,
     pub sessions: &'a SessionRegistry,
     pub writer: &'a mut W,

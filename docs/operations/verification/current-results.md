@@ -2,12 +2,13 @@
 
 ## 2026-05-06
 
-Implementation tested: working tree after `32daa87`.
+Implementation tested: working tree after JSON config migration and inventory
+sync projection.
 
 Compose commands:
 
-- `docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm verify`
 - `docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v`
+- `docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm verify`
 - `docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build server`
 - `docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm smoke`
 - `docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm profile-reconnect`
@@ -18,7 +19,7 @@ Compose commands:
 - `docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v`
 - `docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build survival-server`
 - `docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm survival-item`
-- `docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v`
+- `docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm inventory-sync`
 - `docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build smp-server`
 - `docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm smp-commands`
 - `docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v`
@@ -32,6 +33,7 @@ Results:
 - `persist-place`: pass, `persist-place probe ok`.
 - `persist-check`: pass after restart, `persist-check probe ok`.
 - `survival-item`: pass, `survival-item probe ok`.
+- `inventory-sync`: pass, `inventory-sync probe ok`.
 - `smp-commands`: pass, `smp-commands probe ok`.
 - Survival material loop smoke: pass, a survival profile placed starter stone,
   broke it for a simple stone drop, rejected an out-of-reach placement without
@@ -53,6 +55,10 @@ Results:
   stone, consumed it on successful placement, reconciled a second empty-slot
   placement without mutation, broke the placed block for a simple drop, saved
   on disconnect, and spent the persisted drop after reconnect.
+- Inventory sync smoke: pass, play bootstrap sent authoritative selected
+  hotbar slot `0` and player inventory slots `0..35`; invalid held-slot input
+  resent slot `0`; accepted placement and breaking sent matching slot `0`
+  deltas.
 - Player profile persistence smoke: pass, a player moved to non-default
   position and look values, disconnected, reconnected with the same offline
   UUID, and received the saved state in the initial position packet.
@@ -72,8 +78,8 @@ Results:
   probe.
 - Movement flags regression: pass, movement probe now sends one protocol `774`
   flags byte.
-- Rust tests: `109` passed.
-- docs maximum line count: `103`.
+- Rust tests: `113` passed.
+- docs maximum line count: `121`.
 - source maximum line count: `200`.
 - Manual join: user-reported success in the task prompt, with no raw client log
   attached.

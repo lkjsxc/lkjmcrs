@@ -6,6 +6,7 @@ use crate::scheduler::RegionHandle;
 use crate::session::SessionState;
 use crate::session::block_rules;
 use crate::session::error::ConnectionError;
+use crate::session::inventory_sync;
 use crate::session::io::write_packet;
 use crate::session::play_state::PlaySession;
 use crate::session::reach::can_reach_block;
@@ -39,6 +40,7 @@ where
             face,
             sequence,
         } => {
+            let before = profile.inventory.clone();
             let target = pos.offset(face);
             let result = if can_reach_block(session, target) {
                 block_rules::place_block(
@@ -53,6 +55,7 @@ where
                 reconcile(region, target, phase).await?
             };
             send_prediction_ack(writer, phase, sequence).await?;
+            send_inventory_delta(writer, phase, &before, profile, result).await?;
             publish_or_reconcile(result, phase, sessions, writer).await?;
         }
         BlockInteraction::PlayerAction {
@@ -61,6 +64,7 @@ where
             face: _,
             sequence,
         } => {
+            let before = profile.inventory.clone();
             let result = if can_reach_block(session, pos) {
                 block_rules::apply_player_action(
                     region,
@@ -75,11 +79,28 @@ where
                 reconcile(region, pos, phase).await?
             };
             send_prediction_ack(writer, phase, sequence).await?;
+            send_inventory_delta(writer, phase, &before, profile, result).await?;
             publish_or_reconcile(result, phase, sessions, writer).await?;
         }
         BlockInteraction::Swing { hand: _ } => {
             tracing::debug!(phase = %phase, "swing packet accepted");
         }
+    }
+    Ok(())
+}
+
+async fn send_inventory_delta<W>(
+    writer: &mut W,
+    phase: SessionState,
+    before: &crate::player::Inventory,
+    profile: &PlayerProfile,
+    result: InteractionResult,
+) -> Result<(), ConnectionError>
+where
+    W: AsyncWrite + Unpin,
+{
+    if result.broadcast.is_some() {
+        inventory_sync::send_changed_slots(writer, phase, before, &profile.inventory).await?;
     }
     Ok(())
 }

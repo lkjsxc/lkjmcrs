@@ -9,6 +9,7 @@ pub mod configuration;
 pub mod error;
 pub mod game_mode;
 pub mod handler;
+mod inventory_sync;
 pub mod io;
 pub mod outbound;
 pub mod play;
@@ -23,6 +24,7 @@ pub mod registry;
 mod registry_tests;
 pub mod state;
 mod travel_commands;
+mod travel_teleport;
 
 pub use error::ConnectionLogLevel;
 pub use handler::{ServerContext, handle_connection};

@@ -1,5 +1,7 @@
 use crate::probe::ProbeError;
 use crate::probe::chunk;
+use crate::probe::inventory_packets;
+use crate::probe::inventory_packets::PlayerInventorySlot;
 use crate::probe::live_play;
 use crate::probe::persistence;
 use crate::probe::validation::{
@@ -18,6 +20,8 @@ pub(super) struct PlayClient {
     pub login: LoginPacket,
     pub initial_position: PositionPacket,
     pub declared_commands: bool,
+    pub selected_hotbar_slot: i32,
+    pub inventory_slots: Vec<PlayerInventorySlot>,
 }
 
 impl PlayClient {
@@ -38,13 +42,15 @@ impl PlayClient {
         validate_login_success(success.data, name)?;
         codec::write_packet(&mut stream, ids::login::ACKNOWLEDGED, &[]).await?;
         complete_configuration(&mut stream).await?;
-        let (login, declared_commands, initial_position) =
+        let (login, declared_commands, selected_hotbar_slot, inventory_slots, initial_position) =
             complete_play_bootstrap(&mut stream, expected_block).await?;
         Ok(Self {
             stream,
             login,
             initial_position,
             declared_commands,
+            selected_hotbar_slot,
+            inventory_slots,
         })
     }
 }
@@ -79,13 +85,24 @@ async fn complete_configuration(stream: &mut TcpStream) -> Result<(), Box<dyn st
 async fn complete_play_bootstrap(
     stream: &mut TcpStream,
     expected_block: Option<i32>,
-) -> Result<(LoginPacket, bool, PositionPacket), Box<dyn std::error::Error>> {
+) -> Result<
+    (
+        LoginPacket,
+        bool,
+        i32,
+        Vec<PlayerInventorySlot>,
+        PositionPacket,
+    ),
+    Box<dyn std::error::Error>,
+> {
     let login = super::expect(stream, ids::play::LOGIN, "play login").await?;
     let login = decode_login_packet(login.data)?;
     super::expect(stream, ids::play::DEFAULT_SPAWN_POSITION, "spawn").await?;
     super::expect(stream, ids::play::SET_TIME, "time").await?;
     super::expect(stream, ids::play::PLAYER_ABILITIES, "abilities").await?;
     super::expect(stream, ids::play::DECLARE_COMMANDS, "declare commands").await?;
+    let selected_hotbar_slot = inventory_packets::expect_held_item_slot(stream).await?;
+    let inventory_slots = inventory_packets::expect_player_inventory(stream).await?;
     let game_state_change =
         super::expect(stream, ids::play::GAME_STATE_CHANGE, "chunk readiness").await?;
     validate_game_state_change(game_state_change.data)?;
@@ -96,7 +113,13 @@ async fn complete_play_bootstrap(
     let position = super::expect(stream, ids::play::PLAYER_POSITION, "position").await?;
     let initial_position = decode_position_packet(position.data)?;
     confirm_and_keepalive(stream).await?;
-    Ok((login, true, initial_position))
+    Ok((
+        login,
+        true,
+        selected_hotbar_slot,
+        inventory_slots,
+        initial_position,
+    ))
 }
 
 async fn expect_chunks(

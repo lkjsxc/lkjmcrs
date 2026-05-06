@@ -18,7 +18,7 @@ through the public wire path.
 ## Assertions
 
 - The probe does not inspect private server internals.
-- The saved profile lives in `LKJMCRS_DATA_DIR/players.sqlite3`.
+- The saved profile lives in `data_dir/players.sqlite3`.
 - Existing chunk override persistence remains covered by
   [persistence-smoke.md](persistence-smoke.md).
 - Failure in this probe blocks acceptance for player storage or bootstrap

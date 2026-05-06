@@ -37,7 +37,7 @@ New offline profiles use:
 - `survival` maps to vanilla game mode `0`.
 - `creative` maps to vanilla game mode `1`.
 - New players default to `creative`.
-- `LKJMCRS_DEFAULT_GAME_MODE=survival` creates missing profiles in survival.
+- `default_game_mode: "survival"` creates missing profiles in survival.
 - Stored game mode controls play login and player abilities.
 
 ## Runtime Contract

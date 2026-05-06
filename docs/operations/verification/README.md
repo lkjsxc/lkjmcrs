@@ -23,6 +23,8 @@ Use this subtree for required compose verification contracts.
   streaming smoke.
 - [smp-commands-smoke.md](smp-commands-smoke.md): chat and command smoke.
 - [survival-item-smoke.md](survival-item-smoke.md): survival item-loop smoke.
+- [inventory-sync-smoke.md](inventory-sync-smoke.md): hotbar and player
+  inventory projection smoke.
 - [persistence-smoke.md](persistence-smoke.md): restart behavior for persisted
   block overrides.
 - [join-boundary.md](join-boundary.md): latest known manual client boundary.

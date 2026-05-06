@@ -89,7 +89,7 @@ async fn run_play(
         bootstrap.view_distance,
     );
     let (mut reader, mut writer) = stream.split();
-    let chunks = send_play_bootstrap(&mut writer, bootstrap, &region).await?;
+    let chunks = send_play_bootstrap(&mut writer, bootstrap, &profile.inventory, &region).await?;
     sessions.subscribe(session.id, chunks).await;
     session.record_keepalive_sent(1);
     let mut keepalives = time::interval_at(Instant::now() + KEEPALIVE_INTERVAL, KEEPALIVE_INTERVAL);

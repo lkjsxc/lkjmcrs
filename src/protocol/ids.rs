@@ -42,7 +42,10 @@ pub mod play {
     pub const PLAYER_POSITION: i32 = 0x46;
     pub const CHUNK_CACHE_CENTER: i32 = 0x5c;
     pub const CHUNK_CACHE_RADIUS: i32 = 0x5d;
+    pub const SET_CURSOR_ITEM: i32 = 0x5e;
     pub const DEFAULT_SPAWN_POSITION: i32 = 0x5f;
+    pub const HELD_ITEM_SLOT: i32 = 0x67;
+    pub const SET_PLAYER_INVENTORY: i32 = 0x6a;
     pub const SET_TIME: i32 = 0x6f;
     pub const SYSTEM_CHAT: i32 = 0x77;
 
@@ -106,7 +109,10 @@ mod tests {
         assert_eq!(play::PLAYER_POSITION, 0x46);
         assert_eq!(play::CHUNK_CACHE_CENTER, 0x5c);
         assert_eq!(play::CHUNK_CACHE_RADIUS, 0x5d);
+        assert_eq!(play::SET_CURSOR_ITEM, 0x5e);
         assert_eq!(play::DEFAULT_SPAWN_POSITION, 0x5f);
+        assert_eq!(play::HELD_ITEM_SLOT, 0x67);
+        assert_eq!(play::SET_PLAYER_INVENTORY, 0x6a);
         assert_eq!(play::SET_TIME, 0x6f);
         assert_eq!(play::SYSTEM_CHAT, 0x77);
         assert_eq!(play::SERVERBOUND_TELEPORT_CONFIRM, 0x00);

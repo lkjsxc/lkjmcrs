@@ -1,12 +1,10 @@
 use crate::player::{NamedLocation, PlayerPosition, PlayerProfile};
-use crate::protocol::ids;
-use crate::protocol::play;
 use crate::session::SessionState;
 use crate::session::chat::send_system_chat;
 use crate::session::command_dispatch::CommandDispatchContext;
 use crate::session::error::ConnectionError;
-use crate::session::io::write_packet;
 use crate::session::play_state::PlaySession;
+use crate::session::travel_teleport::teleport_to;
 use tokio::io::AsyncWrite;
 
 pub(super) async fn spawn<W>(
@@ -131,38 +129,6 @@ where
         .await
         .map_err(|source| player_error(context.phase, source))?;
     send_name_list(context.writer, context.phase, "Warps", names).await
-}
-
-async fn teleport_to<W>(
-    session: &mut PlaySession,
-    profile: &mut PlayerProfile,
-    position: PlayerPosition,
-    context: CommandDispatchContext<'_, W>,
-) -> Result<(), ConnectionError>
-where
-    W: AsyncWrite + Unpin,
-{
-    session.x = position.x;
-    session.y = position.y;
-    session.z = position.z;
-    session.yaw = position.yaw;
-    session.pitch = position.pitch;
-    profile.position = position;
-    let bootstrap = play::Bootstrap::new(context.max_players).with_player_state(
-        (session.x, session.y, session.z),
-        (session.yaw, session.pitch),
-        (
-            profile.game_mode.vanilla_id(),
-            profile.game_mode.ability_flags(),
-        ),
-    );
-    write_packet(
-        context.writer,
-        context.phase,
-        ids::play::PLAYER_POSITION,
-        &play::encode_initial_position(bootstrap),
-    )
-    .await
 }
 
 async fn send_name_list<W>(

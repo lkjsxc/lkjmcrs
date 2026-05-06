@@ -7,9 +7,9 @@ quests, parties, and cross-player queries.
 
 ## Storage Root
 
-- Runtime storage root comes from `LKJMCRS_DATA_DIR`.
+- Runtime storage root comes from JSON config field `data_dir`.
 - Player database path is `players.sqlite3` inside the storage root.
-- Docker Compose stores it in the existing `/data` volume.
+- Docker Compose stores it in the configured named volume.
 
 ## Schema Contract
 

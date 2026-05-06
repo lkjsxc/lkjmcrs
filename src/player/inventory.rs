@@ -1,6 +1,7 @@
 use crate::player::{GameMode, Inventory, InventorySlot, PlayerDefaults};
 
 const MAX_STACK: u8 = 64;
+const MAX_SYNCED_SLOT: i32 = 35;
 const STONE_ITEM: &str = "minecraft:stone";
 
 impl Inventory {
@@ -60,9 +61,11 @@ impl Inventory {
                 return;
             }
         }
-        if remaining > 0 {
+        if remaining > 0
+            && let Some(slot) = self.next_slot()
+        {
             self.slots.push(InventorySlot {
-                slot: self.next_slot(),
+                slot,
                 item_id: item_id.to_string(),
                 count: remaining.min(MAX_STACK),
                 data: None,
@@ -70,15 +73,32 @@ impl Inventory {
         }
     }
 
+    pub fn slot(&self, slot_id: i32) -> Option<&InventorySlot> {
+        self.slots
+            .iter()
+            .find(|slot| slot.slot == slot_id && slot.count > 0)
+    }
+
+    pub fn synced_slot_ids() -> std::ops::RangeInclusive<i32> {
+        0..=MAX_SYNCED_SLOT
+    }
+
+    pub fn is_synced_slot(slot_id: i32) -> bool {
+        Self::synced_slot_ids().contains(&slot_id)
+    }
+
+    pub fn is_hotbar_slot(slot_id: i16) -> bool {
+        (0..=8).contains(&slot_id)
+    }
+
     fn selected_slot(&self) -> Option<&InventorySlot> {
         let slot_id = i32::from(self.selected_hotbar_slot);
         self.slots.iter().find(|slot| slot.slot == slot_id)
     }
 
-    fn next_slot(&self) -> i32 {
-        (0..=255)
+    fn next_slot(&self) -> Option<i32> {
+        Self::synced_slot_ids()
             .find(|candidate| self.slots.iter().all(|slot| slot.slot != *candidate))
-            .unwrap_or(255)
     }
 }
 
@@ -118,6 +138,29 @@ mod tests {
 
         assert_eq!(inventory.slots[0].count, 64);
         assert_eq!(inventory.slots[1].count, 1);
+    }
+
+    #[test]
+    fn simple_items_use_synced_slot_bounds() {
+        let mut inventory = Inventory {
+            selected_hotbar_slot: 0,
+            slots: (0..=35)
+                .map(|slot| InventorySlot {
+                    slot,
+                    item_id: format!("minecraft:test_{slot}"),
+                    count: 1,
+                    data: None,
+                })
+                .collect(),
+        };
+
+        inventory.add_simple_item("minecraft:dirt", 1);
+
+        assert_eq!(inventory.slots.len(), 36);
+        assert!(Inventory::is_synced_slot(35));
+        assert!(!Inventory::is_synced_slot(36));
+        assert!(Inventory::is_hotbar_slot(8));
+        assert!(!Inventory::is_hotbar_slot(9));
     }
 
     #[test]

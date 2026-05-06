@@ -3,7 +3,7 @@
 ## Top-Level Modules
 
 - `app`: CLI dispatch and command execution.
-- `config`: environment and default configuration.
+- `config`: JSON configuration and defaults.
 - `net`: TCP listener and connection loop.
 - `protocol`: packet framing, types, encoding, decoding.
 - `player`: persistent player model, inventory, named locations, and SQLite

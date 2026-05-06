@@ -2,22 +2,22 @@
 
 ## Goal
 
-Define the first server-authoritative item loop without claiming full vanilla
-inventory synchronization.
+Define the first server-authoritative item loop and the client-visible player
+inventory projection.
 
 ## Slot Model
 
-- Inventory slots are server-internal numeric slots.
+- Canonical synced player inventory slots are numeric slots `0` through `35`.
+- Hotbar slots are `0` through `8`.
 - The selected hotbar slot is an integer from `0` through `8`.
 - New profiles start with selected hotbar slot `0`.
-- This slice does not send full clientbound inventory contents.
 - Slot rows persist item ID, count, and optional opaque data.
 
 ## Starter Items
 
 - Creative profiles start with no persisted item requirements.
 - Survival profiles may start with stone through
-  `LKJMCRS_SURVIVAL_STARTER_STONE`.
+  `survival_starter_stone`.
 - Starter stone is written as item ID `minecraft:stone`.
 - Starter count must be between `0` and `64`.
 - Starter stone is placed in selected hotbar slot `0`.
@@ -33,10 +33,26 @@ inventory synchronization.
 6. Survival breaking adds simple drops after an accepted block mutation.
 7. Empty slots are removed before profile save.
 8. Item stacks cannot exceed `64` in this slice.
+9. Play bootstrap sends `held_item_slot` and `set_player_inventory` for all
+   slots `0..35`.
+10. Accepted survival placement and breaking send `set_player_inventory`
+    deltas for changed slots.
+11. Invalid held-slot input preserves server state and resends the
+    authoritative selected hotbar slot.
+
+## Wire Item IDs
+
+- Empty slot: `itemCount = 0`.
+- `minecraft:stone`: item ID `1`.
+- `minecraft:dirt`: item ID `28`.
+- Non-empty slots write item count, item ID, zero added components, and zero
+  removed components.
 
 ## Out of Scope
 
-- Full vanilla inventory windows.
-- Clientbound slot synchronization.
+- Full vanilla inventory windows and container state.
+- Cursor items.
+- Armor and offhand slots.
+- Item entities.
 - Item NBT semantics beyond stored opaque text.
 - Recipes, durability, tools, and mining speed.

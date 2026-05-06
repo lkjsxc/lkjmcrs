@@ -11,6 +11,7 @@ use crate::session::chat::send_system_chat;
 use crate::session::chunk_stream::{ChunkStream, StreamContext};
 use crate::session::command_dispatch::{self, CommandDispatchContext};
 use crate::session::error::ConnectionError;
+use crate::session::inventory_sync;
 use crate::session::io::codec_error;
 use crate::session::play_state::PlaySession;
 use crate::session::registry::SessionRegistry;
@@ -73,7 +74,7 @@ where
     if let Some(chat) =
         chat::decode(packet.id, packet.data.clone()).map_err(|error| codec_error(phase, error))?
     {
-        handle_chat(chat, phase, session, profile, context).await?;
+        handle_chat(chat, phase, session, chunk_stream, profile, context).await?;
         return Ok(());
     }
 
@@ -109,6 +110,7 @@ async fn handle_chat<W>(
     chat: PlayChat,
     phase: SessionState,
     session: &mut PlaySession,
+    chunk_stream: &mut ChunkStream,
     profile: &mut PlayerProfile,
     context: PlayPacketContext<'_, W>,
 ) -> Result<(), ConnectionError>
@@ -131,6 +133,8 @@ where
                 CommandDispatchContext {
                     phase,
                     max_players: context.max_players,
+                    region: context.region,
+                    chunk_stream,
                     player_store: context.player_store,
                     sessions: context.sessions,
                     writer: context.writer,
@@ -140,9 +144,21 @@ where
         }
         PlayChat::HeldSlot(slot) if (0..=8).contains(&slot) => {
             profile.inventory.selected_hotbar_slot = slot as u8;
+            inventory_sync::send_held_item_slot(
+                context.writer,
+                phase,
+                profile.inventory.selected_hotbar_slot,
+            )
+            .await?;
             Ok(())
         }
         PlayChat::HeldSlot(_) => {
+            inventory_sync::send_held_item_slot(
+                context.writer,
+                phase,
+                profile.inventory.selected_hotbar_slot,
+            )
+            .await?;
             send_system_chat(context.writer, phase, "Invalid held item slot").await
         }
     }

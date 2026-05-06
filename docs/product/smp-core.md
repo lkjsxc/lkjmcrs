@@ -12,7 +12,7 @@ gameplay systems.
 - Slash commands use the serverbound command packets, not chat text with a
   leading slash.
 - The server sends a small command tree during play bootstrap.
-- New `LKJMCRS_OPS` config grants operator permission by player name.
+- `ops` config grants operator permission by player name.
 - Operator names are matched case-insensitively.
 
 ## Commands

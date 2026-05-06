@@ -2,12 +2,15 @@ use crate::protocol::codec;
 mod block_mutation;
 mod chunk;
 mod chunk_stream;
+mod inventory_packets;
+mod inventory_sync;
 mod live_play;
 mod multiplayer_mutation;
 mod persistence;
 mod play_client;
 mod profile_reconnect;
 mod smp_commands;
+mod survival_expect;
 mod survival_item;
 mod validation;
 
@@ -91,6 +94,12 @@ pub async fn chunk_stream(host: &str) -> Result<(), Box<dyn std::error::Error>> 
 pub async fn survival_item(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     survival_item::run(host).await?;
     println!("survival-item probe ok");
+    Ok(())
+}
+
+pub async fn inventory_sync(host: &str) -> Result<(), Box<dyn std::error::Error>> {
+    inventory_sync::run(host).await?;
+    println!("inventory-sync probe ok");
     Ok(())
 }
 

@@ -2,7 +2,7 @@
 
 ## Goal
 
-Start the second milestone with visible block mutation while preserving the
+Start the Survival Sandbox with visible block mutation while preserving the
 region-ownership architecture.
 
 ## First Slice
@@ -21,8 +21,8 @@ region-ownership architecture.
 ## Survival Item Slice
 
 - New profiles still default to creative unless configuration says otherwise.
-- `LKJMCRS_DEFAULT_GAME_MODE=survival` creates new profiles in survival mode.
-- `LKJMCRS_SURVIVAL_STARTER_STONE` grants new survival profiles that many
+- `default_game_mode: "survival"` creates new profiles in survival mode.
+- `survival_starter_stone` grants new survival profiles that many
   `minecraft:stone` items in selected hotbar slot `0`.
 - Creative placement keeps the fixed-stone behavior from the first slice.
 - Survival placement requires the selected slot to contain `minecraft:stone`.
@@ -54,7 +54,9 @@ region-ownership architecture.
 ## Player Boundary
 
 - Inventory contents and selected hotbar slot affect survival placement.
-- Held item selection is server-internal until full inventory packet support.
+- The selected hotbar slot and canonical player inventory slots `0..35` are
+  projected to the client during play bootstrap and after accepted survival
+  inventory mutations.
 - Survival mining speed, recipes, and item durability are not validated in this
   slice.
 - Block interactions outside the loaded spawn-radius chunks are acknowledged and
@@ -68,3 +70,5 @@ region-ownership architecture.
 4. Persistence stores only sparse overrides above the deterministic flat base.
 5. Survival inventory changes are committed only after an accepted region
    mutation result.
+6. Rejected placement and invalid held-slot input preserve server inventory
+   state and resend authoritative inventory selection when needed.

@@ -1,9 +1,9 @@
 use crate::probe::ProbeError;
 use crate::probe::block_mutation;
 use crate::probe::play_client::PlayClient;
-use crate::protocol::{codec, ids};
+use crate::probe::survival_expect;
+use crate::protocol::ids;
 use crate::world::BlockPos;
-use std::io::Cursor;
 use tokio::io::AsyncWriteExt;
 use tokio::net::TcpStream;
 use tokio::time::{Duration, sleep};
@@ -30,7 +30,14 @@ pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
 
 async fn place_initial_stone(client: &mut PlayClient) -> Result<(), Box<dyn std::error::Error>> {
     block_mutation::send_use_item_on_at(&mut client.stream, 30, BlockPos::new(0, 79, 0)).await?;
-    block_mutation::expect_ack_and_update(&mut client.stream, 30, 1).await
+    expect_update_at(
+        &mut client.stream,
+        30,
+        BlockPos::new(0, 80, 0),
+        1,
+        "initial stone",
+    )
+    .await
 }
 
 async fn break_stone_for_drop(client: &mut PlayClient) -> Result<(), Box<dyn std::error::Error>> {
@@ -159,33 +166,24 @@ async fn expect_update_at(
     state: i32,
     phase: &'static str,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let ack = block_mutation::read_next_non_time(stream, "survival material ack").await?;
+    let ack = survival_expect::read_next_material_packet(stream, "survival material ack").await?;
     if ack.id != ids::play::BLOCK_CHANGED_ACK {
         return Err(Box::new(ProbeError::Phase("survival material ack id")));
     }
     block_mutation::validate_ack(ack.data, sequence)?;
-    let update = block_mutation::read_next_non_time(stream, "survival material update").await?;
+    let update =
+        survival_expect::read_next_material_packet(stream, "survival material update").await?;
     if update.id != ids::play::BLOCK_UPDATE {
-        return Err(Box::new(ProbeError::Phase("survival material update id")));
+        return Err(format_packet_error(
+            "survival material update id",
+            update.id,
+        ));
     }
-    validate_update_state(update.data, pos, state, phase)
+    survival_expect::validate_update_state(update.data, pos, state, phase)
 }
 
-fn validate_update_state(
-    data: Vec<u8>,
-    pos: BlockPos,
-    state: i32,
-    phase: &'static str,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let mut cursor = Cursor::new(data);
-    if codec::read_position(&mut cursor)? != (pos.x, pos.y, pos.z) {
-        return Err(Box::new(ProbeError::Phase(phase)));
-    }
-    if codec::read_var_i32(&mut cursor)? != state {
-        return Err(Box::new(ProbeError::Phase(phase)));
-    }
-    if cursor.position() != cursor.get_ref().len() as u64 {
-        return Err(Box::new(ProbeError::Phase(phase)));
-    }
-    Ok(())
+fn format_packet_error(phase: &'static str, packet_id: i32) -> Box<dyn std::error::Error> {
+    Box::new(std::io::Error::other(format!(
+        "{phase}: got packet 0x{packet_id:x}"
+    )))
 }

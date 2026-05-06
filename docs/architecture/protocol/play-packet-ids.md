@@ -22,8 +22,12 @@ the `1.21.11` protocol table and must be updated as one batch with
 - `0x46 position`
 - `0x5c update_view_position`
 - `0x5d update_view_distance`
+- `0x5e set_cursor_item` deferred
 - `0x5f spawn_position`
+- `0x67 held_item_slot`
+- `0x6a set_player_inventory`
 - `0x6f update_time`
+- `0x77 system_chat`
 
 ## Serverbound IDs Used By The First Milestone
 
@@ -38,6 +42,7 @@ the `1.21.11` protocol table and must be updated as one batch with
 - `0x28 player_action`
 - `0x2b player_loaded`
 - `0x2c pong`
+- `0x34 held_item_slot`
 - `0x3c swing`
 - `0x3f use_item_on`
 

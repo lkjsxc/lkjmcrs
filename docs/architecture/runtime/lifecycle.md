@@ -2,10 +2,10 @@
 
 ## Startup
 
-1. Load configuration from environment.
+1. Load configuration from JSON.
 2. Reject unsupported options.
-3. Initialize world and scheduler state.
-4. Bind the TCP listener.
+3. Initialize player storage, world storage, and scheduler state.
+4. Bind the TCP listener only after storage opens successfully.
 5. Accept client connections.
 
 ## Connection Lifecycle

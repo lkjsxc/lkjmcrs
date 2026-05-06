@@ -7,10 +7,9 @@ flat-world base or introducing Anvil compatibility.
 
 ## Storage Root
 
-- Runtime storage root comes from `LKJMCRS_DATA_DIR`.
+- Runtime storage root comes from JSON config field `data_dir`.
 - The default local root is `data`.
-- Docker Compose mounts a named volume at `/data` and sets
-  `LKJMCRS_DATA_DIR=/data`.
+- Docker Compose mounts a named volume at the configured storage root.
 - World overrides live in `world.sqlite3` inside the storage root.
 
 ## Database Contract
@@ -36,6 +35,6 @@ flat-world base or introducing Anvil compatibility.
 
 ## Out of Scope
 
-- Entity, time, weather, and inventory-backed gameplay persistence.
+- Entity, time, and weather persistence.
 - Anvil region files.
 - Storage migrations beyond rejecting unsupported schema versions.

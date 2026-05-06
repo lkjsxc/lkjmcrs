@@ -10,7 +10,7 @@ Default bind:
 
 - Host: `0.0.0.0`
 - Container port: `25565`
-- Host port: `${LKJMCRS_PORT:-25565}`
+- Host port: `${HOST_PORT:-25565}`
 
 ## Try the Wire Probes
 

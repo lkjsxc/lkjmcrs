@@ -1,3 +1,4 @@
+use crate::player::Inventory;
 use crate::protocol::chunk;
 use crate::protocol::commands;
 use crate::protocol::ids;
@@ -5,6 +6,7 @@ use crate::protocol::play;
 use crate::scheduler::RegionHandle;
 use crate::session::SessionState;
 use crate::session::error::ConnectionError;
+use crate::session::inventory_sync;
 use crate::session::io::write_packet;
 use crate::world::ChunkPos;
 use tokio::io::AsyncWrite;
@@ -12,6 +14,7 @@ use tokio::io::AsyncWrite;
 pub async fn send_play_bootstrap<W>(
     stream: &mut W,
     bootstrap: play::Bootstrap,
+    inventory: &Inventory,
     region: &RegionHandle,
 ) -> Result<Vec<ChunkPos>, ConnectionError>
 where
@@ -47,6 +50,7 @@ where
         &commands::encode_declare_commands(),
     )
     .await?;
+    inventory_sync::send_bootstrap_inventory(stream, phase, inventory).await?;
     write_packet(
         stream,
         phase,

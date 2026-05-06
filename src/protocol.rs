@@ -17,6 +17,7 @@ pub mod commands;
 pub mod configuration;
 pub mod gameplay;
 pub mod ids;
+pub mod inventory;
 pub mod login;
 pub mod movement;
 pub mod nbt;

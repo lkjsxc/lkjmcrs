@@ -40,6 +40,8 @@ The first milestone declares one registry packet for each of these registries:
   `0.0`.
 - `0x5c update_view_position`: spawn chunk `0,0`.
 - `0x5d set_chunk_cache_radius`: configured view distance.
+- `0x67 held_item_slot`: authoritative selected hotbar slot.
+- `0x6a set_player_inventory`: player inventory slot ID and slot contents.
 - `0x0c chunk_batch_start`: empty payload.
 - `0x2c level_chunk_with_light`: flat chunks for the configured view distance,
   with chunk data and light arrays.
@@ -100,3 +102,20 @@ The first SMP slice adds offline-mode control packets:
 - `0x77 clientbound system_chat`: anonymous NBT text plus action-bar flag.
 
 See [chat-and-commands.md](chat-and-commands.md) for payload details.
+
+## Inventory Projection
+
+The Survival Sandbox uses the player-inventory path before full container
+support:
+
+- `0x5e set_cursor_item`: deferred until cursor interactions.
+- `0x67 held_item_slot`: clientbound selected hotbar slot as VarInt.
+- `0x6a set_player_inventory`: clientbound `slotId` VarInt plus `Slot`.
+- `0x12 window_items`: deferred until full container support.
+- `0x14 set_slot`: deferred until full container support.
+
+Protocol `774` slot encoding for this slice:
+
+- Empty slot writes VarInt `itemCount = 0`.
+- Non-empty slot writes VarInt `itemCount`, VarInt `itemId`, VarInt
+  `addedComponentCount = 0`, and VarInt `removedComponentCount = 0`.

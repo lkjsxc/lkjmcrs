@@ -3,14 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    environment:
-      LKJMCRS_BIND: 0.0.0.0:25565
-      LKJMCRS_MOTD: lkjmcrs 1.21.11 survival
-      LKJMCRS_MAX_PLAYERS: 100
-      LKJMCRS_ONLINE_MODE: "false"
-      LKJMCRS_DATA_DIR: /data
-      LKJMCRS_DEFAULT_GAME_MODE: survival
-      LKJMCRS_SURVIVAL_STARTER_STONE: 1
+    command: ["serve", "--config", "config/survival.json"]
     volumes:
       - survival-server-data:/data
     healthcheck:
@@ -23,15 +16,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    environment:
-      LKJMCRS_BIND: 0.0.0.0:25565
-      LKJMCRS_MOTD: lkjmcrs 1.21.11 smp
-      LKJMCRS_MAX_PLAYERS: 100
-      LKJMCRS_ONLINE_MODE: "false"
-      LKJMCRS_DATA_DIR: /data
-      LKJMCRS_DEFAULT_GAME_MODE: creative
-      LKJMCRS_SURVIVAL_STARTER_STONE: 0
-      LKJMCRS_OPS: Admin
+    command: ["serve", "--config", "config/smp.json"]
     volumes:
       - smp-server-data:/data
     healthcheck:
@@ -147,6 +132,22 @@ services:
       survival-server:
         condition: service_healthy
     entrypoint: ["cargo", "run", "--", "probe", "survival-item", "--host", "survival-server:25565"]
+
+  inventory-sync:
+    build:
+      context: .
+      dockerfile: Dockerfile.verify
+    working_dir: /workspace
+    environment:
+      CARGO_TARGET_DIR: /target
+    volumes:
+      - .:/workspace:ro
+      - cargo-registry:/usr/local/cargo/registry
+      - target-cache:/target
+    depends_on:
+      survival-server:
+        condition: service_healthy
+    entrypoint: ["cargo", "run", "--", "probe", "inventory-sync", "--host", "survival-server:25565"]
 
   smp-commands:
     build:

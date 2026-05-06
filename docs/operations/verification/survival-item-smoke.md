@@ -11,6 +11,7 @@ Run the dedicated survival server with one starter stone:
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build survival-server
 docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm survival-item
+docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm inventory-sync
 docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
 ```
 
@@ -24,6 +25,6 @@ docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
 
 ## Boundary
 
-This probe does not prove full client inventory UI synchronization. It proves
-server-authoritative inventory mutation, block mutation, and profile
-persistence for the first survival item loop.
+This probe proves server-authoritative inventory mutation, block mutation, and
+profile persistence for the first survival item loop. `inventory-sync` covers
+the client-visible player inventory projection.
