@@ -4,4 +4,4 @@ WORKDIR /workspace
 RUN apk add --no-cache build-base musl-dev
 RUN rustup component add rustfmt clippy
 
-ENTRYPOINT ["sh", "-c", "cargo fmt -- --check && cargo clippy --all-targets -- -D warnings && cargo test && cargo run -- docs validate-topology && cargo run -- quality check-lines"]
+ENTRYPOINT ["sh", "/workspace/scripts/verify-static.sh"]
