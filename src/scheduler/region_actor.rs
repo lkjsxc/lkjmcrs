@@ -1,3 +1,6 @@
+use crate::scheduler::storage_jobs;
+use crate::scheduler::region_command::{PendingLoad, PendingSave, RegionCommand};
+use crate::scheduler::region_handle::RegionHandle;
 use crate::scheduler::{BlockMutation, RegionActorError};
 use crate::world::{
     BlockPos, BlockState, ChunkPos, ChunkSnapshot, FlatWorld, RegionId, WorldStorage,
@@ -12,42 +15,11 @@ pub struct RegionActor {
     chunks: HashMap<ChunkPos, ChunkSnapshot>,
     world: FlatWorld,
     storage: Option<WorldStorage>,
+    outbox: mpsc::Sender<RegionCommand>,
     inbox: mpsc::Receiver<RegionCommand>,
-}
-
-#[derive(Debug, Clone)]
-pub struct RegionHandle {
-    pub(super) id: RegionId,
-    pub(super) outbox: mpsc::Sender<RegionCommand>,
-}
-
-#[derive(Debug)]
-pub(super) enum RegionCommand {
-    Apply {
-        label: String,
-        reply: oneshot::Sender<usize>,
-    },
-    SpawnChunks {
-        center: ChunkPos,
-        radius: i32,
-        reply: oneshot::Sender<Result<Vec<ChunkSnapshot>, RegionActorError>>,
-    },
-    ChunkSnapshot {
-        pos: ChunkPos,
-        reply: oneshot::Sender<Option<ChunkSnapshot>>,
-    },
-    GetBlock {
-        pos: BlockPos,
-        reply: oneshot::Sender<Option<BlockState>>,
-    },
-    SetBlock {
-        pos: BlockPos,
-        state: BlockState,
-        reply: oneshot::Sender<Result<BlockMutation, RegionActorError>>,
-    },
-    Snapshot {
-        reply: oneshot::Sender<usize>,
-    },
+    pending_loads: HashMap<u64, PendingLoad>,
+    pending_saves: HashMap<u64, PendingSave>,
+    next_job: u64,
 }
 
 impl RegionActor {
@@ -67,7 +39,11 @@ impl RegionActor {
             chunks: HashMap::new(),
             world: FlatWorld::default(),
             storage,
+            outbox: outbox.clone(),
             inbox,
+            pending_loads: HashMap::new(),
+            pending_saves: HashMap::new(),
+            next_job: 1,
         };
         tokio::spawn(actor.run());
         RegionHandle { id, outbox }
@@ -81,31 +57,24 @@ impl RegionActor {
                     self.applied += 1;
                     let _ = reply.send(self.applied);
                 }
-                RegionCommand::SpawnChunks {
-                    center,
-                    radius,
-                    reply,
-                } => {
-                    let chunks = self.spawn_chunks(center, radius);
-                    let _ = reply.send(chunks);
+                RegionCommand::SpawnChunks { center, radius, reply } => {
+                    self.spawn_chunks(center, radius, reply)
                 }
                 RegionCommand::ChunkSnapshot { pos, reply } => {
                     let _ = reply.send(self.chunks.get(&pos).cloned());
                 }
                 RegionCommand::GetBlock { pos, reply } => {
-                    let block = self
-                        .chunks
-                        .get(&pos.chunk())
-                        .map(|chunk| chunk.block_at_pos(pos));
+                    let block = self.chunks.get(&pos.chunk()).map(|c| c.block_at_pos(pos));
                     let _ = reply.send(block);
                 }
                 RegionCommand::SetBlock { pos, state, reply } => {
-                    let mutation = self.set_block(pos, state);
-                    let _ = reply.send(mutation);
+                    self.set_block(pos, state, reply)
                 }
                 RegionCommand::Snapshot { reply } => {
                     let _ = reply.send(self.applied);
                 }
+                RegionCommand::LoadComplete { id, result } => self.complete_load(id, result),
+                RegionCommand::SaveComplete { id, result } => self.complete_save(id, result),
             }
         }
     }
@@ -114,12 +83,10 @@ impl RegionActor {
         &mut self,
         pos: BlockPos,
         requested: BlockState,
-    ) -> Result<BlockMutation, RegionActorError> {
+        reply: oneshot::Sender<Result<BlockMutation, RegionActorError>>,
+    ) {
         let chunk_pos = pos.chunk();
-        let before = self
-            .chunks
-            .get(&chunk_pos)
-            .map(|chunk| chunk.block_at_pos(pos));
+        let before = self.chunks.get(&chunk_pos).map(|c| c.block_at_pos(pos));
         let after = self
             .chunks
             .get_mut(&chunk_pos)
@@ -133,35 +100,101 @@ impl RegionActor {
             loaded: before.is_some(),
             changed: after.is_some() && before != Some(state),
         };
-        if mutation.changed
-            && mutation.accepted()
-            && let (Some(storage), Some(chunk)) = (&self.storage, self.chunks.get(&chunk_pos))
-        {
-            storage.save_chunk(chunk)?;
+        if !mutation.changed || !mutation.accepted() || self.storage.is_none() {
+            let _ = reply.send(Ok(mutation));
+            return;
         }
-        Ok(mutation)
+        let Some(chunk) = self.chunks.get(&chunk_pos).cloned() else {
+            let _ = reply.send(Ok(mutation));
+            return;
+        };
+        let id = self.next_job();
+        self.pending_saves.insert(
+            id,
+            PendingSave {
+                before: before.unwrap_or(BlockState::Air),
+                mutation,
+                reply,
+            },
+        );
+        storage_jobs::save_chunk(id, self.storage.clone().unwrap(), chunk, self.outbox.clone());
     }
 
     fn spawn_chunks(
         &mut self,
         center: ChunkPos,
         radius: i32,
-    ) -> Result<Vec<ChunkSnapshot>, RegionActorError> {
-        for pos in self.world.chunk_positions(center, radius) {
-            if self.chunks.contains_key(&pos) {
-                continue;
-            }
-            let chunk = match &self.storage {
-                Some(storage) => storage.load_chunk(pos)?,
-                None => self.world.chunk_snapshot(pos),
-            };
-            self.chunks.insert(pos, chunk);
+        reply: oneshot::Sender<Result<Vec<ChunkSnapshot>, RegionActorError>>,
+    ) {
+        let positions = self.world.chunk_positions(center, radius);
+        let missing = positions
+            .iter()
+            .copied()
+            .filter(|pos| !self.chunks.contains_key(pos))
+            .collect::<Vec<_>>();
+        if missing.is_empty() {
+            let _ = reply.send(Ok(self.collect_chunks(&positions)));
+            return;
         }
-        Ok(self
-            .world
-            .chunk_positions(center, radius)
-            .into_iter()
-            .filter_map(|pos| self.chunks.get(&pos).cloned())
-            .collect())
+        let Some(storage) = self.storage.clone() else {
+            for pos in missing {
+                self.chunks.insert(pos, self.world.chunk_snapshot(pos));
+            }
+            let _ = reply.send(Ok(self.collect_chunks(&positions)));
+            return;
+        };
+        let id = self.next_job();
+        self.pending_loads
+            .insert(id, PendingLoad { positions, reply });
+        storage_jobs::load_chunks(id, storage, missing, self.outbox.clone());
+    }
+
+    fn complete_load(&mut self, id: u64, result: Result<Vec<ChunkSnapshot>, RegionActorError>) {
+        let Some(pending) = self.pending_loads.remove(&id) else {
+            return;
+        };
+        match result {
+            Ok(chunks) => {
+                chunks.into_iter().for_each(|c| {
+                    self.chunks.insert(c.pos, c);
+                });
+                let _ = pending.reply.send(Ok(self.collect_chunks(&pending.positions)));
+            }
+            Err(error) => _ = pending.reply.send(Err(error)),
+        }
+    }
+
+    fn complete_save(&mut self, id: u64, result: Result<(), RegionActorError>) {
+        let Some(pending) = self.pending_saves.remove(&id) else {
+            return;
+        };
+        match result {
+            Ok(()) => {
+                let _ = pending.reply.send(Ok(pending.mutation));
+            }
+            Err(error) => {
+                tracing::warn!(region = self.id.0, %error, "chunk save failed");
+                if let Some(chunk) = self.chunks.get_mut(&pending.mutation.chunk) {
+                    chunk.set_block(pending.mutation.pos, pending.before);
+                }
+                let _ = pending.reply.send(Ok(BlockMutation {
+                    state: pending.before,
+                    ..pending.mutation
+                }));
+            }
+        }
+    }
+
+    fn collect_chunks(&self, positions: &[ChunkPos]) -> Vec<ChunkSnapshot> {
+        positions
+            .iter()
+            .filter_map(|pos| self.chunks.get(pos).cloned())
+            .collect()
+    }
+
+    fn next_job(&mut self) -> u64 {
+        let id = self.next_job;
+        self.next_job += 1;
+        id
     }
 }

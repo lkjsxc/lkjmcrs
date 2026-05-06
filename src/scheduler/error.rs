@@ -4,4 +4,6 @@ pub enum RegionActorError {
     Closed,
     #[error(transparent)]
     Storage(#[from] crate::world::WorldStorageError),
+    #[error("storage task failed: {0}")]
+    StorageTask(String),
 }

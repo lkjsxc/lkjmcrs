@@ -1,7 +1,14 @@
-use crate::scheduler::region_actor::{RegionCommand, RegionHandle};
+use crate::scheduler::region_command::RegionCommand;
 use crate::scheduler::{BlockMutation, RegionActorError};
 use crate::world::{BlockPos, BlockState, ChunkPos, ChunkSnapshot, RegionId};
 use tokio::sync::oneshot;
+use tokio::sync::mpsc;
+
+#[derive(Debug, Clone)]
+pub struct RegionHandle {
+    pub(super) id: RegionId,
+    pub(super) outbox: mpsc::Sender<RegionCommand>,
+}
 
 impl RegionHandle {
     pub const fn id(&self) -> RegionId {

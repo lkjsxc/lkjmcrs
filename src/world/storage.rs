@@ -1,15 +1,26 @@
 use crate::world::{BlockPos, BlockState, ChunkPos, ChunkSnapshot};
+use crate::world::storage_schema::ensure_schema;
 use rusqlite::{Connection, params};
 use std::fs;
 use std::path::PathBuf;
+#[cfg(test)]
+use std::time::Duration;
 use thiserror::Error;
 
-const SCHEMA_VERSION: u32 = 1;
 const BUSY_TIMEOUT_MS: u64 = 5_000;
 
 #[derive(Debug, Clone)]
 pub struct WorldStorage {
     root: PathBuf,
+    #[cfg(test)]
+    test: TestStorage,
+}
+
+#[cfg(test)]
+#[derive(Debug, Clone, Copy, Default)]
+struct TestStorage {
+    delay: Option<Duration>,
+    fail_saves: bool,
 }
 
 #[derive(Debug, Error)]
@@ -28,7 +39,33 @@ pub enum WorldStorageError {
 
 impl WorldStorage {
     pub fn new(root: impl Into<PathBuf>) -> Self {
-        Self { root: root.into() }
+        Self {
+            root: root.into(),
+            #[cfg(test)]
+            test: TestStorage::default(),
+        }
+    }
+
+    #[cfg(test)]
+    pub fn with_delay_for_tests(root: impl Into<PathBuf>, delay: Duration) -> Self {
+        Self {
+            root: root.into(),
+            test: TestStorage {
+                delay: Some(delay),
+                fail_saves: false,
+            },
+        }
+    }
+
+    #[cfg(test)]
+    pub fn with_save_failure_for_tests(root: impl Into<PathBuf>) -> Self {
+        Self {
+            root: root.into(),
+            test: TestStorage {
+                delay: None,
+                fail_saves: true,
+            },
+        }
     }
 
     pub fn schema_version(&self) -> Result<u32, WorldStorageError> {
@@ -37,6 +74,7 @@ impl WorldStorage {
     }
 
     pub fn load_chunk(&self, pos: ChunkPos) -> Result<ChunkSnapshot, WorldStorageError> {
+        self.pause_for_test();
         let connection = self.connection()?;
         let mut chunk = ChunkSnapshot::flat(pos);
         let mut rows = connection.prepare(
@@ -68,6 +106,8 @@ impl WorldStorage {
     }
 
     pub fn save_chunk(&self, chunk: &ChunkSnapshot) -> Result<(), WorldStorageError> {
+        self.pause_for_test();
+        self.fail_save_for_test()?;
         let mut connection = self.connection()?;
         let tx = connection.transaction()?;
         tx.execute(
@@ -101,6 +141,21 @@ impl WorldStorage {
         ensure_schema(&connection)?;
         Ok(connection)
     }
+
+    fn pause_for_test(&self) {
+        #[cfg(test)]
+        if let Some(delay) = self.test.delay {
+            std::thread::sleep(delay);
+        }
+    }
+
+    fn fail_save_for_test(&self) -> Result<(), WorldStorageError> {
+        #[cfg(test)]
+        if self.test.fail_saves {
+            return Err(std::io::Error::other("forced save failure").into());
+        }
+        Ok(())
+    }
 }
 
 #[derive(Debug)]
@@ -119,31 +174,6 @@ impl StoredBlock {
             chunk.z * 16 + self.local_z,
         )
     }
-}
-
-fn ensure_schema(connection: &Connection) -> Result<(), WorldStorageError> {
-    let version: u32 = connection.query_row("PRAGMA user_version", [], |row| row.get(0))?;
-    match version {
-        0 => create_schema(connection),
-        SCHEMA_VERSION => Ok(()),
-        other => Err(WorldStorageError::UnsupportedSchema(other)),
-    }
-}
-
-fn create_schema(connection: &Connection) -> Result<(), WorldStorageError> {
-    connection.execute_batch(
-        "CREATE TABLE IF NOT EXISTS chunk_overrides (
-            chunk_x INTEGER NOT NULL,
-            chunk_z INTEGER NOT NULL,
-            local_x INTEGER NOT NULL CHECK(local_x BETWEEN 0 AND 15),
-            y INTEGER NOT NULL,
-            local_z INTEGER NOT NULL CHECK(local_z BETWEEN 0 AND 15),
-            state TEXT NOT NULL,
-            PRIMARY KEY (chunk_x, chunk_z, local_x, y, local_z)
-        );
-        PRAGMA user_version = 1;",
-    )?;
-    Ok(())
 }
 
 fn state_name(state: BlockState) -> &'static str {

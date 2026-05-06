@@ -3,6 +3,7 @@ pub mod flat;
 pub mod position;
 pub mod region;
 pub mod storage;
+mod storage_schema;
 #[cfg(test)]
 mod storage_tests;
 
