@@ -29,7 +29,7 @@ Verify the real wire path without depending on an external Minecraft bot crate.
 The smoke probe must validate enough live chunk payload data to catch the
 captured client regressions:
 
-- advertised radius `2` yields `25` chunks,
+- default advertised radius `2` yields `25` chunks,
 - each `level_chunk_with_light` payload has exactly consumed chunk data,
 - each `update_light` payload has exactly consumed light data,
 - heightmaps use `37` raw longs for each `9`-bit `256`-entry heightmap,

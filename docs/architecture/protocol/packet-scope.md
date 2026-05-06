@@ -29,8 +29,8 @@
 - Initial player position sync.
 - Keepalive serverbound and clientbound in play.
 - Basic movement packets decoded from client and stored on the session.
-- Movement-driven `chunk_cache_center` updates and load-only chunk batches for
-  newly visible chunks.
+- Movement-driven `chunk_cache_center` updates, unload packets for chunks
+  leaving the view window, and chunk batches for newly visible chunks.
 - Stored player position, look, and game mode used during play bootstrap.
 - Creative and first survival item-loop placement and breaking in loaded
   chunks.
@@ -47,7 +47,6 @@
 - Full vanilla registry coverage beyond evidence-driven first milestone
   entries.
 - Full mutable chunk resend packets.
-- Client chunk unload packets.
 - Full client inventory windows and item synchronization.
 - Resource pack negotiation.
 - Complete play packet set.
@@ -57,8 +56,8 @@
 The server-list status path is vanilla-shaped for `1.21.11`.
 The login path reaches configuration, negotiates the vanilla core pack,
 loads the required non-empty registries, enters play, sends game event `13`,
-and sends a deterministic `5x5` flat spawn chunk batch for advertised radius
-`2`. A player join was reported on `2026-05-05` after the `0x26` fix. Treat
+and sends a deterministic flat spawn chunk batch for the advertised view
+distance. A player join was reported on `2026-05-05` after the `0x26` fix. Treat
 that as manual success evidence without raw logs attached.
 
 Dynamic registries are intentionally minimal and evidence-driven. They are not

@@ -44,7 +44,7 @@ docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
 2. `server` runs the product binary.
 3. `smoke` connects to the live server over the compose network.
 4. `profile-reconnect` verifies player profile persistence.
-5. `chunk-stream` verifies load-only movement-driven chunk streaming.
+5. `chunk-stream` verifies bounded movement-driven chunk streaming.
 6. `persist-place` writes a mutation through the public wire path.
 7. `persist-check` verifies that mutation after restart.
 8. `survival-item` verifies survival profile defaults and item persistence.

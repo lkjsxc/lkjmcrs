@@ -12,7 +12,7 @@
 
 - Region-owned block mutation.
 - Creative placement, breaking, and multiplayer observer smoke coverage.
-- Persistent chunk storage.
+- SQLite-backed sparse chunk override storage.
 - Basic block interaction and player movement validation.
 - Persistent player profiles, gamemode, inventory shell, and vitals shell.
 - Inventory and item stack model.
@@ -24,7 +24,7 @@
 
 - Region splitting and merging.
 - Region-local task queues.
-- Async chunk generation and storage pipeline.
+- Broader async chunk generation and storage pipeline.
 - Contraption-focused tick benchmarks.
 - Operational metrics for per-region tick pressure.
 

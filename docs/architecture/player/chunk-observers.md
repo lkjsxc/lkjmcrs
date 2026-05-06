@@ -11,11 +11,11 @@ subscription includes the changed chunk.
   configuration complete.
 - Bootstrap sends the full advertised spawn radius before the session subscribes
   to those chunks.
-- Movement across a chunk-center boundary sends newly visible chunks and adds
-  those chunks to the session subscription set.
+- Movement across a chunk-center boundary removes chunks leaving the visible
+  window, sends unload packets, sends newly visible chunks, and updates the
+  session subscription set.
 - Disconnect removes the session and all subscriptions.
-- This slice is load-only: movement does not remove subscriptions and does not
-  send chunk unload packets.
+- Subscriptions are bounded by the current visible window.
 
 ## Outbound Messages
 

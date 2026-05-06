@@ -18,8 +18,13 @@ Tick workers must not perform:
 
 ## Async Work
 
-Future persistence, compression, and online-mode auth run on separate async
-tasks and return results through explicit messages.
+Chunk persistence runs on separate blocking tasks and returns results through
+explicit region-actor messages. Region actors may enqueue load or save work and
+continue processing unrelated mailbox commands while storage runs. Mutation
+replies wait for persistence; save failure rolls back the tentative block state
+before the reply.
+
+Future compression and online-mode auth follow the same handoff rule.
 
 ## Verification
 

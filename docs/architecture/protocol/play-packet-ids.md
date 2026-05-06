@@ -12,6 +12,7 @@ the `1.21.11` protocol table and must be updated as one batch with
 - `0x0b chunk_batch_finished`
 - `0x0c chunk_batch_start`
 - `0x08 block_update`
+- `0x25 unload_chunk`
 - `0x26 game_state_change`
 - `0x2b keep_alive`
 - `0x2c map_chunk`, locally named `level_chunk_with_light`

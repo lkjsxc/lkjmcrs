@@ -12,13 +12,16 @@
 ## Persistent Override Slice
 
 - Persist only sparse block overrides that differ from generated flat terrain.
-- Store overrides in server-owned JSON files under the configured data
-  directory.
-- One chunk file owns one chunk coordinate and schema version.
-- Missing chunk files mean generated flat terrain with no overrides.
-- Empty override sets delete the chunk file.
+- Store overrides in `world.sqlite3` under the configured data directory.
+- The database schema version is `PRAGMA user_version = 1`.
+- `chunk_overrides` rows are keyed by chunk coordinate and local block
+  coordinate.
+- Missing rows mean generated flat terrain with no override.
+- Setting a block back to generated base deletes that override row.
 - Accepted mutations save before prediction acknowledgement and fanout.
 - Corrupt storage fails startup or mutation instead of being ignored.
+- Legacy `chunks/*.json` files are ignored; backward compatibility is out of
+  scope for this milestone.
 
 ## Future Persistence
 

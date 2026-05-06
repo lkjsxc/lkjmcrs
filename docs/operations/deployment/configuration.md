@@ -10,6 +10,9 @@
 - `LKJMCRS_DEFAULT_GAME_MODE`: new-profile game mode, default `creative`.
 - `LKJMCRS_SURVIVAL_STARTER_STONE`: new-survival-profile starter stone count,
   default `0`.
+- `LKJMCRS_VIEW_DISTANCE`: advertised and streamed chunk radius, default `2`.
+- `LKJMCRS_SIMULATION_DISTANCE`: advertised simulation radius, default equals
+  view distance.
 
 ## Rules
 
@@ -20,3 +23,4 @@
 5. `LKJMCRS_DATA_DIR` must be writable by the server process.
 6. `LKJMCRS_DEFAULT_GAME_MODE` accepts only `creative` or `survival`.
 7. `LKJMCRS_SURVIVAL_STARTER_STONE` must be between `0` and `64`.
+8. View and simulation distances must be between `2` and `8`.

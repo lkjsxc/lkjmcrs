@@ -2,35 +2,40 @@
 
 ## Goal
 
-Load and send newly visible flat chunks as a player crosses chunk-center
-boundaries, without unloading client chunks in this slice.
+Keep each session's client chunk window bounded as the player crosses
+chunk-center boundaries.
 
 ## Coordinates
 
 - The session chunk center is derived from player `x` and `z` by flooring each
   coordinate to a block coordinate and applying Euclidean division by `16`.
 - Negative coordinates use the same mapping as block mutation lookup.
-- The advertised view radius remains `2`, so each center has a `5x5` visible
-  set.
+- The configured view distance defaults to `2`, so the default center has a
+  `5x5` visible set.
+- The configured simulation distance is advertised during login but does not
+  drive streaming in this slice.
 
 ## Movement Contract
 
 1. A valid serverbound movement packet updates session-local position.
 2. If the derived chunk center is unchanged, no streaming packets are sent.
-3. If the center changes, the session computes the new radius-`2` visible set.
-4. Chunks not already sent to that session are loaded through the region actor
+3. If the center changes, the session computes the next visible set from the
+   configured view distance.
+4. Chunks leaving the previous visible set are sent as `unload_chunk`.
+5. Chunks entering the next visible set are loaded through the region actor
    with `spawn_chunks_around`.
-5. The server sends `chunk_cache_center` for the new center.
-6. If there are newly sent chunks, the server sends a chunk batch containing
+6. The server sends `chunk_cache_center` for the new center.
+7. If there are newly visible chunks, the server sends a chunk batch containing
    only those chunks.
-7. The session subscribes to newly sent chunks for future block-update fanout.
+8. The session registry unsubscribes leaving chunks and subscribes entering
+   chunks for future block-update fanout.
 
-## Load-Only Boundary
+## Bounded Window Boundary
 
-This milestone never sends client unload packets. Chunks already sent to a
-session remain in that session's subscription set until disconnect. Dynamic
-region split and merge, entity streaming, survival inventory rules, and SMP
-commands are out of scope.
+`ChunkStream` tracks the current visible set, not all chunks ever sent. Moving
+from center `0,0` to `1,0` with view distance `2` unloads column `x=-2` and
+loads column `x=3`. Dynamic region split and merge, entity streaming, and using
+simulation distance for ticking are out of scope.
 
 ## Mutation Boundary
 

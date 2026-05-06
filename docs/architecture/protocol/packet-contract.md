@@ -31,18 +31,18 @@ The first milestone declares one registry packet for each of these registries:
 
 ## Play Bootstrap
 
-- `0x30 login`: one world, `minecraft:overworld`; view and simulation
-  distance are `2`.
+- `0x30 login`: one world, `minecraft:overworld`; view distance defaults to
+  `2`, and simulation distance defaults to the same value.
 - `0x5f spawn_position`: global position in `minecraft:overworld`.
 - `0x6f update_time`: age `0`, time `0`, ticking enabled.
 - `0x3e abilities`: permissive initial ability flags.
 - `0x26 game_state_change`: event `13`, `start_waiting_for_level_chunks`, value
   `0.0`.
 - `0x5c update_view_position`: spawn chunk `0,0`.
-- `0x5d set_chunk_cache_radius`: radius `2`.
+- `0x5d set_chunk_cache_radius`: configured view distance.
 - `0x0c chunk_batch_start`: empty payload.
-- `0x2c level_chunk_with_light`: `25` flat chunks for radius `2`, with chunk
-  data and light arrays.
+- `0x2c level_chunk_with_light`: flat chunks for the configured view distance,
+  with chunk data and light arrays.
 - `0x2f update_light`: explicit light data for the same chunk, retained for the
   current join milestone.
 - `0x0b chunk_batch_finished`: batch size.
@@ -50,9 +50,12 @@ The first milestone declares one registry packet for each of these registries:
 - `0x2b keep_alive`: signed 64-bit keepalive ID.
 
 The `level_chunk_with_light` count is derived from
-`(radius * 2 + 1) ^ 2`. The first milestone uses radius `2`, so the bootstrap
+`(radius * 2 + 1) ^ 2`. The default radius is `2`, so the bootstrap
 must send `25` chunks. A smaller `3x3` batch is invalid because it advertises
 terrain the client never receives during initial world entry.
+
+Movement may send `0x25 unload_chunk` for chunks leaving the visible window.
+Its payload is `chunkZ` as `i32`, then `chunkX` as `i32`.
 
 The game-state change is a readiness gate, not cosmetic state. A modern vanilla
 client can remain on terrain loading even after receiving chunks if the server
