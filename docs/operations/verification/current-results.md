@@ -2,8 +2,9 @@
 
 ## 2026-05-06
 
-Implementation tested: working tree after JSON config migration and inventory
-sync projection, plus dropped item entity pickup.
+Implementation tested: committed tree after implicit runtime config,
+held-item-only placement, player SQLite contention hardening, and deterministic
+compose probes.
 
 Compose commands:
 
@@ -72,7 +73,7 @@ Results:
   actor observed held-item placement and break through prediction
   acknowledgements and block updates; the observer received both authoritative
   block updates without prediction acknowledgements.
-- Persistence smoke: pass, held-item dirt placement at `0,80,0` was written
+- Persistence smoke: pass, held-item dirt placement at `3,80,0` was written
   through the public play wire path, survived server restart with the compose
   `server-data` volume backed by `world.sqlite3`, and was observed in the
   bootstrap chunk payload.
@@ -84,8 +85,8 @@ Results:
   probe.
 - Movement flags regression: pass, movement probe now sends one protocol `774`
   flags byte.
-- Rust tests: `117` passed.
-- docs maximum line count: `136`.
+- Rust tests: `118` passed.
+- docs maximum line count: `137`.
 - source maximum line count: `200`.
 - Manual join: user-reported success in the task prompt, with no raw client log
   attached.
