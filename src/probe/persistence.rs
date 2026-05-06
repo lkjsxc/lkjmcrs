@@ -7,7 +7,7 @@ use std::io::{Cursor, Read};
 
 const TARGET_STATE: i32 = 10;
 const TARGET_Y: i32 = 80;
-const TARGET_INDEX: usize = 7;
+const TARGET_INDEX: usize = 3;
 const BLOCK_ENTRY_COUNT: usize = 4096;
 const BIOME_ENTRY_COUNT: usize = 64;
 const HEIGHTMAP_COUNT: usize = 2;
@@ -17,20 +17,20 @@ pub(super) async fn place(host: &str) -> Result<(), Box<dyn std::error::Error>> 
     let mut client = PlayClient::connect(host, "PersistA").await?;
     block_mutation::acquire_dirt(
         &mut client.stream,
-        crate::world::BlockPos::new(6, 79, 0),
+        crate::world::BlockPos::new(1, 79, 0),
         "persist dirt",
     )
     .await?;
     block_mutation::send_use_item_on_at(
         &mut client.stream,
         30,
-        crate::world::BlockPos::new(7, 79, 0),
+        crate::world::BlockPos::new(3, 79, 0),
     )
     .await?;
     block_mutation::expect_ack_and_update_at(
         &mut client.stream,
         30,
-        crate::world::BlockPos::new(7, 80, 0),
+        crate::world::BlockPos::new(3, 80, 0),
         TARGET_STATE,
     )
     .await

@@ -143,8 +143,11 @@ pub(super) fn validate_update_at(
     if codec::read_position(&mut cursor)? != (pos.x, pos.y, pos.z) {
         return Err(Box::new(ProbeError::Phase("block mutation update pos")));
     }
-    if codec::read_var_i32(&mut cursor)? != state {
-        return Err(Box::new(ProbeError::Phase("block mutation update state")));
+    let actual = codec::read_var_i32(&mut cursor)?;
+    if actual != state {
+        return Err(Box::new(std::io::Error::other(format!(
+            "block mutation update state: expected {state}, got {actual}"
+        ))));
     }
     if cursor.position() != cursor.get_ref().len() as u64 {
         return Err(Box::new(ProbeError::Phase(
