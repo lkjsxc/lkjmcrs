@@ -7,6 +7,7 @@ use std::io::{Cursor, Read};
 
 const TARGET_STATE: i32 = 10;
 const TARGET_Y: i32 = 80;
+const TARGET_INDEX: usize = 7;
 const BLOCK_ENTRY_COUNT: usize = 4096;
 const BIOME_ENTRY_COUNT: usize = 64;
 const HEIGHTMAP_COUNT: usize = 2;
@@ -16,12 +17,23 @@ pub(super) async fn place(host: &str) -> Result<(), Box<dyn std::error::Error>> 
     let mut client = PlayClient::connect(host, "PersistA").await?;
     block_mutation::acquire_dirt(
         &mut client.stream,
-        crate::world::BlockPos::new(0, 79, 0),
+        crate::world::BlockPos::new(6, 79, 0),
         "persist dirt",
     )
     .await?;
-    block_mutation::send_use_item_on(&mut client.stream, 30).await?;
-    block_mutation::expect_ack_and_update(&mut client.stream, 30, TARGET_STATE).await
+    block_mutation::send_use_item_on_at(
+        &mut client.stream,
+        30,
+        crate::world::BlockPos::new(7, 79, 0),
+    )
+    .await?;
+    block_mutation::expect_ack_and_update_at(
+        &mut client.stream,
+        30,
+        crate::world::BlockPos::new(7, 80, 0),
+        TARGET_STATE,
+    )
+    .await
 }
 
 pub(super) async fn check(host: &str) -> Result<(), Box<dyn std::error::Error>> {
@@ -59,7 +71,7 @@ fn read_sections(
         observed = observed.or(read_container(
             cursor,
             BLOCK_ENTRY_COUNT,
-            target.then_some(0),
+            target.then_some(TARGET_INDEX),
         )?);
         read_container(cursor, BIOME_ENTRY_COUNT, None)?;
     }
