@@ -3,27 +3,19 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    command: ["serve", "--config", "config/survival.json"]
+    command: ["serve"]
     volumes:
-      - survival-server-data:/data
-    healthcheck:
-      test: ["CMD", "lkjmcrs", "probe", "status", "--host", "127.0.0.1:25565"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
+      - ./config:/app/config:ro
+      - survival-server-data:/app/data
 
   smp-server:
     build:
       context: .
       dockerfile: Dockerfile
-    command: ["serve", "--config", "config/smp.json"]
+    command: ["serve"]
     volumes:
-      - smp-server-data:/data
-    healthcheck:
-      test: ["CMD", "lkjmcrs", "probe", "status", "--host", "127.0.0.1:25565"]
-      interval: 5s
-      timeout: 5s
-      retries: 20
+      - ./config:/app/config:ro
+      - smp-server-data:/app/data
 
   verify:
     build:
@@ -49,8 +41,7 @@ services:
       - cargo-registry:/usr/local/cargo/registry
       - target-cache:/target
     depends_on:
-      server:
-        condition: service_healthy
+      - server
     entrypoint: ["cargo", "run", "--", "probe", "multiplayer-mutation", "--host", "server:25565"]
 
   profile-reconnect:
@@ -65,8 +56,7 @@ services:
       - cargo-registry:/usr/local/cargo/registry
       - target-cache:/target
     depends_on:
-      server:
-        condition: service_healthy
+      - server
     entrypoint: ["cargo", "run", "--", "probe", "profile-reconnect", "--host", "server:25565"]
 
   chunk-stream:
@@ -81,8 +71,7 @@ services:
       - cargo-registry:/usr/local/cargo/registry
       - target-cache:/target
     depends_on:
-      server:
-        condition: service_healthy
+      - server
     entrypoint: ["cargo", "run", "--", "probe", "chunk-stream", "--host", "server:25565"]
 
   persist-place:
@@ -97,8 +86,7 @@ services:
       - cargo-registry:/usr/local/cargo/registry
       - target-cache:/target
     depends_on:
-      server:
-        condition: service_healthy
+      - server
     entrypoint: ["cargo", "run", "--", "probe", "persist-place", "--host", "server:25565"]
 
   persist-check:
@@ -113,8 +101,7 @@ services:
       - cargo-registry:/usr/local/cargo/registry
       - target-cache:/target
     depends_on:
-      server:
-        condition: service_healthy
+      - server
     entrypoint: ["cargo", "run", "--", "probe", "persist-check", "--host", "server:25565"]
 
   survival-item:
@@ -129,8 +116,7 @@ services:
       - cargo-registry:/usr/local/cargo/registry
       - target-cache:/target
     depends_on:
-      survival-server:
-        condition: service_healthy
+      - survival-server
     entrypoint: ["cargo", "run", "--", "probe", "survival-item", "--host", "survival-server:25565"]
 
   inventory-sync:
@@ -145,8 +131,7 @@ services:
       - cargo-registry:/usr/local/cargo/registry
       - target-cache:/target
     depends_on:
-      survival-server:
-        condition: service_healthy
+      - survival-server
     entrypoint: ["cargo", "run", "--", "probe", "inventory-sync", "--host", "survival-server:25565"]
 
   item-pickup:
@@ -161,8 +146,7 @@ services:
       - cargo-registry:/usr/local/cargo/registry
       - target-cache:/target
     depends_on:
-      survival-server:
-        condition: service_healthy
+      - survival-server
     entrypoint: ["cargo", "run", "--", "probe", "item-pickup", "--host", "survival-server:25565"]
 
   smp-commands:
@@ -177,8 +161,7 @@ services:
       - cargo-registry:/usr/local/cargo/registry
       - target-cache:/target
     depends_on:
-      smp-server:
-        condition: service_healthy
+      - smp-server
     entrypoint: ["cargo", "run", "--", "probe", "smp-commands", "--host", "smp-server:25565"]
 
 volumes:

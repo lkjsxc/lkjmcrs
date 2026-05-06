@@ -1,21 +1,11 @@
-use crate::player::{GameMode, Inventory, InventorySlot, PlayerDefaults};
+use crate::player::{Inventory, InventorySlot, PlayerDefaults};
 
 const MAX_STACK: u8 = 64;
 const MAX_SYNCED_SLOT: i32 = 35;
-const STONE_ITEM: &str = "minecraft:stone";
 
 impl Inventory {
-    pub fn for_new_profile(defaults: PlayerDefaults) -> Self {
-        let mut inventory = Self::default();
-        if defaults.game_mode == GameMode::Survival && defaults.survival_starter_stone > 0 {
-            inventory.slots.push(InventorySlot {
-                slot: 0,
-                item_id: STONE_ITEM.to_string(),
-                count: defaults.survival_starter_stone.min(MAX_STACK),
-                data: None,
-            });
-        }
-        inventory
+    pub fn for_new_profile(_defaults: PlayerDefaults) -> Self {
+        Self::default()
     }
 
     pub fn selected_item_count(&self, item_id: &str) -> u8 {

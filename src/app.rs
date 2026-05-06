@@ -1,7 +1,6 @@
 use crate::config::Config;
 use crate::quality;
 use clap::{Parser, Subcommand};
-use std::path::PathBuf;
 
 #[derive(Parser)]
 #[command(name = "lkjmcrs")]
@@ -13,10 +12,7 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
-    Serve {
-        #[arg(long, default_value = "config/default.json")]
-        config: PathBuf,
-    },
+    Serve,
     Docs {
         #[command(subcommand)]
         command: DocsCommand,
@@ -97,7 +93,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .init();
 
     match Cli::parse().command {
-        Command::Serve { config } => crate::net::serve(Config::from_path(config)?).await?,
+        Command::Serve => crate::net::serve(Config::from_default_path()?).await?,
         Command::Docs { command } => match command {
             DocsCommand::ValidateTopology => quality::validate_docs_topology()?,
         },

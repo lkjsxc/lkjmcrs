@@ -4,7 +4,7 @@ use std::net::SocketAddr;
 use std::path::{Path, PathBuf};
 use thiserror::Error;
 
-const SCHEMA: &str = "lkjmcrs.config";
+const DEFAULT_PATH: &str = "config/server.json";
 
 #[derive(Clone, Debug, PartialEq)]
 pub struct Config {
@@ -14,7 +14,6 @@ pub struct Config {
     pub online_mode: bool,
     pub data_dir: PathBuf,
     pub default_game_mode: GameMode,
-    pub survival_starter_stone: u8,
     pub view_distance: i32,
     pub simulation_distance: i32,
     pub ops: Vec<String>,
@@ -29,24 +28,19 @@ pub enum ConfigError {
     },
     #[error("invalid config JSON: {0}")]
     Json(#[from] serde_json::Error),
-    #[error("unsupported config schema: {0}")]
-    Schema(String),
     #[error("invalid bind: {0}")]
     Bind(#[from] std::net::AddrParseError),
-    #[error("online_mode=true is not implemented in this milestone")]
+    #[error("online_mode=true is not implemented")]
     OnlineMode,
     #[error("invalid default_game_mode: {0}")]
     DefaultGameMode(String),
-    #[error("survival_starter_stone must be between 0 and 64")]
-    StarterStoneRange,
     #[error("{0} must be between 2 and 8")]
     DistanceRange(&'static str),
 }
 
 #[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
 struct RawConfig {
-    #[serde(default = "default_schema")]
-    schema: String,
     #[serde(default = "default_bind")]
     bind: String,
     #[serde(default = "default_motd")]
@@ -59,8 +53,6 @@ struct RawConfig {
     data_dir: PathBuf,
     #[serde(default = "default_game_mode")]
     default_game_mode: String,
-    #[serde(default)]
-    survival_starter_stone: u8,
     #[serde(default = "default_distance")]
     view_distance: i32,
     simulation_distance: Option<i32>,
@@ -69,6 +61,14 @@ struct RawConfig {
 }
 
 impl Config {
+    pub fn from_default_path() -> Result<Self, ConfigError> {
+        let path = Path::new(DEFAULT_PATH);
+        if path.exists() {
+            return Self::from_path(path);
+        }
+        RawConfig::default().validate()
+    }
+
     pub fn from_path(path: impl AsRef<Path>) -> Result<Self, ConfigError> {
         let path = path.as_ref();
         let json = std::fs::read_to_string(path).map_err(|source| ConfigError::Read {
@@ -90,17 +90,11 @@ impl Config {
 
 impl RawConfig {
     fn validate(self) -> Result<Config, ConfigError> {
-        if self.schema != SCHEMA {
-            return Err(ConfigError::Schema(self.schema));
-        }
         if self.online_mode {
             return Err(ConfigError::OnlineMode);
         }
         let default_game_mode = GameMode::parse(&self.default_game_mode)
             .ok_or(ConfigError::DefaultGameMode(self.default_game_mode))?;
-        if self.survival_starter_stone > 64 {
-            return Err(ConfigError::StarterStoneRange);
-        }
         validate_distance("view_distance", self.view_distance)?;
         let simulation_distance = self.simulation_distance.unwrap_or(self.view_distance);
         validate_distance("simulation_distance", simulation_distance)?;
@@ -111,7 +105,6 @@ impl RawConfig {
             online_mode: self.online_mode,
             data_dir: self.data_dir,
             default_game_mode,
-            survival_starter_stone: self.survival_starter_stone,
             view_distance: self.view_distance,
             simulation_distance,
             ops: self.ops,
@@ -127,8 +120,20 @@ fn validate_distance(name: &'static str, value: i32) -> Result<(), ConfigError> 
     }
 }
 
-fn default_schema() -> String {
-    SCHEMA.to_string()
+impl Default for RawConfig {
+    fn default() -> Self {
+        Self {
+            bind: default_bind(),
+            motd: default_motd(),
+            max_players: default_max_players(),
+            online_mode: false,
+            data_dir: default_data_dir(),
+            default_game_mode: default_game_mode(),
+            view_distance: default_distance(),
+            simulation_distance: None,
+            ops: Vec::new(),
+        }
+    }
 }
 
 fn default_bind() -> String {
@@ -148,7 +153,7 @@ fn default_data_dir() -> PathBuf {
 }
 
 fn default_game_mode() -> String {
-    "creative".to_string()
+    "survival".to_string()
 }
 
 fn default_distance() -> i32 {

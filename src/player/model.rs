@@ -50,12 +50,11 @@ pub struct PlayerProfile {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct PlayerDefaults {
     pub game_mode: GameMode,
-    pub survival_starter_stone: u8,
 }
 
 impl GameMode {
     pub const fn default_new_player() -> Self {
-        Self::Creative
+        Self::Survival
     }
 
     pub const fn vanilla_id(self) -> i8 {
@@ -92,7 +91,6 @@ impl Default for PlayerDefaults {
     fn default() -> Self {
         Self {
             game_mode: GameMode::default_new_player(),
-            survival_starter_stone: 0,
         }
     }
 }
@@ -149,7 +147,7 @@ mod tests {
     fn new_profile_uses_documented_defaults() {
         let profile = PlayerProfile::new(Uuid::from_u128(7), "Probe");
 
-        assert_eq!(profile.game_mode, GameMode::Creative);
+        assert_eq!(profile.game_mode, GameMode::Survival);
         assert_eq!((profile.position.x, profile.position.y), (0.5, 80.0));
         assert_eq!(profile.vitals.health, 20.0);
         assert_eq!(profile.inventory.selected_hotbar_slot, 0);
@@ -157,20 +155,18 @@ mod tests {
     }
 
     #[test]
-    fn survival_defaults_seed_starter_stone() {
+    fn survival_defaults_start_empty() {
         let profile = PlayerProfile::new_with_defaults(
             Uuid::from_u128(8),
             "SurvivalProbe",
             PlayerDefaults {
                 game_mode: GameMode::Survival,
-                survival_starter_stone: 3,
             },
         );
 
         assert_eq!(profile.game_mode, GameMode::Survival);
         assert_eq!(profile.inventory.selected_hotbar_slot, 0);
-        assert_eq!(profile.inventory.slots[0].item_id, "minecraft:stone");
-        assert_eq!(profile.inventory.slots[0].count, 3);
+        assert!(profile.inventory.slots.is_empty());
     }
 
     #[test]

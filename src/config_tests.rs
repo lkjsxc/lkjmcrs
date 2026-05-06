@@ -10,8 +10,7 @@ fn json_defaults_match_canon() {
     assert_eq!(config.max_players, 100);
     assert!(!config.online_mode);
     assert_eq!(config.data_dir, PathBuf::from("data"));
-    assert_eq!(config.default_game_mode, GameMode::Creative);
-    assert_eq!(config.survival_starter_stone, 0);
+    assert_eq!(config.default_game_mode, GameMode::Survival);
     assert_eq!(config.view_distance, 2);
     assert_eq!(config.simulation_distance, 2);
     assert!(config.ops.is_empty());
@@ -26,7 +25,6 @@ fn parses_explicit_json_config() {
           "max_players": 20,
           "data_dir": "/data",
           "default_game_mode": "survival",
-          "survival_starter_stone": 3,
           "view_distance": 3,
           "simulation_distance": 4,
           "ops": ["Admin"]
@@ -34,17 +32,13 @@ fn parses_explicit_json_config() {
     )
     .unwrap();
     assert_eq!(config.default_game_mode, GameMode::Survival);
-    assert_eq!(config.survival_starter_stone, 3);
     assert_eq!(config.simulation_distance, 4);
     assert!(config.is_op("admin"));
 }
 
 #[test]
 fn rejects_range_failures() {
-    assert!(matches!(
-        Config::from_json(r#"{"survival_starter_stone":65}"#),
-        Err(ConfigError::StarterStoneRange)
-    ));
+    assert!(Config::from_json(r#"{"starter_items":[]}"#).is_err());
     assert!(matches!(
         Config::from_json(r#"{"view_distance":1}"#),
         Err(ConfigError::DistanceRange("view_distance"))

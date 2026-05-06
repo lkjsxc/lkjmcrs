@@ -160,7 +160,6 @@ async fn handle_login(
 fn player_defaults(config: &Config) -> PlayerDefaults {
     PlayerDefaults {
         game_mode: config.default_game_mode,
-        survival_starter_stone: config.survival_starter_stone,
     }
 }
 

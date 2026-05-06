@@ -21,13 +21,13 @@ async fn creates_default_profile_when_missing() {
         .unwrap();
 
     assert_eq!(profile.name, "Probe");
-    assert_eq!(profile.game_mode, GameMode::Creative);
+    assert_eq!(profile.game_mode, GameMode::Survival);
     assert!(root.join("players.sqlite3").exists());
     cleanup(root);
 }
 
 #[tokio::test]
-async fn creates_survival_profile_with_starter_items() {
+async fn creates_survival_profile_with_empty_inventory() {
     let root = temp_root();
     let store = PlayerStore::open(&root).unwrap();
     let profile = store
@@ -36,14 +36,13 @@ async fn creates_survival_profile_with_starter_items() {
             "Survival".to_string(),
             PlayerDefaults {
                 game_mode: GameMode::Survival,
-                survival_starter_stone: 4,
             },
         )
         .await
         .unwrap();
 
     assert_eq!(profile.game_mode, GameMode::Survival);
-    assert_eq!(profile.inventory.slots[0].count, 4);
+    assert!(profile.inventory.slots.is_empty());
     cleanup(root);
 }
 
