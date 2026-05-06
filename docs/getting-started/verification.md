@@ -16,6 +16,17 @@ docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
 ## Required Result
 
 - `verify` exits `0`.
+- Successful `verify` service output is concise:
+
+```text
+verify fmt ... ok
+verify clippy ... ok
+verify test ... ok
+verify docs-topology ... ok
+verify line-limits ... ok
+verify pass
+```
+
 - `server` becomes reachable on port `25565` inside the compose network.
 - `smoke` exits `0`.
 - `persist-check` exits `0` after a server restart.
