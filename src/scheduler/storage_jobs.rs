@@ -1,5 +1,5 @@
-use crate::scheduler::region_command::RegionCommand;
 use crate::scheduler::RegionActorError;
+use crate::scheduler::region_command::RegionCommand;
 use crate::world::{ChunkPos, ChunkSnapshot, WorldStorage};
 use tokio::sync::mpsc;
 
@@ -19,7 +19,9 @@ pub(super) fn load_chunks(
         .await
         .map_err(|error| RegionActorError::StorageTask(error.to_string()))
         .and_then(|result| result.map_err(RegionActorError::from));
-        let _ = outbox.send(RegionCommand::LoadComplete { id, result }).await;
+        let _ = outbox
+            .send(RegionCommand::LoadComplete { id, result })
+            .await;
     });
 }
 
@@ -34,6 +36,8 @@ pub(super) fn save_chunk(
             .await
             .map_err(|error| RegionActorError::StorageTask(error.to_string()))
             .and_then(|result| result.map_err(RegionActorError::from));
-        let _ = outbox.send(RegionCommand::SaveComplete { id, result }).await;
+        let _ = outbox
+            .send(RegionCommand::SaveComplete { id, result })
+            .await;
     });
 }
