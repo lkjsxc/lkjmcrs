@@ -38,6 +38,7 @@
 8. `ops` names are matched case-insensitively by exact player name.
 9. There is no starter-item config field.
 10. Checked-in shared config must not grant operator names.
+11. Verification-only config overlays may grant names for disposable probes.
 
 ## Example
 

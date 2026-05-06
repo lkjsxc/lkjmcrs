@@ -46,6 +46,8 @@ docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-com
 16. Initial `down -v` removes stale named volumes before stateful probes.
 17. Final `down -v` removes disposable compose state.
 18. Quiet flags are part of the contract for routine acceptance runs.
+19. `smp-server` mounts `config/verify/smp-server.json` so disposable operator
+    checks do not require operator names in normal runtime config.
 
 ## Readiness
 

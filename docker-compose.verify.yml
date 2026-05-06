@@ -14,7 +14,7 @@ services:
       dockerfile: Dockerfile
     command: ["serve"]
     volumes:
-      - ./config:/app/config:ro
+      - ./config/verify/smp-server.json:/app/config/server.json:ro
       - smp-server-data:/app/data
 
   verify:
