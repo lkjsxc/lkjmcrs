@@ -1,6 +1,27 @@
 # Current Results
 
-## 2026-05-06
+## 2026-05-06 Compact Verify Output
+
+Compact verify output change tested:
+
+- `docker compose -f docker-compose.yml -f docker-compose.verify.yml build verify`
+- `docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm verify`
+- temporary local fake-`cargo` failure check for `scripts/verify-static.sh`
+- `docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v`
+- `docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build server`
+- `docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm smoke`
+
+Results:
+
+- `verify`: pass with compact output:
+  `verify fmt ... ok`, `verify clippy ... ok`, `verify test ... ok`,
+  `verify docs-topology ... ok`, `verify line-limits ... ok`, `verify pass`.
+- Failure contract: pass, a failing `fmt` stage printed only
+  `verify fmt ... failed`, the `fmt` output header, captured fake Cargo output,
+  and exited `23`.
+- `smoke`: pass after clean compose state, `multiplayer-mutation probe ok`.
+
+## 2026-05-06 Runtime Config And Probes
 
 Implementation tested: committed tree after implicit runtime config,
 held-item-only placement, player SQLite contention hardening, and deterministic

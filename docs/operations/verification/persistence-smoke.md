@@ -8,12 +8,12 @@ configured data directory.
 ## Scenario
 
 1. Start the server through Docker Compose.
-2. Run a probe that logs in, acquires dirt, places it at `0,80,0`, and
+2. Run a probe that logs in, acquires dirt, places it at `3,80,0`, and
    disconnects.
 3. Restart the server without removing compose volumes.
 4. Run a probe that logs in and inspects the bootstrap chunk containing
-   `0,80,0`.
-5. The probe must observe dirt at `0,80,0` before sending new mutations.
+   `3,80,0`.
+5. The probe must observe dirt at `3,80,0` before sending new mutations.
 
 ## Assertions
 
