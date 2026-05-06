@@ -1,11 +1,17 @@
 # Registry Variant And Timeline Report
 
-## Source
+## Sources
 
-- Raw file: `tmp/disconnect-2026-05-05_12.55.20-client.txt`.
-- Report time: `2026-05-05 12:55:20`.
+- Raw files:
+  - `tmp/disconnect-2026-05-05_12.55.20-client.txt`.
+  - `tmp/disconnect-2026-05-05_12.56.05-client.txt`.
+- Report times: `2026-05-05 12:55:20` and `2026-05-05 12:56:05`.
 - Client: Minecraft Java Edition `1.21.11`.
+- Client type: Fabric/modded.
 - State: configuration registry loading.
+- Tested server commit: unknown.
+- Evidence class: historical modded evidence that exposed a vanilla registry
+  shape issue.
 
 ## Client Failure
 
@@ -26,15 +32,15 @@ The report also showed `minecraft:timeline` had unbound tag
 
 ## Interpretation
 
-This is historical evidence. The vanilla client requires non-empty variant
+These are historical reports. The vanilla client requires non-empty variant
 registries even when gameplay does not spawn those entities yet. The overworld
 dimension also references `#minecraft:in_overworld`, so the timeline registry
 must declare a real entry and bind that tag to it.
 
 ## Fixed State
 
-The protocol contract now requires one valid entry for each listed variant
-registry, `minecraft:timeline` entry `minecraft:day`, and timeline tag
+The dynamic registry contract now requires one valid entry for each listed
+variant registry, `minecraft:timeline` entry `minecraft:day`, and timeline tag
 `minecraft:in_overworld` bound to entry ID `0`.
 
 Regression coverage lives in registry encode tests and the compose `verify`

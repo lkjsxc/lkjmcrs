@@ -30,6 +30,7 @@ newer verified implementation.
 
 ## Current Baseline
 
-As of commit `3d71bd6`, compose `verify` and live probes are the automated
-baseline. Existing `tmp/` reports are historical unless a newer stock-client run
-reproduces the same failure against a later commit.
+The latest automated baseline is recorded in
+[current-results.md](current-results.md). Existing `tmp/` reports are
+historical unless a newer stock-client run reproduces the same failure against
+a later implementation commit.

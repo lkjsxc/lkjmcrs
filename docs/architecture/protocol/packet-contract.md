@@ -13,21 +13,13 @@ Target protocol: `774` for Minecraft Java Edition `1.21.11`.
 ## Configuration
 
 - `0x0e select_known_packs`: sends `minecraft:core` version `1.21.11`.
-- `0x07 registry_data`: one packet per declared dynamic registry.
-- `0x0d tags`: tag groups for declared dynamic registries.
+- `0x07 registry_data`: one packet per required dynamic registry.
+- `0x0d tags`: tag groups for required dynamic registries.
 - `0x0c feature_flags`: sends `minecraft:vanilla`.
 - `0x03 finish_configuration`: empty payload.
 
-The current compatibility slice declares one registry packet for each of these registries:
-
-- `minecraft:dimension_type` with `minecraft:overworld` at registry ID `0`.
-- `minecraft:worldgen/biome` with `minecraft:plains` at registry ID `0`.
-- `minecraft:damage_type` with the bootstrap keys in
-  [dynamic-registries.md](dynamic-registries.md).
-- Minimal non-empty variant registries required by the vanilla client:
-  cat, chicken, cow, frog, painting, pig, wolf sound, wolf, and zombie nautilus.
-- `minecraft:timeline` with `minecraft:day` at registry ID `0`.
-- `minecraft:timeline` tag `minecraft:in_overworld` binds to ID `0`.
+The exact required registry set, registry IDs, and timeline tag binding are
+owned by [dynamic-registries.md](dynamic-registries.md).
 
 ## Play Bootstrap
 

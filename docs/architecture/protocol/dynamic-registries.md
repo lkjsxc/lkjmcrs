@@ -11,7 +11,7 @@ Each packet contains:
 - value-present boolean,
 - anonymous compound NBT value when present.
 
-The tags packet sends one tag group for each declared dynamic registry.
+The tags packet sends one tag group for each required dynamic registry.
 Registry order is stable and test-covered.
 
 ## Coverage Policy
@@ -20,8 +20,32 @@ Registry data is evidence-driven and minimal. It is not full vanilla registry
 coverage unless a doc explicitly changes the current compatibility target.
 
 Use client reports, first-party probes, and vanilla datapack or class evidence
-to decide which entries belong in the current compatibility slice. Fabric or modded reports
-are valid only when they expose a vanilla protocol gap.
+to decide which entries belong in the current compatibility slice. Fabric or
+modded reports are valid only when they expose a vanilla protocol gap.
+
+## Required Registry Set
+
+The current compatibility slice sends one `registry_data` packet for each
+registry in this order:
+
+- `minecraft:dimension_type` with `minecraft:overworld` at registry ID `0`.
+- `minecraft:worldgen/biome` with `minecraft:plains` at registry ID `0`.
+- `minecraft:damage_type` with the bootstrap keys below.
+- `minecraft:cat_variant` with `minecraft:all_black` at registry ID `0`.
+- `minecraft:chicken_variant` with `minecraft:cold` at registry ID `0`.
+- `minecraft:cow_variant` with `minecraft:cold` at registry ID `0`.
+- `minecraft:frog_variant` with `minecraft:cold` at registry ID `0`.
+- `minecraft:painting_variant` with `minecraft:alban` at registry ID `0`.
+- `minecraft:pig_variant` with `minecraft:cold` at registry ID `0`.
+- `minecraft:timeline` with `minecraft:day` at registry ID `0`.
+- `minecraft:wolf_sound_variant` with `minecraft:angry` at registry ID `0`.
+- `minecraft:wolf_variant` with `minecraft:ashen` at registry ID `0`.
+- `minecraft:zombie_nautilus_variant` with `minecraft:temperate` at registry
+  ID `0`.
+
+The `minecraft:timeline` tag group must bind `minecraft:in_overworld` to entry
+ID `0`. Required variant registries must be non-empty even when gameplay does
+not spawn those entities yet.
 
 ## Damage Type Bootstrap Set
 
@@ -41,5 +65,5 @@ under `data/minecraft/damage_type/`. The set is confirmed by inspecting the
 
 ## Damage Type Tags
 
-The current compatibility slice declares the `minecraft:damage_type` tag group with zero
-tags. Add real damage tags only when gameplay behavior requires them.
+The current compatibility slice declares the `minecraft:damage_type` tag group
+with zero tags. Add real damage tags only when gameplay behavior requires them.
