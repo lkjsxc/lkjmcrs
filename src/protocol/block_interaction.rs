@@ -1,7 +1,23 @@
 use crate::protocol::codec::{self, CodecError};
 use crate::protocol::ids;
-use crate::world::{BlockFace, BlockPos};
 use std::io::Cursor;
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct BlockPos {
+    pub x: i32,
+    pub y: i32,
+    pub z: i32,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum BlockFace {
+    Down,
+    Up,
+    North,
+    South,
+    West,
+    East,
+}
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub enum BlockInteraction {
@@ -99,7 +115,7 @@ fn decode_use_item_on(cursor: &mut Cursor<Vec<u8>>) -> Result<BlockInteraction, 
 
 fn read_block_pos(cursor: &mut Cursor<Vec<u8>>) -> Result<BlockPos, CodecError> {
     let (x, y, z) = codec::read_position(cursor)?;
-    Ok(BlockPos::new(x, y, z))
+    Ok(BlockPos { x, y, z })
 }
 
 fn face_from_id(id: i32) -> Result<BlockFace, CodecError> {
@@ -118,7 +134,7 @@ fn face_from_id(id: i32) -> Result<BlockFace, CodecError> {
 mod tests {
     use super::{BlockInteraction, PlayerAction};
     use crate::protocol::{block_interaction, codec, ids};
-    use crate::world::{BlockFace, BlockPos};
+    use block_interaction::{BlockFace, BlockPos};
 
     #[test]
     fn decodes_player_action() {
@@ -132,7 +148,7 @@ mod tests {
             BlockInteraction::decode(ids::play::SERVERBOUND_PLAYER_ACTION, data).unwrap(),
             Some(BlockInteraction::PlayerAction {
                 action: PlayerAction::StartDestroyBlock,
-                pos: BlockPos::new(0, 80, 0),
+                pos: BlockPos { x: 0, y: 80, z: 0 },
                 face: BlockFace::Up,
                 sequence: 9,
             })
@@ -152,7 +168,7 @@ mod tests {
 
     #[test]
     fn block_update_encodes_position_and_state() {
-        let payload = block_interaction::encode_block_update(BlockPos::new(0, 80, 0), 1);
+        let payload = block_interaction::encode_block_update(BlockPos { x: 0, y: 80, z: 0 }, 1);
         assert_eq!(payload, vec![0, 0, 0, 0, 0, 0, 0, 80, 1]);
     }
 

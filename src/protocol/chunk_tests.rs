@@ -1,7 +1,9 @@
-use crate::protocol::chunk::{SECTION_COUNT, encode_level_chunk_with_light, encode_unload_chunk};
+use crate::protocol::chunk::{
+    AIR_ID, BEDROCK_ID, ChunkColumn, ChunkPosition, DIRT_ID, GRASS_BLOCK_ID, SECTION_COUNT,
+    STONE_ID, encode_level_chunk_with_light, encode_unload_chunk,
+};
 use crate::protocol::chunk_palette::fixed_long_count;
 use crate::protocol::{chunk, codec, ids};
-use crate::world::{ChunkPos, ChunkSnapshot};
 use std::io::Cursor;
 
 const EXPECTED_FLAT_CHUNK_DATA_LEN: i32 = 6294;
@@ -16,9 +18,27 @@ struct SectionShape {
     biome_longs: usize,
 }
 
+struct FlatChunk;
+
+impl ChunkColumn for FlatChunk {
+    fn position(&self) -> ChunkPosition {
+        ChunkPosition { x: 0, z: 0 }
+    }
+
+    fn block_state_id_at_local(&self, _x: usize, y: i32, _z: usize) -> i32 {
+        match y {
+            0 => BEDROCK_ID,
+            1..=62 => STONE_ID,
+            63..=78 => DIRT_ID,
+            79 => GRASS_BLOCK_ID,
+            _ => AIR_ID,
+        }
+    }
+}
+
 #[test]
 fn level_chunk_heightmaps_use_fixed_storage_long_counts() {
-    let chunk = ChunkSnapshot::flat(ChunkPos::new(0, 0));
+    let chunk = FlatChunk;
     let packet = encode_level_chunk_with_light(&chunk);
 
     assert_eq!(parse_heightmap_long_counts(packet), vec![37, 37]);
@@ -26,7 +46,7 @@ fn level_chunk_heightmaps_use_fixed_storage_long_counts() {
 
 #[test]
 fn level_chunk_packet_sections_consume_exact_chunk_data() {
-    let chunk = ChunkSnapshot::flat(ChunkPos::new(0, 0));
+    let chunk = FlatChunk;
     let packet = encode_level_chunk_with_light(&chunk);
     let sections = parse_level_chunk_sections(packet);
 
@@ -47,7 +67,7 @@ fn level_chunk_packet_sections_consume_exact_chunk_data() {
 
 #[test]
 fn flat_chunk_data_length_stays_on_documented_shape() {
-    let chunk = ChunkSnapshot::flat(ChunkPos::new(0, 0));
+    let chunk = FlatChunk;
     let packet = encode_level_chunk_with_light(&chunk);
 
     assert_eq!(parse_chunk_data_len(packet), EXPECTED_FLAT_CHUNK_DATA_LEN);
@@ -59,7 +79,7 @@ fn flat_chunk_data_length_stays_on_documented_shape() {
 
 #[test]
 fn level_chunk_and_update_light_packets_remain_separate() {
-    let chunk = ChunkSnapshot::flat(ChunkPos::new(0, 0));
+    let chunk = FlatChunk;
     assert!(encode_level_chunk_with_light(&chunk).len() > 4096);
     assert!(chunk::encode_update_light(&chunk).len() > 4096);
 }
@@ -68,7 +88,7 @@ fn level_chunk_and_update_light_packets_remain_separate() {
 fn unload_chunk_payload_is_z_then_x() {
     assert_eq!(ids::play::UNLOAD_CHUNK, 0x25);
     assert_eq!(
-        encode_unload_chunk(ChunkPos::new(7, -3)),
+        encode_unload_chunk(ChunkPosition { x: 7, z: -3 }),
         (-3_i32)
             .to_be_bytes()
             .into_iter()

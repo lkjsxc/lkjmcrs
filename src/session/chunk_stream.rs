@@ -54,7 +54,7 @@ impl ChunkStream {
                 writer,
                 phase,
                 ids::play::UNLOAD_CHUNK,
-                &chunk::encode_unload_chunk(*pos),
+                &chunk::encode_unload_chunk(chunk::ChunkPosition { x: pos.x, z: pos.z }),
             )
             .await?;
         }

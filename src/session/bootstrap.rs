@@ -8,7 +8,7 @@ use crate::session::SessionState;
 use crate::session::error::ConnectionError;
 use crate::session::inventory_sync;
 use crate::session::io::write_packet;
-use crate::world::ChunkPos;
+use crate::world::{BlockState, ChunkPos, ChunkSnapshot};
 use tokio::io::AsyncWrite;
 
 pub async fn send_play_bootstrap<W>(
@@ -100,7 +100,7 @@ where
 
 pub async fn send_chunk_batch<W>(
     stream: &mut W,
-    chunks: &[crate::world::ChunkSnapshot],
+    chunks: &[ChunkSnapshot],
 ) -> Result<(), ConnectionError>
 where
     W: AsyncWrite + Unpin,
@@ -112,14 +112,14 @@ where
             stream,
             phase,
             ids::play::LEVEL_CHUNK_WITH_LIGHT,
-            &chunk::encode_level_chunk_with_light(chunk_snapshot),
+            &chunk::encode_level_chunk_with_light(&WireChunk(chunk_snapshot)),
         )
         .await?;
         write_packet(
             stream,
             phase,
             ids::play::UPDATE_LIGHT,
-            &chunk::encode_update_light(chunk_snapshot),
+            &chunk::encode_update_light(&WireChunk(chunk_snapshot)),
         )
         .await?;
     }
@@ -130,4 +130,29 @@ where
         &chunk::encode_chunk_batch_finished(chunks.len()),
     )
     .await
+}
+
+struct WireChunk<'a>(&'a ChunkSnapshot);
+
+impl chunk::ChunkColumn for WireChunk<'_> {
+    fn position(&self) -> chunk::ChunkPosition {
+        chunk::ChunkPosition {
+            x: self.0.pos.x,
+            z: self.0.pos.z,
+        }
+    }
+
+    fn block_state_id_at_local(&self, x: usize, y: i32, z: usize) -> i32 {
+        block_state_id(self.0.block_at_local(x, y, z))
+    }
+}
+
+pub(crate) fn block_state_id(state: BlockState) -> i32 {
+    match state {
+        BlockState::Air => chunk::AIR_ID,
+        BlockState::Bedrock => chunk::BEDROCK_ID,
+        BlockState::Stone => chunk::STONE_ID,
+        BlockState::Dirt => chunk::DIRT_ID,
+        BlockState::GrassBlock => chunk::GRASS_BLOCK_ID,
+    }
 }

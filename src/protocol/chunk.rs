@@ -1,22 +1,33 @@
 use crate::protocol::chunk_palette;
 use crate::protocol::codec;
-use crate::world::blocks::MIN_Y;
-use crate::world::{BlockState, ChunkPos, ChunkSnapshot};
 
 pub const SECTION_COUNT: usize = 24;
+pub const MIN_Y: i32 = -64;
 const LIGHT_SECTION_COUNT: usize = SECTION_COUNT + 2;
 const FULL_LIGHT: [u8; 2048] = [0xff; 2048];
 
-const AIR_ID: i32 = 0;
-const STONE_ID: i32 = 1;
-const GRASS_BLOCK_ID: i32 = 9;
-const DIRT_ID: i32 = 10;
-const BEDROCK_ID: i32 = 85;
+pub const AIR_ID: i32 = 0;
+pub const STONE_ID: i32 = 1;
+pub const GRASS_BLOCK_ID: i32 = 9;
+pub const DIRT_ID: i32 = 10;
+pub const BEDROCK_ID: i32 = 85;
 
-pub fn encode_level_chunk_with_light(chunk: &ChunkSnapshot) -> Vec<u8> {
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct ChunkPosition {
+    pub x: i32,
+    pub z: i32,
+}
+
+pub trait ChunkColumn {
+    fn position(&self) -> ChunkPosition;
+    fn block_state_id_at_local(&self, x: usize, y: i32, z: usize) -> i32;
+}
+
+pub fn encode_level_chunk_with_light(chunk: &impl ChunkColumn) -> Vec<u8> {
     let mut out = Vec::new();
-    codec::write_i32(&mut out, chunk.pos.x);
-    codec::write_i32(&mut out, chunk.pos.z);
+    let pos = chunk.position();
+    codec::write_i32(&mut out, pos.x);
+    codec::write_i32(&mut out, pos.z);
     write_heightmaps(&mut out);
     let data = encode_chunk_data(chunk);
     codec::write_var_i32(&mut out, data.len() as i32);
@@ -26,10 +37,11 @@ pub fn encode_level_chunk_with_light(chunk: &ChunkSnapshot) -> Vec<u8> {
     out
 }
 
-pub fn encode_update_light(chunk: &ChunkSnapshot) -> Vec<u8> {
+pub fn encode_update_light(chunk: &impl ChunkColumn) -> Vec<u8> {
     let mut out = Vec::new();
-    codec::write_var_i32(&mut out, chunk.pos.x);
-    codec::write_var_i32(&mut out, chunk.pos.z);
+    let pos = chunk.position();
+    codec::write_var_i32(&mut out, pos.x);
+    codec::write_var_i32(&mut out, pos.z);
     write_light_data(&mut out);
     out
 }
@@ -40,14 +52,14 @@ pub fn encode_chunk_batch_finished(size: usize) -> Vec<u8> {
     out
 }
 
-pub fn encode_unload_chunk(pos: ChunkPos) -> Vec<u8> {
+pub fn encode_unload_chunk(pos: ChunkPosition) -> Vec<u8> {
     let mut out = Vec::new();
     codec::write_i32(&mut out, pos.z);
     codec::write_i32(&mut out, pos.x);
     out
 }
 
-fn encode_chunk_data(chunk: &ChunkSnapshot) -> Vec<u8> {
+fn encode_chunk_data(chunk: &impl ChunkColumn) -> Vec<u8> {
     let mut out = Vec::new();
     for section in 0..SECTION_COUNT {
         let min_y = MIN_Y + (section as i32 * 16);
@@ -56,7 +68,7 @@ fn encode_chunk_data(chunk: &ChunkSnapshot) -> Vec<u8> {
     out
 }
 
-fn encode_section(out: &mut Vec<u8>, chunk: &ChunkSnapshot, min_y: i32) {
+fn encode_section(out: &mut Vec<u8>, chunk: &impl ChunkColumn, min_y: i32) {
     let states = section_states(chunk, min_y);
     let block_count = states.iter().filter(|state| **state != AIR_ID).count();
     codec::write_u16(out, block_count as u16);
@@ -64,12 +76,12 @@ fn encode_section(out: &mut Vec<u8>, chunk: &ChunkSnapshot, min_y: i32) {
     chunk_palette::write_single_value(out, 0);
 }
 
-fn section_states(chunk: &ChunkSnapshot, min_y: i32) -> Vec<i32> {
+fn section_states(chunk: &impl ChunkColumn, min_y: i32) -> Vec<i32> {
     let mut states = Vec::with_capacity(4096);
     for y in 0..16 {
         for z in 0..16 {
             for x in 0..16 {
-                states.push(block_state_id(chunk.block_at_local(x, min_y + y, z)));
+                states.push(chunk.block_state_id_at_local(x, min_y + y, z));
             }
         }
     }
@@ -110,33 +122,34 @@ fn write_bitset(out: &mut Vec<u8>, mask: i64) {
     codec::write_i64(out, mask);
 }
 
-pub(crate) fn block_state_id(state: BlockState) -> i32 {
-    match state {
-        BlockState::Air => AIR_ID,
-        BlockState::Bedrock => BEDROCK_ID,
-        BlockState::Stone => STONE_ID,
-        BlockState::Dirt => DIRT_ID,
-        BlockState::GrassBlock => GRASS_BLOCK_ID,
-    }
-}
-
 #[cfg(test)]
 mod tests {
-    use super::{BEDROCK_ID, DIRT_ID, GRASS_BLOCK_ID, STONE_ID, block_state_id};
+    use super::{AIR_ID, ChunkColumn, ChunkPosition};
     use crate::protocol::chunk::{encode_level_chunk_with_light, encode_update_light};
-    use crate::world::{BlockState, ChunkPos, ChunkSnapshot};
+
+    struct FlatChunk;
+
+    impl ChunkColumn for FlatChunk {
+        fn position(&self) -> ChunkPosition {
+            ChunkPosition { x: 0, z: 0 }
+        }
+
+        fn block_state_id_at_local(&self, _x: usize, y: i32, _z: usize) -> i32 {
+            if y < 80 { 1 } else { AIR_ID }
+        }
+    }
 
     #[test]
-    fn flat_block_state_ids_match_minecraft_data_defaults() {
-        assert_eq!(block_state_id(BlockState::Stone), STONE_ID);
-        assert_eq!(block_state_id(BlockState::GrassBlock), GRASS_BLOCK_ID);
-        assert_eq!(block_state_id(BlockState::Dirt), DIRT_ID);
-        assert_eq!(block_state_id(BlockState::Bedrock), BEDROCK_ID);
+    fn exposes_minecraft_data_default_ids() {
+        assert_eq!(super::STONE_ID, 1);
+        assert_eq!(super::GRASS_BLOCK_ID, 9);
+        assert_eq!(super::DIRT_ID, 10);
+        assert_eq!(super::BEDROCK_ID, 85);
     }
 
     #[test]
     fn chunk_and_light_packets_are_non_empty() {
-        let chunk = ChunkSnapshot::flat(ChunkPos::new(0, 0));
+        let chunk = FlatChunk;
         assert!(encode_level_chunk_with_light(&chunk).len() > 4096);
         assert!(encode_update_light(&chunk).len() > 4096);
     }

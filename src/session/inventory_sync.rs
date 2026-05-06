@@ -71,9 +71,17 @@ where
         writer,
         phase,
         ids::play::SET_PLAYER_INVENTORY,
-        &inventory::encode_set_player_inventory(slot_id, player_inventory.slot(slot_id)),
+        &inventory::encode_set_player_inventory(slot_id, wire_slot(player_inventory, slot_id)),
     )
     .await
+}
+
+fn wire_slot(player_inventory: &Inventory, slot_id: i32) -> Option<inventory::Slot<'_>> {
+    let slot = player_inventory.slot(slot_id)?;
+    Some(inventory::Slot {
+        item_id: &slot.item_id,
+        count: slot.count,
+    })
 }
 
 #[cfg(test)]

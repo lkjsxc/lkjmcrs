@@ -17,14 +17,24 @@ where
         writer,
         phase,
         ids::play::SPAWN_ENTITY,
-        &entity::encode_spawn_entity(item),
+        &entity::encode_spawn_entity(entity::EntitySpawn {
+            entity_id: item.entity_id,
+            uuid: item.uuid,
+            x: item.x,
+            y: item.y,
+            z: item.z,
+        }),
     )
     .await?;
     write_packet(
         writer,
         phase,
         ids::play::ENTITY_METADATA,
-        &entity::encode_item_metadata(item),
+        &entity::encode_item_metadata(entity::ItemMetadata {
+            entity_id: item.entity_id,
+            item_id: &item.item_id,
+            count: item.count,
+        }),
     )
     .await
 }

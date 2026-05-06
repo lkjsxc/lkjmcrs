@@ -1,10 +1,10 @@
 use crate::player::PlayerProfile;
 use crate::protocol::block_interaction::{self, BlockInteraction};
-use crate::protocol::chunk;
 use crate::protocol::ids;
 use crate::scheduler::RegionHandle;
 use crate::session::SessionState;
 use crate::session::block_rules;
+use crate::session::bootstrap::block_state_id;
 use crate::session::error::ConnectionError;
 use crate::session::inventory_sync;
 use crate::session::io::write_packet;
@@ -42,7 +42,7 @@ where
             sequence,
         } => {
             let before = profile.inventory.clone();
-            let target = pos.offset(face);
+            let target = to_world_pos(pos).offset(to_world_face(face));
             let result = if hand == 0 && can_reach_block(session, target) {
                 block_rules::place_block(
                     region,
@@ -67,6 +67,7 @@ where
             sequence,
         } => {
             let before = profile.inventory.clone();
+            let pos = to_world_pos(pos);
             let result = if can_reach_block(session, pos) {
                 block_rules::apply_player_action(
                     region,
@@ -170,7 +171,30 @@ where
         writer,
         phase,
         ids::play::BLOCK_UPDATE,
-        &block_interaction::encode_block_update(pos, chunk::block_state_id(state)),
+        &block_interaction::encode_block_update(to_wire_pos(pos), block_state_id(state)),
     )
     .await
+}
+
+fn to_world_pos(pos: block_interaction::BlockPos) -> BlockPos {
+    BlockPos::new(pos.x, pos.y, pos.z)
+}
+
+fn to_wire_pos(pos: BlockPos) -> block_interaction::BlockPos {
+    block_interaction::BlockPos {
+        x: pos.x,
+        y: pos.y,
+        z: pos.z,
+    }
+}
+
+fn to_world_face(face: block_interaction::BlockFace) -> crate::world::BlockFace {
+    match face {
+        block_interaction::BlockFace::Down => crate::world::BlockFace::Down,
+        block_interaction::BlockFace::Up => crate::world::BlockFace::Up,
+        block_interaction::BlockFace::North => crate::world::BlockFace::North,
+        block_interaction::BlockFace::South => crate::world::BlockFace::South,
+        block_interaction::BlockFace::West => crate::world::BlockFace::West,
+        block_interaction::BlockFace::East => crate::world::BlockFace::East,
+    }
 }
