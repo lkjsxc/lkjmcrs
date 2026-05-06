@@ -1,4 +1,6 @@
 mod inventory;
+#[cfg(test)]
+mod inventory_tests;
 mod location_rows;
 mod locations;
 pub mod model;

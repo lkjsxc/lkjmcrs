@@ -79,6 +79,10 @@ enum ProbeCommand {
         #[arg(long, default_value = "127.0.0.1:25565")]
         host: String,
     },
+    ItemPickup {
+        #[arg(long, default_value = "127.0.0.1:25565")]
+        host: String,
+    },
     SmpCommands {
         #[arg(long, default_value = "127.0.0.1:25565")]
         host: String,
@@ -114,6 +118,7 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
             ProbeCommand::ChunkStream { host } => crate::probe::chunk_stream(&host).await?,
             ProbeCommand::SurvivalItem { host } => crate::probe::survival_item(&host).await?,
             ProbeCommand::InventorySync { host } => crate::probe::inventory_sync(&host).await?,
+            ProbeCommand::ItemPickup { host } => crate::probe::item_pickup(&host).await?,
             ProbeCommand::SmpCommands { host } => crate::probe::smp_commands(&host).await?,
         },
     }

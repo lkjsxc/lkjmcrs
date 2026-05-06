@@ -2,6 +2,7 @@ use crate::probe::ProbeError;
 use crate::probe::block_mutation;
 use crate::probe::inventory_packets;
 use crate::probe::inventory_packets::PlayerInventorySlot;
+use crate::probe::item_entities;
 use crate::probe::play_client::PlayClient;
 use crate::protocol::{codec, ids};
 use crate::world::BlockPos;
@@ -66,9 +67,10 @@ async fn break_stone_adds_matching_delta(
 ) -> Result<(), Box<dyn std::error::Error>> {
     block_mutation::send_start_destroy_at(stream, 61, BlockPos::new(0, 80, 0)).await?;
     expect_ack(stream, 61).await?;
-    let slot = expect_inventory_delta(stream).await?;
+    expect_update(stream, 0).await?;
+    let slot = item_entities::collect_drop(stream, 1, "inventory pickup").await?;
     expect_slot(&slot, 0, 1, Some(1), "breaking inventory delta")?;
-    expect_update(stream, 0).await
+    Ok(())
 }
 
 async fn expect_ack(

@@ -4,6 +4,8 @@ mod chunk;
 mod chunk_stream;
 mod inventory_packets;
 mod inventory_sync;
+mod item_entities;
+mod item_pickup;
 mod live_play;
 mod multiplayer_mutation;
 mod persistence;
@@ -100,6 +102,12 @@ pub async fn survival_item(host: &str) -> Result<(), Box<dyn std::error::Error>>
 pub async fn inventory_sync(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     inventory_sync::run(host).await?;
     println!("inventory-sync probe ok");
+    Ok(())
+}
+
+pub async fn item_pickup(host: &str) -> Result<(), Box<dyn std::error::Error>> {
+    item_pickup::run(host).await?;
+    println!("item-pickup probe ok");
     Ok(())
 }
 

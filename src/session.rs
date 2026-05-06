@@ -1,18 +1,26 @@
 pub mod block_actions;
 mod block_rules;
+#[cfg(test)]
+mod block_rules_tests;
 pub mod bootstrap;
 pub mod chat;
 pub mod chunk_stream;
+#[cfg(test)]
+mod chunk_stream_tests;
 pub mod command_dispatch;
 pub mod commands;
 pub mod configuration;
+mod entity_packets;
 pub mod error;
 pub mod game_mode;
 pub mod handler;
 mod inventory_sync;
 pub mod io;
+mod item_pickup;
+mod item_visibility;
 pub mod outbound;
 pub mod play;
+mod play_outbound;
 pub mod play_packets;
 #[cfg(test)]
 mod play_packets_tests;

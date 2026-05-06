@@ -1,5 +1,6 @@
 use crate::probe::ProbeError;
 use crate::probe::block_mutation;
+use crate::probe::item_entities;
 use crate::probe::play_client::PlayClient;
 use crate::probe::survival_expect;
 use crate::protocol::ids;
@@ -48,7 +49,9 @@ async fn break_stone_for_drop(client: &mut PlayClient) -> Result<(), Box<dyn std
         0,
         "stone break",
     )
-    .await
+    .await?;
+    item_entities::collect_drop(&mut client.stream, 1, "stone pickup").await?;
+    Ok(())
 }
 
 async fn reject_far_selected_item(
@@ -89,7 +92,9 @@ async fn break_grass_for_dirt(client: &mut PlayClient) -> Result<(), Box<dyn std
         0,
         "grass break",
     )
-    .await
+    .await?;
+    item_entities::collect_drop(&mut client.stream, 28, "grass pickup").await?;
+    Ok(())
 }
 
 async fn place_dirt(client: &mut PlayClient) -> Result<(), Box<dyn std::error::Error>> {
@@ -115,7 +120,9 @@ async fn break_dirt_for_persistence(
         0,
         "dirt break",
     )
-    .await
+    .await?;
+    item_entities::collect_drop(&mut client.stream, 28, "dirt pickup").await?;
+    Ok(())
 }
 
 async fn expect_empty_selected_slot(

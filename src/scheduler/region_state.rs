@@ -1,5 +1,5 @@
 use crate::scheduler::region_command::{PendingLoad, PendingSave, RegionCommand};
-use crate::world::{ChunkPos, ChunkSnapshot, FlatWorld, RegionId, WorldStorage};
+use crate::world::{ChunkPos, ChunkSnapshot, DroppedItemEntity, FlatWorld, RegionId, WorldStorage};
 use std::collections::HashMap;
 use tokio::sync::mpsc;
 
@@ -8,6 +8,8 @@ pub struct RegionActor {
     pub(super) id: RegionId,
     pub(super) applied: usize,
     pub(super) chunks: HashMap<ChunkPos, ChunkSnapshot>,
+    pub(super) item_entities: HashMap<i32, DroppedItemEntity>,
+    pub(super) next_item_entity_id: i32,
     pub(super) world: FlatWorld,
     pub(super) storage: Option<WorldStorage>,
     pub(super) outbox: mpsc::Sender<RegionCommand>,

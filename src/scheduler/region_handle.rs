@@ -1,6 +1,6 @@
 use crate::scheduler::region_command::RegionCommand;
 use crate::scheduler::{BlockMutation, RegionActorError};
-use crate::world::{BlockPos, BlockState, ChunkPos, ChunkSnapshot, RegionId};
+use crate::world::{BlockPos, BlockState, ChunkPos, ChunkSnapshot, DroppedItemEntity, RegionId};
 use tokio::sync::mpsc;
 use tokio::sync::oneshot;
 
@@ -89,5 +89,57 @@ impl RegionHandle {
             .await
             .map_err(|_| RegionActorError::Closed)?;
         receive.await.map_err(|_| RegionActorError::Closed)?
+    }
+
+    pub async fn spawn_item(
+        &self,
+        pos: BlockPos,
+        item_id: impl Into<String>,
+        count: u8,
+    ) -> Result<DroppedItemEntity, RegionActorError> {
+        let (reply, receive) = oneshot::channel();
+        self.outbox
+            .send(RegionCommand::SpawnItem {
+                pos,
+                item_id: item_id.into(),
+                count,
+                reply,
+            })
+            .await
+            .map_err(|_| RegionActorError::Closed)?;
+        receive.await.map_err(|_| RegionActorError::Closed)
+    }
+
+    pub async fn items_in_chunks(
+        &self,
+        chunks: Vec<ChunkPos>,
+    ) -> Result<Vec<DroppedItemEntity>, RegionActorError> {
+        let (reply, receive) = oneshot::channel();
+        self.outbox
+            .send(RegionCommand::ItemsInChunks { chunks, reply })
+            .await
+            .map_err(|_| RegionActorError::Closed)?;
+        receive.await.map_err(|_| RegionActorError::Closed)
+    }
+
+    pub async fn collect_nearby(
+        &self,
+        x: f64,
+        y: f64,
+        z: f64,
+        accepted_items: Vec<String>,
+    ) -> Result<Option<DroppedItemEntity>, RegionActorError> {
+        let (reply, receive) = oneshot::channel();
+        self.outbox
+            .send(RegionCommand::CollectNearby {
+                x,
+                y,
+                z,
+                accepted_items,
+                reply,
+            })
+            .await
+            .map_err(|_| RegionActorError::Closed)?;
+        receive.await.map_err(|_| RegionActorError::Closed)
     }
 }

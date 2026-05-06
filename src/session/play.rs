@@ -3,14 +3,13 @@ use crate::protocol::ids;
 use crate::protocol::play;
 use crate::scheduler::RegionHandle;
 use crate::session::SessionState;
-use crate::session::block_actions::send_block_update;
 use crate::session::bootstrap::send_play_bootstrap;
-use crate::session::chat::{send_kick, send_system_chat};
 use crate::session::chunk_stream::ChunkStream;
 use crate::session::error::ConnectionError;
-use crate::session::game_mode::apply_game_mode;
 use crate::session::io::{read_packet, write_packet};
+use crate::session::item_visibility;
 use crate::session::outbound::PlayOutbound;
+use crate::session::play_outbound::{OutboundStep, handle_outbound};
 use crate::session::play_packets::{PlayPacketContext, handle_play_packet};
 use crate::session::play_state::PlaySession;
 use crate::session::registry::{SessionId, SessionRegistry};
@@ -90,6 +89,7 @@ async fn run_play(
     );
     let (mut reader, mut writer) = stream.split();
     let chunks = send_play_bootstrap(&mut writer, bootstrap, &profile.inventory, &region).await?;
+    item_visibility::send_items_in_chunks(&mut writer, phase, &region, chunks.clone()).await?;
     sessions.subscribe(session.id, chunks).await;
     session.record_keepalive_sent(1);
     let mut keepalives = time::interval_at(Instant::now() + KEEPALIVE_INTERVAL, KEEPALIVE_INTERVAL);
@@ -120,27 +120,16 @@ async fn run_play(
                 }
             }
             message = outbound.recv() => {
-                match message {
-                    Some(PlayOutbound::BlockUpdate { pos, state }) => {
-                        send_block_update(&mut writer, phase, pos, state).await
-                    }
-                    Some(PlayOutbound::SystemChat { message }) => {
-                        send_system_chat(&mut writer, phase, &message).await
-                    }
-                    Some(PlayOutbound::ApplyGameMode { game_mode }) => {
-                        apply_game_mode(
-                            &mut writer,
-                            phase,
-                            settings.max_players,
-                            profile,
-                            game_mode,
-                        ).await
-                    }
-                    Some(PlayOutbound::Kick { reason }) => {
-                        send_kick(&mut writer, phase, &reason).await?;
-                        break Ok(());
-                    }
-                    None => break Ok(()),
+                match handle_outbound(
+                    &mut writer,
+                    phase,
+                    settings.max_players,
+                    profile,
+                    message,
+                ).await {
+                    Ok(OutboundStep::Continue) => Ok(()),
+                    Ok(OutboundStep::Close) => break Ok(()),
+                    Err(error) => Err(error),
                 }
             }
             _ = keepalives.tick() => {

@@ -11,14 +11,15 @@ use crate::session::io::write_packet;
 use crate::session::play_state::PlaySession;
 use crate::session::reach::can_reach_block;
 use crate::session::registry::SessionRegistry;
-use crate::world::{BlockPos, BlockState, ChunkPos};
+use crate::world::{BlockPos, BlockState, ChunkPos, DroppedItemEntity};
 use tokio::io::AsyncWrite;
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub(super) struct InteractionResult {
     pub(super) pos: BlockPos,
     pub(super) state: BlockState,
     pub(super) broadcast: Option<ChunkPos>,
+    pub(super) spawned_item: Option<DroppedItemEntity>,
 }
 
 pub async fn handle_block_interaction<W>(
@@ -55,7 +56,7 @@ where
                 reconcile(region, target, phase).await?
             };
             send_prediction_ack(writer, phase, sequence).await?;
-            send_inventory_delta(writer, phase, &before, profile, result).await?;
+            send_inventory_delta(writer, phase, &before, profile, &result).await?;
             publish_or_reconcile(result, phase, sessions, writer).await?;
         }
         BlockInteraction::PlayerAction {
@@ -79,7 +80,7 @@ where
                 reconcile(region, pos, phase).await?
             };
             send_prediction_ack(writer, phase, sequence).await?;
-            send_inventory_delta(writer, phase, &before, profile, result).await?;
+            send_inventory_delta(writer, phase, &before, profile, &result).await?;
             publish_or_reconcile(result, phase, sessions, writer).await?;
         }
         BlockInteraction::Swing { hand: _ } => {
@@ -94,7 +95,7 @@ async fn send_inventory_delta<W>(
     phase: SessionState,
     before: &crate::player::Inventory,
     profile: &PlayerProfile,
-    result: InteractionResult,
+    result: &InteractionResult,
 ) -> Result<(), ConnectionError>
 where
     W: AsyncWrite + Unpin,
@@ -118,6 +119,7 @@ async fn reconcile(
         pos,
         state: state.unwrap_or(BlockState::Air),
         broadcast: None,
+        spawned_item: None,
     })
 }
 
@@ -134,10 +136,13 @@ where
         sessions
             .broadcast_block_update(chunk, result.pos, result.state)
             .await;
-        Ok(())
     } else {
-        send_block_update(writer, phase, result.pos, result.state).await
+        send_block_update(writer, phase, result.pos, result.state).await?;
     }
+    if let Some(item) = result.spawned_item {
+        sessions.broadcast_item_spawn(item.chunk, item).await;
+    }
+    Ok(())
 }
 
 async fn send_prediction_ack<W>(

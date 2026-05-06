@@ -30,8 +30,9 @@ inventory.
 - Sessions receive item entities for chunks in their current visible window.
 - Bootstrap and chunk-stream entry send existing dropped items in newly visible
   chunks.
-- Chunk-stream exit and pickup send entity destroy for no-longer-visible
-  entities.
+- Pickup sends collect and entity destroy packets.
+- Explicit destroy on chunk-stream exit is deferred until entity tracking needs
+  it.
 - Observer fanout uses chunk subscriptions; sessions never mutate item entity
   state directly.
 

@@ -9,11 +9,7 @@ pub(super) async fn read_next_material_packet(
     phase: &'static str,
 ) -> Result<codec::Packet, Box<dyn std::error::Error>> {
     loop {
-        let packet = codec::read_packet(stream).await?;
-        if packet.id == ids::play::KEEPALIVE {
-            respond_keepalive(stream, packet.data).await?;
-            continue;
-        }
+        let packet = read_next_live_packet(stream).await?;
         if !matches!(
             packet.id,
             ids::play::SET_TIME | ids::play::SET_PLAYER_INVENTORY | ids::play::HELD_ITEM_SLOT
@@ -24,6 +20,21 @@ pub(super) async fn read_next_material_packet(
             phase,
             "inventory or time packet skipped during survival probe"
         );
+    }
+}
+
+pub(super) async fn read_next_live_packet(
+    stream: &mut TcpStream,
+) -> Result<codec::Packet, Box<dyn std::error::Error>> {
+    loop {
+        let packet = codec::read_packet(stream).await?;
+        if packet.id == ids::play::KEEPALIVE {
+            respond_keepalive(stream, packet.data).await?;
+            continue;
+        }
+        if packet.id != ids::play::SET_TIME {
+            return Ok(packet);
+        }
     }
 }
 

@@ -81,6 +81,6 @@ updates.
 
 ## Pickup Polling
 
-The play loop checks nearby dropped items after accepted movement and after
-survival block interactions. Successful pickup sends collect, destroy, and
-inventory delta packets through the same TCP writer owned by the session.
+The play loop checks nearby dropped items after accepted movement. Successful
+pickup sends collect, destroy, and inventory delta packets through the same TCP
+writer owned by the session.

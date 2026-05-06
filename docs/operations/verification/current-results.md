@@ -3,7 +3,7 @@
 ## 2026-05-06
 
 Implementation tested: working tree after JSON config migration and inventory
-sync projection.
+sync projection, plus dropped item entity pickup.
 
 Compose commands:
 
@@ -20,6 +20,7 @@ Compose commands:
 - `docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build survival-server`
 - `docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm survival-item`
 - `docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm inventory-sync`
+- `docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm item-pickup`
 - `docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build smp-server`
 - `docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm smp-commands`
 - `docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v`
@@ -34,13 +35,15 @@ Results:
 - `persist-check`: pass after restart, `persist-check probe ok`.
 - `survival-item`: pass, `survival-item probe ok`.
 - `inventory-sync`: pass, `inventory-sync probe ok`.
+- `item-pickup`: pass, `item-pickup probe ok`.
 - `smp-commands`: pass, `smp-commands probe ok`.
 - Survival material loop smoke: pass, a survival profile placed starter stone,
-  broke it for a simple stone drop, rejected an out-of-reach placement without
-  consuming the selected item, placed the retained stone nearby, broke grass
-  for a dirt drop, placed dirt from the selected server-side item, broke that
-  dirt for a persisted drop, reconnected, placed the persisted dirt, and
-  reconciled an empty selected slot without mutation.
+  broke it, observed and picked up a simple stone drop, rejected an
+  out-of-reach placement without consuming the selected item, placed the
+  retained stone nearby, broke grass, observed and picked up a dirt drop,
+  placed dirt from the selected server-side item, broke that dirt for a
+  persisted pickup, reconnected, placed the persisted dirt, and reconciled an
+  empty selected slot without mutation.
 - Reach regression: pass, block interactions outside `6.0` blocks from eye
   position acknowledge prediction and reconcile without chunk or inventory
   mutation.
@@ -57,8 +60,13 @@ Results:
   on disconnect, and spent the persisted drop after reconnect.
 - Inventory sync smoke: pass, play bootstrap sent authoritative selected
   hotbar slot `0` and player inventory slots `0..35`; invalid held-slot input
-  resent slot `0`; accepted placement and breaking sent matching slot `0`
-  deltas.
+  resent slot `0`; accepted placement sent a matching empty slot `0` delta;
+  accepted breaking spawned a visible item entity and pickup sent the matching
+  slot `0` delta.
+- Item pickup smoke: pass, a survival profile broke an untouched grass block,
+  received item entity spawn and metadata for dirt, moved into pickup range,
+  received collect and entity destroy packets, and received a dirt inventory
+  delta.
 - Player profile persistence smoke: pass, a player moved to non-default
   position and look values, disconnected, reconnected with the same offline
   UUID, and received the saved state in the initial position packet.
@@ -78,8 +86,8 @@ Results:
   probe.
 - Movement flags regression: pass, movement probe now sends one protocol `774`
   flags byte.
-- Rust tests: `113` passed.
-- docs maximum line count: `121`.
+- Rust tests: `117` passed.
+- docs maximum line count: `136`.
 - source maximum line count: `200`.
 - Manual join: user-reported success in the task prompt, with no raw client log
   attached.

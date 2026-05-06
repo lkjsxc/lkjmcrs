@@ -1,5 +1,5 @@
 use crate::scheduler::{BlockMutation, RegionActorError};
-use crate::world::{BlockPos, BlockState, ChunkPos, ChunkSnapshot};
+use crate::world::{BlockPos, BlockState, ChunkPos, ChunkSnapshot, DroppedItemEntity};
 use tokio::sync::oneshot;
 
 #[derive(Debug)]
@@ -25,6 +25,23 @@ pub(super) enum RegionCommand {
         pos: BlockPos,
         state: BlockState,
         reply: oneshot::Sender<Result<BlockMutation, RegionActorError>>,
+    },
+    SpawnItem {
+        pos: BlockPos,
+        item_id: String,
+        count: u8,
+        reply: oneshot::Sender<DroppedItemEntity>,
+    },
+    ItemsInChunks {
+        chunks: Vec<ChunkPos>,
+        reply: oneshot::Sender<Vec<DroppedItemEntity>>,
+    },
+    CollectNearby {
+        x: f64,
+        y: f64,
+        z: f64,
+        accepted_items: Vec<String>,
+        reply: oneshot::Sender<Option<DroppedItemEntity>>,
     },
     Snapshot {
         reply: oneshot::Sender<usize>,

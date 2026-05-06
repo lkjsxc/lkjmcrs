@@ -51,6 +51,15 @@ where
         chunk_stream
             .stream_after_movement(session.x, session.z, phase, stream_context, context.writer)
             .await?;
+        crate::session::item_pickup::attempt_pickup(
+            context.writer,
+            phase,
+            context.region,
+            context.sessions,
+            session,
+            profile,
+        )
+        .await?;
         tracing::debug!(phase = %phase, packet_id = packet.id, "movement packet applied");
         return Ok(());
     }

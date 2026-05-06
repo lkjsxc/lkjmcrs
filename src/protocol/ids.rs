@@ -26,6 +26,7 @@ pub mod config {
 }
 
 pub mod play {
+    pub const SPAWN_ENTITY: i32 = 0x01;
     pub const BLOCK_CHANGED_ACK: i32 = 0x04;
     pub const BLOCK_UPDATE: i32 = 0x08;
     pub const CHUNK_BATCH_FINISHED: i32 = 0x0b;
@@ -40,14 +41,17 @@ pub mod play {
     pub const LOGIN: i32 = 0x30;
     pub const PLAYER_ABILITIES: i32 = 0x3e;
     pub const PLAYER_POSITION: i32 = 0x46;
+    pub const ENTITY_DESTROY: i32 = 0x4b;
     pub const CHUNK_CACHE_CENTER: i32 = 0x5c;
     pub const CHUNK_CACHE_RADIUS: i32 = 0x5d;
     pub const SET_CURSOR_ITEM: i32 = 0x5e;
     pub const DEFAULT_SPAWN_POSITION: i32 = 0x5f;
+    pub const ENTITY_METADATA: i32 = 0x61;
     pub const HELD_ITEM_SLOT: i32 = 0x67;
     pub const SET_PLAYER_INVENTORY: i32 = 0x6a;
     pub const SET_TIME: i32 = 0x6f;
     pub const SYSTEM_CHAT: i32 = 0x77;
+    pub const COLLECT: i32 = 0x7a;
 
     pub const SERVERBOUND_TELEPORT_CONFIRM: i32 = 0x00;
     pub const SERVERBOUND_CHAT_COMMAND: i32 = 0x06;
@@ -93,6 +97,7 @@ mod tests {
 
     #[test]
     fn play_packet_ids_match_protocol_774() {
+        assert_eq!(play::SPAWN_ENTITY, 0x01);
         assert_eq!(play::BLOCK_CHANGED_ACK, 0x04);
         assert_eq!(play::BLOCK_UPDATE, 0x08);
         assert_eq!(play::CHUNK_BATCH_FINISHED, 0x0b);
@@ -107,14 +112,17 @@ mod tests {
         assert_eq!(play::LOGIN, 0x30);
         assert_eq!(play::PLAYER_ABILITIES, 0x3e);
         assert_eq!(play::PLAYER_POSITION, 0x46);
+        assert_eq!(play::ENTITY_DESTROY, 0x4b);
         assert_eq!(play::CHUNK_CACHE_CENTER, 0x5c);
         assert_eq!(play::CHUNK_CACHE_RADIUS, 0x5d);
         assert_eq!(play::SET_CURSOR_ITEM, 0x5e);
         assert_eq!(play::DEFAULT_SPAWN_POSITION, 0x5f);
+        assert_eq!(play::ENTITY_METADATA, 0x61);
         assert_eq!(play::HELD_ITEM_SLOT, 0x67);
         assert_eq!(play::SET_PLAYER_INVENTORY, 0x6a);
         assert_eq!(play::SET_TIME, 0x6f);
         assert_eq!(play::SYSTEM_CHAT, 0x77);
+        assert_eq!(play::COLLECT, 0x7a);
         assert_eq!(play::SERVERBOUND_TELEPORT_CONFIRM, 0x00);
         assert_eq!(play::SERVERBOUND_CHAT_COMMAND, 0x06);
         assert_eq!(play::SERVERBOUND_CHAT_COMMAND_SIGNED, 0x07);

@@ -1,6 +1,6 @@
 use crate::player::{GameMode, PlayerProfile};
 use crate::session::outbound::PlayOutbound;
-use crate::world::{BlockPos, BlockState, ChunkPos};
+use crate::world::{BlockPos, BlockState, ChunkPos, DroppedItemEntity};
 use std::collections::{HashMap, HashSet};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
@@ -87,27 +87,46 @@ impl SessionRegistry {
         pos: BlockPos,
         state: BlockState,
     ) -> usize {
-        let message = PlayOutbound::BlockUpdate { pos, state };
-        let mut sent = 0;
-        let mut stale = Vec::new();
-        let mut sessions = self.inner.sessions.lock().await;
-        for (id, entry) in sessions.iter() {
-            if !entry.chunks.contains(&chunk) {
-                continue;
-            }
-            match entry.sender.try_send(message.clone()) {
-                Ok(()) => sent += 1,
-                Err(_) => stale.push(*id),
-            }
-        }
-        for id in stale {
-            sessions.remove(&id);
-        }
-        sent
+        self.broadcast_chunk(chunk, PlayOutbound::BlockUpdate { pos, state }, None)
+            .await
     }
 
     pub async fn broadcast_system_chat(&self, message: String) -> usize {
         self.broadcast(PlayOutbound::SystemChat { message }).await
+    }
+
+    pub async fn broadcast_item_spawn(&self, chunk: ChunkPos, item: DroppedItemEntity) -> usize {
+        self.broadcast_chunk(chunk, PlayOutbound::ItemSpawn { item }, None)
+            .await
+    }
+
+    pub async fn broadcast_item_collect(
+        &self,
+        chunk: ChunkPos,
+        item: DroppedItemEntity,
+        collector: i32,
+        exclude: SessionId,
+    ) -> usize {
+        self.broadcast_chunk(
+            chunk,
+            PlayOutbound::ItemCollect { item, collector },
+            Some(exclude),
+        )
+        .await
+    }
+
+    pub async fn broadcast_item_destroy(
+        &self,
+        chunk: ChunkPos,
+        entity_id: i32,
+        exclude: SessionId,
+    ) -> usize {
+        self.broadcast_chunk(
+            chunk,
+            PlayOutbound::ItemDestroy { entity_id },
+            Some(exclude),
+        )
+        .await
     }
 
     pub async fn apply_gamemode(&self, name: &str, game_mode: GameMode) -> bool {
@@ -124,6 +143,30 @@ impl SessionRegistry {
         let mut stale = Vec::new();
         let mut sessions = self.inner.sessions.lock().await;
         for (id, entry) in sessions.iter() {
+            match entry.sender.try_send(message.clone()) {
+                Ok(()) => sent += 1,
+                Err(_) => stale.push(*id),
+            }
+        }
+        for id in stale {
+            sessions.remove(&id);
+        }
+        sent
+    }
+
+    async fn broadcast_chunk(
+        &self,
+        chunk: ChunkPos,
+        message: PlayOutbound,
+        exclude: Option<SessionId>,
+    ) -> usize {
+        let mut sent = 0;
+        let mut stale = Vec::new();
+        let mut sessions = self.inner.sessions.lock().await;
+        for (id, entry) in sessions.iter() {
+            if Some(*id) == exclude || !entry.chunks.contains(&chunk) {
+                continue;
+            }
             match entry.sender.try_send(message.clone()) {
                 Ok(()) => sent += 1,
                 Err(_) => stale.push(*id),

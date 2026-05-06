@@ -17,6 +17,7 @@ use crate::session::registry::SessionRegistry;
 use crate::world::{RegionId, WorldStorage};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
+use thiserror::Error;
 use tokio::net::TcpStream;
 
 #[derive(Debug)]
@@ -28,11 +29,20 @@ pub struct ServerContext {
     players: AtomicUsize,
 }
 
+#[derive(Debug, Error)]
+pub enum ServerStartupError {
+    #[error("player store failed: {0}")]
+    Player(#[from] crate::player::PlayerStoreError),
+    #[error("world storage failed: {0}")]
+    World(#[from] crate::world::WorldStorageError),
+}
+
 impl ServerContext {
-    pub fn new(config: Config) -> Result<Arc<Self>, crate::player::PlayerStoreError> {
+    pub fn new(config: Config) -> Result<Arc<Self>, ServerStartupError> {
         let player_store = PlayerStore::open(&config.data_dir)?;
-        let region =
-            RegionActor::spawn_persistent(RegionId(0), WorldStorage::new(&config.data_dir));
+        let world_storage = WorldStorage::new(&config.data_dir);
+        world_storage.validate()?;
+        let region = RegionActor::spawn_persistent(RegionId(0), world_storage);
         Ok(Arc::new(Self {
             config,
             region,

@@ -5,6 +5,7 @@ use crate::session::SessionState;
 use crate::session::bootstrap::send_chunk_batch;
 use crate::session::error::ConnectionError;
 use crate::session::io::write_packet;
+use crate::session::item_visibility;
 use crate::session::registry::{SessionId, SessionRegistry};
 use crate::world::{ChunkPos, ChunkSnapshot};
 use std::collections::HashSet;
@@ -71,6 +72,13 @@ impl ChunkStream {
         .await?;
         if !chunks.is_empty() {
             send_chunk_batch(writer, &chunks).await?;
+            item_visibility::send_items_in_chunks(
+                writer,
+                phase,
+                context.region,
+                chunks.iter().map(|chunk| chunk.pos).collect(),
+            )
+            .await?;
             context
                 .sessions
                 .subscribe(context.session_id, chunks.iter().map(|chunk| chunk.pos))
@@ -79,7 +87,7 @@ impl ChunkStream {
         Ok(())
     }
 
-    fn advance(&mut self, next_center: ChunkPos) -> Option<VisibleDiff> {
+    pub(super) fn advance(&mut self, next_center: ChunkPos) -> Option<VisibleDiff> {
         if next_center == self.center {
             return None;
         }
@@ -102,9 +110,9 @@ impl ChunkStream {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
-struct VisibleDiff {
-    entering: Vec<ChunkPos>,
-    leaving: Vec<ChunkPos>,
+pub(super) struct VisibleDiff {
+    pub(super) entering: Vec<ChunkPos>,
+    pub(super) leaving: Vec<ChunkPos>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -151,40 +159,4 @@ async fn load_newly_visible(
 
 fn block_coord(value: f64) -> i32 {
     value.floor() as i32
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{ChunkStream, chunk_center, visible_chunks};
-    use crate::world::ChunkPos;
-    use std::collections::HashSet;
-
-    #[test]
-    fn chunk_center_uses_floored_euclidean_coordinates() {
-        assert_eq!(chunk_center(0.0, 15.999), ChunkPos::new(0, 0));
-        assert_eq!(chunk_center(16.0, 31.0), ChunkPos::new(1, 1));
-        assert_eq!(chunk_center(-0.1, -1.0), ChunkPos::new(-1, -1));
-        assert_eq!(chunk_center(-16.0, -16.1), ChunkPos::new(-1, -2));
-    }
-
-    #[test]
-    fn visible_diff_from_origin_to_east_is_new_column() {
-        let mut stream = ChunkStream::new(ChunkPos::new(0, 0), 2);
-        let diff = stream.advance(ChunkPos::new(1, 0)).unwrap();
-        let entering: HashSet<_> = diff.entering.into_iter().collect();
-        let leaving: HashSet<_> = diff.leaving.into_iter().collect();
-        assert_eq!(entering, (-2..=2).map(|z| ChunkPos::new(3, z)).collect());
-        assert_eq!(leaving, (-2..=2).map(|z| ChunkPos::new(-2, z)).collect());
-    }
-
-    #[test]
-    fn same_center_produces_no_delta() {
-        let mut stream = ChunkStream::new(ChunkPos::new(0, 0), 2);
-        assert_eq!(stream.advance(ChunkPos::new(0, 0)), None);
-    }
-
-    #[test]
-    fn visible_chunks_are_square() {
-        assert_eq!(visible_chunks(ChunkPos::new(0, 0), 2).len(), 25);
-    }
 }

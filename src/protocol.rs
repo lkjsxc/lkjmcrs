@@ -15,6 +15,7 @@ pub mod codec;
 mod codec_tests;
 pub mod commands;
 pub mod configuration;
+pub mod entity;
 pub mod gameplay;
 pub mod ids;
 pub mod inventory;

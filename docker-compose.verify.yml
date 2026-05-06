@@ -149,6 +149,22 @@ services:
         condition: service_healthy
     entrypoint: ["cargo", "run", "--", "probe", "inventory-sync", "--host", "survival-server:25565"]
 
+  item-pickup:
+    build:
+      context: .
+      dockerfile: Dockerfile.verify
+    working_dir: /workspace
+    environment:
+      CARGO_TARGET_DIR: /target
+    volumes:
+      - .:/workspace:ro
+      - cargo-registry:/usr/local/cargo/registry
+      - target-cache:/target
+    depends_on:
+      survival-server:
+        condition: service_healthy
+    entrypoint: ["cargo", "run", "--", "probe", "item-pickup", "--host", "survival-server:25565"]
+
   smp-commands:
     build:
       context: .

@@ -73,6 +73,22 @@ impl Inventory {
         }
     }
 
+    pub fn can_add_simple_item(&self, item_id: &str, count: u8) -> bool {
+        if count == 0 {
+            return true;
+        }
+        let stack_room: u16 = self
+            .slots
+            .iter()
+            .filter(|slot| slot.item_id == item_id)
+            .map(|slot| u16::from(MAX_STACK.saturating_sub(slot.count)))
+            .sum();
+        let empty_slots = Self::synced_slot_ids()
+            .filter(|candidate| self.slots.iter().all(|slot| slot.slot != *candidate))
+            .count() as u16;
+        stack_room + empty_slots * u16::from(MAX_STACK) >= u16::from(count)
+    }
+
     pub fn slot(&self, slot_id: i32) -> Option<&InventorySlot> {
         self.slots
             .iter()
@@ -99,82 +115,5 @@ impl Inventory {
     fn next_slot(&self) -> Option<i32> {
         Self::synced_slot_ids()
             .find(|candidate| self.slots.iter().all(|slot| slot.slot != *candidate))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use crate::player::{Inventory, InventorySlot};
-
-    #[test]
-    fn selected_item_can_be_consumed() {
-        let mut inventory = Inventory {
-            selected_hotbar_slot: 0,
-            slots: vec![InventorySlot {
-                slot: 0,
-                item_id: "minecraft:stone".to_string(),
-                count: 1,
-                data: None,
-            }],
-        };
-
-        assert!(inventory.consume_selected("minecraft:stone"));
-        assert!(inventory.slots.is_empty());
-    }
-
-    #[test]
-    fn simple_items_stack_before_new_slots() {
-        let mut inventory = Inventory {
-            selected_hotbar_slot: 0,
-            slots: vec![InventorySlot {
-                slot: 0,
-                item_id: "minecraft:dirt".to_string(),
-                count: 63,
-                data: None,
-            }],
-        };
-
-        inventory.add_simple_item("minecraft:dirt", 2);
-
-        assert_eq!(inventory.slots[0].count, 64);
-        assert_eq!(inventory.slots[1].count, 1);
-    }
-
-    #[test]
-    fn simple_items_use_synced_slot_bounds() {
-        let mut inventory = Inventory {
-            selected_hotbar_slot: 0,
-            slots: (0..=35)
-                .map(|slot| InventorySlot {
-                    slot,
-                    item_id: format!("minecraft:test_{slot}"),
-                    count: 1,
-                    data: None,
-                })
-                .collect(),
-        };
-
-        inventory.add_simple_item("minecraft:dirt", 1);
-
-        assert_eq!(inventory.slots.len(), 36);
-        assert!(Inventory::is_synced_slot(35));
-        assert!(!Inventory::is_synced_slot(36));
-        assert!(Inventory::is_hotbar_slot(8));
-        assert!(!Inventory::is_hotbar_slot(9));
-    }
-
-    #[test]
-    fn selected_item_ignores_empty_slots() {
-        let inventory = Inventory {
-            selected_hotbar_slot: 0,
-            slots: vec![InventorySlot {
-                slot: 0,
-                item_id: "minecraft:stone".to_string(),
-                count: 0,
-                data: None,
-            }],
-        };
-
-        assert_eq!(inventory.selected_item_id(), None);
     }
 }

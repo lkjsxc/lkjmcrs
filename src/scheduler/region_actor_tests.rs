@@ -86,3 +86,34 @@ fn temp_root() -> PathBuf {
 fn cleanup(root: PathBuf) {
     let _ = fs::remove_dir_all(root);
 }
+
+#[tokio::test]
+async fn item_entities_spawn_and_collect_by_radius() {
+    let handle = RegionActor::spawn(RegionId(4));
+    let pos = BlockPos::new(0, 79, 0);
+    let entity = handle.spawn_item(pos, "minecraft:dirt", 1).await.unwrap();
+
+    assert_eq!(entity.entity_id, 1000);
+    assert_eq!(
+        handle
+            .items_in_chunks(vec![ChunkPos::new(0, 0)])
+            .await
+            .unwrap()
+            .len(),
+        1
+    );
+    assert!(
+        handle
+            .collect_nearby(0.5, 79.5, 0.5, vec!["minecraft:dirt".to_string()])
+            .await
+            .unwrap()
+            .is_some()
+    );
+    assert!(
+        handle
+            .items_in_chunks(vec![ChunkPos::new(0, 0)])
+            .await
+            .unwrap()
+            .is_empty()
+    );
+}
