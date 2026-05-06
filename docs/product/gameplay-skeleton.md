@@ -36,7 +36,7 @@ minimal flat spawn area.
 
 ## Current Gameplay Extension
 
-The skeleton has moved beyond its first join-only milestone. The current
+The skeleton has moved beyond its first join-only boundary. The current
 gameplay contract is owned by [survival-core.md](survival-core.md):
 
 - creative-style block placement and breaking are implemented for loaded spawn

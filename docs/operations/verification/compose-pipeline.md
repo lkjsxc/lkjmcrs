@@ -3,22 +3,22 @@
 ## Canonical Commands
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
-docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm verify
-docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build server
-docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm smoke
-docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm profile-reconnect
-docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm chunk-stream
-docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm persist-place
-docker compose -f docker-compose.yml -f docker-compose.verify.yml restart server
-docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm persist-check
-docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build survival-server
-docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm survival-item
-docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm inventory-sync
-docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm item-pickup
-docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build smp-server
-docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm smp-commands
-docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
+docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml down -v
+docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --build --quiet-build --quiet-pull -T verify
+docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml up -d --build --quiet-build --quiet-pull server
+docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T smoke
+docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T profile-reconnect
+docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T chunk-stream
+docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T persist-place
+docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml restart server
+docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T persist-check
+docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml up -d --build --quiet-build --quiet-pull survival-server
+docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T survival-item
+docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T inventory-sync
+docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T item-pickup
+docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml up -d --build --quiet-build --quiet-pull smp-server
+docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T smp-commands
+docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml down -v
 ```
 
 ## Required Behavior
@@ -27,7 +27,7 @@ docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
 2. `verify` uses `scripts/verify-static.sh` and owns compact static-gate
    output.
 3. Successful `verify` output is limited to `verify <stage> ... ok` lines and
-   `verify pass`, aside from Compose lifecycle output.
+   `verify pass`, aside from unavoidable Compose lifecycle output.
 4. Failed `verify` output prints `verify <stage> ... failed`, then dumps only
    the captured stdout and stderr for that failed stage.
 5. `server` runs the product binary.
@@ -45,6 +45,7 @@ docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
 15. Non-zero from any step blocks acceptance.
 16. Initial `down -v` removes stale named volumes before stateful probes.
 17. Final `down -v` removes disposable compose state.
+18. Quiet flags are part of the contract for routine acceptance runs.
 
 ## Readiness
 

@@ -44,7 +44,7 @@
 - Encryption.
 - Online-mode session verification.
 - Chat signing.
-- Full vanilla registry coverage beyond evidence-driven first milestone
+- Full vanilla registry coverage beyond evidence-driven current entries
   entries.
 - Full mutable chunk resend packets.
 - Full client inventory windows and item synchronization.

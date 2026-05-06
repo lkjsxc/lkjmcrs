@@ -20,7 +20,7 @@ operations, and repository rules.
 4. Keep every docs directory to one `README.md` plus multiple children.
 5. Keep docs files at `<= 300` lines.
 6. Keep authored source files at `<= 200` lines.
-7. Prefer exact defaults, packet versions, commands, and file paths.
+7. Prefer exact defaults, protocol constants, commands, and file paths.
 8. Remove conflicting old contracts instead of preserving compatibility.
 9. Verify through Docker Compose before accepting implementation batches.
 
@@ -37,7 +37,7 @@ operations, and repository rules.
 
 1. [vision/purpose.md](vision/purpose.md)
 2. [vision/principles.md](vision/principles.md)
-3. [architecture/protocol/version-1-21-11.md](architecture/protocol/version-1-21-11.md)
+3. [architecture/protocol/minecraft-1-21-11.md](architecture/protocol/minecraft-1-21-11.md)
 4. [architecture/runtime/process-model.md](architecture/runtime/process-model.md)
 5. [architecture/scheduler/region-ownership.md](architecture/scheduler/region-ownership.md)
 6. [architecture/world/region-index.md](architecture/world/region-index.md)

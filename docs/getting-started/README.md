@@ -6,7 +6,7 @@ Use this subtree for orientation, first run, and verification entrypoints.
 
 - You are new to the repository.
 - You need the local Docker commands.
-- You need to know what the first milestone proves.
+- You need to know what the current slice proves.
 
 ## Child Index
 

@@ -35,5 +35,5 @@ The first useful state is a playable skeleton:
 - No Bukkit, Paper, or Folia plugin compatibility promise.
 - No backward compatibility with early internal code.
 - No copied Mojang server implementation.
-- No public plugin API in the first milestone.
+- No public plugin API in the current slice.
 - No original gameplay systems until the basic server loop is credible.

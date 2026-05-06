@@ -4,7 +4,7 @@
 
 - Minecraft Java Edition `1.21.11`.
 - Protocol version `774`.
-- Only exact-version compatibility is expected in the first milestone.
+- Only exact `1.21.11` compatibility is expected in the current slice.
 
 ## Authentication
 
@@ -28,4 +28,4 @@ The status response advertises:
 - No ViaVersion-style multi-version support.
 - No Bedrock support.
 - No Bukkit/Paper/Folia plugin compatibility.
-- No migration promises for pre-1.0 internal files.
+- No migration promises for early internal files.

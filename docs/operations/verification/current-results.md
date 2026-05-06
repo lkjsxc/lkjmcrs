@@ -117,3 +117,13 @@ Results:
 No active disconnect boundary is known after the movement flags-byte fix.
 Record the next exact stock-client disconnect or gameplay blocker before
 changing [join-boundary.md](join-boundary.md).
+
+## 2026-05-07 Static Baseline
+
+Command:
+
+- `docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm verify`
+
+Result:
+
+- `verify`: pass with compact output.

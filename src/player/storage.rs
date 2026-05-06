@@ -5,6 +5,7 @@ use crate::player::{NamedLocation, PlayerDefaults, PlayerProfile};
 use rusqlite::Connection;
 use std::fs;
 use std::path::{Path, PathBuf};
+use std::sync::{Arc, Mutex};
 use thiserror::Error;
 use uuid::Uuid;
 
@@ -14,6 +15,7 @@ const BUSY_TIMEOUT_MS: u64 = 5_000;
 #[derive(Debug, Clone)]
 pub struct PlayerStore {
     path: PathBuf,
+    write_lock: Arc<Mutex<()>>,
 }
 
 #[derive(Debug, Error)]
@@ -36,6 +38,8 @@ pub enum PlayerStoreError {
     InvalidLocation,
     #[error("home limit exceeded")]
     HomeLimitExceeded,
+    #[error("player storage write lock poisoned")]
+    WriteLock,
 }
 
 impl PlayerStore {
@@ -43,8 +47,12 @@ impl PlayerStore {
         fs::create_dir_all(root.as_ref())?;
         let path = root.as_ref().join("players.sqlite3");
         let connection = open_configured(&path)?;
+        connection.pragma_update(None, "journal_mode", "WAL")?;
         initialize_schema(&connection)?;
-        Ok(Self { path })
+        Ok(Self {
+            path,
+            write_lock: Arc::new(Mutex::new(())),
+        })
     }
 
     pub async fn load_or_create(
@@ -66,7 +74,9 @@ impl PlayerStore {
 
     pub async fn save(&self, profile: PlayerProfile) -> Result<(), PlayerStoreError> {
         let path = self.path.clone();
+        let write_lock = self.write_lock.clone();
         tokio::task::spawn_blocking(move || {
+            let _guard = write_lock.lock().map_err(|_| PlayerStoreError::WriteLock)?;
             let mut connection = open_checked(&path)?;
             save_profile(&mut connection, &profile)
         })
@@ -79,7 +89,9 @@ impl PlayerStore {
         location: NamedLocation,
     ) -> Result<(), PlayerStoreError> {
         let path = self.path.clone();
+        let write_lock = self.write_lock.clone();
         tokio::task::spawn_blocking(move || {
+            let _guard = write_lock.lock().map_err(|_| PlayerStoreError::WriteLock)?;
             let connection = open_checked(&path)?;
             let exists = location_rows::get_home(&connection, uuid, &location.name)?.is_some();
             if !exists && location_rows::count_homes(&connection, uuid)? >= MAX_HOMES {
@@ -118,7 +130,9 @@ impl PlayerStore {
         location: NamedLocation,
     ) -> Result<(), PlayerStoreError> {
         let path = self.path.clone();
+        let write_lock = self.write_lock.clone();
         tokio::task::spawn_blocking(move || {
+            let _guard = write_lock.lock().map_err(|_| PlayerStoreError::WriteLock)?;
             let connection = open_checked(&path)?;
             location_rows::upsert_warp(&connection, created_by_uuid, &location)
         })
@@ -152,7 +166,6 @@ fn open_checked(path: &Path) -> Result<Connection, PlayerStoreError> {
 
 fn open_configured(path: &Path) -> Result<Connection, PlayerStoreError> {
     let connection = Connection::open(path)?;
-    connection.pragma_update(None, "journal_mode", "WAL")?;
     connection.busy_timeout(std::time::Duration::from_millis(BUSY_TIMEOUT_MS))?;
     Ok(connection)
 }

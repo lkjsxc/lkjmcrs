@@ -17,10 +17,10 @@ Registry order is stable and test-covered.
 ## Coverage Policy
 
 Registry data is evidence-driven and minimal. It is not full vanilla registry
-coverage unless a doc explicitly changes the milestone target.
+coverage unless a doc explicitly changes the current compatibility target.
 
 Use client reports, first-party probes, and vanilla datapack or class evidence
-to decide which entries belong in the first milestone. Fabric or modded reports
+to decide which entries belong in the current compatibility slice. Fabric or modded reports
 are valid only when they expose a vanilla protocol gap.
 
 ## Damage Type Bootstrap Set
@@ -41,5 +41,5 @@ under `data/minecraft/damage_type/`. The set is confirmed by inspecting the
 
 ## Damage Type Tags
 
-The first milestone declares the `minecraft:damage_type` tag group with zero
+The current compatibility slice declares the `minecraft:damage_type` tag group with zero
 tags. Add real damage tags only when gameplay behavior requires them.

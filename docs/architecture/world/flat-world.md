@@ -21,5 +21,5 @@ world generation exists.
 1. Terrain generation is deterministic by chunk coordinate.
 2. Generated chunks are immutable until block mutation exists.
 3. Spawn chunk generation derives directly from the configured client radius.
-4. First milestone may keep generated chunks in memory.
+4. The current slice may keep generated chunks in memory.
 5. Sparse override persistence is layered over the deterministic base.

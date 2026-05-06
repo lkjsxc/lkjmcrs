@@ -2,16 +2,9 @@
 
 ## Canonical Compose Flow
 
-```bash
-docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm verify
-docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build server
-docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm smoke
-docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm profile-reconnect
-docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm persist-place
-docker compose -f docker-compose.yml -f docker-compose.verify.yml restart server
-docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm persist-check
-docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
-```
+The full command owner is
+[../operations/verification/compose-pipeline.md](../operations/verification/compose-pipeline.md).
+Run that flow for acceptance.
 
 ## Required Result
 
@@ -30,6 +23,8 @@ verify pass
 - `server` becomes reachable on port `25565` inside the compose network.
 - `smoke` exits `0`.
 - `persist-check` exits `0` after a server restart.
+- Survival, inventory, item pickup, chunk stream, reconnect, and SMP command
+  probes exit `0`.
 - `down -v` clears disposable compose state.
 
 ## Stop Rule

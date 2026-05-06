@@ -22,12 +22,12 @@ Each player profile stores:
 
 New offline profiles use:
 
-- game mode: `creative`,
+- game mode: `survival`,
 - position: `0.5, 80.0, 0.5`,
 - yaw: `0.0`,
 - pitch: `0.0`,
 - selected hotbar slot: `0`,
-- inventory: empty slots unless survival starter config grants stone,
+- inventory: empty slots,
 - health: `20.0`,
 - hunger: `20`,
 - saturation: `5.0`.
@@ -36,8 +36,8 @@ New offline profiles use:
 
 - `survival` maps to vanilla game mode `0`.
 - `creative` maps to vanilla game mode `1`.
-- New players default to `creative`.
-- `default_game_mode: "survival"` creates missing profiles in survival.
+- New players default to `survival`.
+- `default_game_mode` controls the game mode for missing profiles.
 - Stored game mode controls play login and player abilities.
 
 ## Runtime Contract

@@ -14,7 +14,7 @@
 
 - Rust is the only implementation language for product code.
 - Docker Compose is the required verification transport.
-- First-party protocol code owns the first `1.21.11` milestone.
+- First-party protocol code owns the current `1.21.11` slice.
 - Host machines do not need Rust installed.
 - Public API design is deferred until internal ownership rules are proven.
 - Docs, source, and verification scripts are optimized for LLM retrieval.

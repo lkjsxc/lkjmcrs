@@ -40,10 +40,15 @@ quests, parties, and cross-player queries.
 5. Storage failures disconnect the affected login or play session.
 6. SQLite access must not run from region actor tick paths.
 7. Startup is the only path that creates or updates the player schema.
-8. Per-session operations open short-lived checked connections.
-9. Checked connections validate `user_version` but do not rewrite schema.
-10. Checked connections use a busy timeout so overlapping saves wait briefly
+8. Startup enables SQLite WAL mode before schema initialization.
+9. PlayerStore serializes profile, home, and warp writes inside the process.
+10. Per-session operations open short-lived checked connections.
+11. Checked connections validate `user_version` but do not rewrite schema or
+    connection-level pragmas that require writer coordination.
+12. Checked connections use a busy timeout so overlapping saves wait briefly
     instead of failing immediately with `database is locked`.
+13. Profile saves use an immediate transaction so writer contention is resolved
+    before profile or inventory rows are changed.
 
 ## Out of Scope
 

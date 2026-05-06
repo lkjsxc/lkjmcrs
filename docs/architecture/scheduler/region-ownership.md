@@ -13,7 +13,7 @@ or region section.
 4. Region-local state does not need shared locks for normal ticking.
 5. Cross-region operations are split into explicit phases.
 
-## First Milestone
+## Current Slice
 
 - Use static region ownership for the flat spawn area.
 - Prove actor/mailbox scheduling with tests.

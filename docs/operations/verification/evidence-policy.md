@@ -19,15 +19,17 @@ newer verified implementation.
 
 1. `tmp/disconnect-*.txt` files are raw input until a client report links them.
 2. A linked report must state whether it is active or historical.
-3. Active evidence moves only after docs, implementation, and compose smoke
+3. Report order follows the filename/report timestamp, not filesystem mtime.
+4. Filesystem mtime is discovery-only when scanning `tmp/`.
+5. Active evidence moves only after docs, implementation, and compose smoke
    agree.
-4. Historical reports stay in the tree as regression stories, not as the current
+6. Historical reports stay in the tree as regression stories, not as the current
    join boundary.
-5. New protocol behavior requires manual client evidence or an existing docs
+7. New protocol behavior requires manual client evidence or an existing docs
    contract.
 
 ## Current Baseline
 
-As of commit `26f8d20`, compose `verify` and live `smoke` are the automated
-baseline. The existing `tmp/` reports are historical unless a newer stock-client
-run reproduces the same failure against a later commit.
+As of commit `3d71bd6`, compose `verify` and live probes are the automated
+baseline. Existing `tmp/` reports are historical unless a newer stock-client run
+reproduces the same failure against a later commit.

@@ -21,7 +21,7 @@
 - Accepted mutations save before prediction acknowledgement and fanout.
 - Corrupt storage fails startup or mutation instead of being ignored.
 - Legacy `chunks/*.json` files are ignored; backward compatibility is out of
-  scope for this milestone.
+  scope for the current storage model.
 
 ## Future Persistence
 

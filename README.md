@@ -16,23 +16,5 @@ change implementation only after the relevant contract is clear.
 
 ## Verification
 
-```bash
-docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm verify
-docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build server
-docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm smoke
-docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm profile-reconnect
-docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm chunk-stream
-docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm persist-place
-docker compose -f docker-compose.yml -f docker-compose.verify.yml restart server
-docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm persist-check
-docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
-
-docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build survival-server
-docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm survival-item
-docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm inventory-sync
-docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
-
-docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build smp-server
-docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm smp-commands
-docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
-```
+The canonical acceptance flow lives in
+[docs/operations/verification/compose-pipeline.md](docs/operations/verification/compose-pipeline.md).

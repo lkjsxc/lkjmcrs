@@ -5,7 +5,7 @@
 - Use Tokio for async networking and timers.
 - One process owns protocol, sessions, world state, and schedulers.
 - Tick work is isolated from blocking filesystem or network I/O.
-- Configuration is read once at startup for the first milestone.
+- Configuration is read once at startup.
 
 ## Services
 
@@ -18,6 +18,6 @@
 ## Failure Policy
 
 - Invalid packet frames disconnect the connection.
-- Unsupported protocol versions receive a clear disconnect.
+- Unsupported protocol numbers receive a clear disconnect.
 - Unsupported `online_mode=true` aborts startup.
 - Internal task failures are logged and trigger graceful disconnect when tied to a player.

@@ -23,7 +23,7 @@ and look values.
 
 ## Movement
 
-The first milestone accepts these serverbound movement packets:
+The current play loop accepts these serverbound movement packets:
 
 - `0x1d position`,
 - `0x1e position_look`,
@@ -68,7 +68,7 @@ The play loop sends observable time updates after bootstrap:
 - day time increment: `20` ticks per update,
 - `do_daylight_cycle` remains `true`.
 
-Time is session-visible only in this milestone. It is not yet a persisted world
+Time is session-visible only in the current slice. It is not yet a persisted world
 clock and does not drive block, entity, or weather behavior.
 
 ## Outbound Fanout

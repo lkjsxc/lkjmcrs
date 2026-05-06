@@ -2,14 +2,14 @@
 
 ## Current State
 
-As of implementation commit `ebff7b1`, all captured packet-shape failures in
+As of implementation commit `3d71bd6`, all captured packet-shape failures in
 `tmp/` have implemented regression fixes and compose smoke coverage.
 
 A successful player join was reported in the task prompt on `2026-05-05` after
 the `0x26 game_state_change` fix. No raw client log was attached, so this is
 manual success evidence but not a packet-level regression artifact.
 
-The latest stock-client report is
+The latest stock-client report by filename/report time is
 `tmp/disconnect-2026-05-05_15.15.50-client.txt`. It is now historical packet-ID
 evidence:
 
@@ -26,6 +26,7 @@ smoke coverage:
 
 - login success trailing byte,
 - missing required dynamic registry entries,
+- missing required variant registries and timeline tag binding,
 - chunk section paletted-container raw long shape,
 - heightmap fixed-storage long count,
 - periodic play keepalives,

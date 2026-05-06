@@ -9,7 +9,7 @@ the generated packet table. This project uses the more descriptive local name
 Use this name in code and documentation. Older `map_chunk` labels are too vague
 for the current debugging boundary.
 
-## First Milestone Sequence
+## Current Join Sequence
 
 The play bootstrap sends:
 
@@ -24,7 +24,7 @@ terrain batch is a `5x5` square centered on chunk `0,0`, for `25` chunks total.
 Do not advertise a larger radius than the bootstrap sends.
 
 The explicit `update_light` packet is intentionally retained during the current
-join milestone even though `level_chunk_with_light` already carries light data.
+join boundary even though `level_chunk_with_light` already carries light data.
 Removing it is a separate evidence-backed simplification.
 
 ## Level Chunk With Light Payload
@@ -44,7 +44,7 @@ It excludes heightmap data, block entity count/data, and light data.
 
 ## Heightmap Data
 
-The first milestone sends two heightmaps for each chunk:
+The current join sequence sends two heightmaps for each chunk:
 
 - `WORLD_SURFACE`,
 - `MOTION_BLOCKING`.
@@ -67,7 +67,8 @@ Each vertical section writes:
 2. block state paletted container for `4096` entries
 3. biome paletted container for `64` entries
 
-The first milestone uses one biome value: `minecraft:plains` registry ID `0`.
+The current join sequence uses one biome value: `minecraft:plains` registry ID
+`0`.
 
 ## Paletted Container Wire Shape
 
@@ -95,7 +96,7 @@ For indirect palettes with bits per entry greater than zero:
 ## Regression Anchors
 
 The historical `readerIndex(6345) + length(8) exceeds writerIndex(6345)` crash
-came from a malformed chunk-section stream. The first milestone must keep tests
+came from a malformed chunk-section stream. The current slice must keep tests
 that prove the chunk-data byte range is consumed exactly.
 
 For the current flat spawn chunk, the encoded chunk section data length is

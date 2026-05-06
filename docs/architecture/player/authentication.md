@@ -2,14 +2,14 @@
 
 ## Offline Mode
 
-- Implemented in the first milestone.
+- Implemented in the current slice.
 - Player name is validated for basic length and allowed characters.
 - UUID is deterministic from `OfflinePlayer:<name>`.
 - No Mojang session request is made.
 
 ## Online Mode
 
-- Documented but not implemented in the first milestone.
+- Documented but not implemented in the current slice.
 - Setting `online_mode=true` must fail startup.
 - Future online mode must run session verification off tick workers.
 

@@ -20,7 +20,7 @@ Use compact, efficient world indexes that are easy for LLMs to reason about.
 
 ## Rules
 
-1. No generic ECS is introduced in the first milestone.
+1. No generic ECS is introduced in the current slice.
 2. Use contiguous vectors where stable slot ownership is enough.
 3. Use hash maps only for sparse coordinate lookup.
 4. Tests cover negative coordinate packing.

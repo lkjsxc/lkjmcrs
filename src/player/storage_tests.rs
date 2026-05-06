@@ -4,8 +4,11 @@ use crate::player::{
 };
 use std::fs;
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicU64, Ordering};
 use std::time::{SystemTime, UNIX_EPOCH};
 use uuid::Uuid;
+
+static TEMP_COUNTER: AtomicU64 = AtomicU64::new(1);
 
 #[tokio::test]
 async fn creates_default_profile_when_missing() {
@@ -158,7 +161,8 @@ fn temp_root() -> PathBuf {
         .duration_since(UNIX_EPOCH)
         .unwrap()
         .as_nanos();
-    std::env::temp_dir().join(format!("lkjmcrs-player-{nanos}"))
+    let counter = TEMP_COUNTER.fetch_add(1, Ordering::Relaxed);
+    std::env::temp_dir().join(format!("lkjmcrs-player-{nanos}-{counter}"))
 }
 
 fn cleanup(root: PathBuf) {

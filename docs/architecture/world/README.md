@@ -6,7 +6,7 @@ Use this subtree for chunk, region, and world-data contracts.
 
 - You need terrain behavior.
 - You need data structure ownership.
-- You need the first milestone storage boundary.
+- You need the current storage boundary.
 
 ## Child Index
 

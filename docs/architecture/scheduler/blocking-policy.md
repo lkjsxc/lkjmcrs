@@ -14,7 +14,7 @@ Tick workers must not perform:
 
 - Region-local block and entity mutation.
 - Bounded packet preparation for nearby players.
-- Bounded deterministic chunk generation in the first milestone.
+- Bounded deterministic chunk generation in the current slice.
 
 ## Async Work
 

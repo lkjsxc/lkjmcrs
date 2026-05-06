@@ -18,7 +18,7 @@ Target protocol: `774` for Minecraft Java Edition `1.21.11`.
 - `0x0c feature_flags`: sends `minecraft:vanilla`.
 - `0x03 finish_configuration`: empty payload.
 
-The first milestone declares one registry packet for each of these registries:
+The current compatibility slice declares one registry packet for each of these registries:
 
 - `minecraft:dimension_type` with `minecraft:overworld` at registry ID `0`.
 - `minecraft:worldgen/biome` with `minecraft:plains` at registry ID `0`.
@@ -46,7 +46,7 @@ The first milestone declares one registry packet for each of these registries:
 - `0x2c level_chunk_with_light`: flat chunks for the configured view distance,
   with chunk data and light arrays.
 - `0x2f update_light`: explicit light data for the same chunk, retained for the
-  current join milestone.
+  current join boundary.
 - `0x0b chunk_batch_finished`: batch size.
 - `0x46 position`: spawn teleport with teleport ID `1`.
 - `0x2b keep_alive`: signed 64-bit keepalive ID.

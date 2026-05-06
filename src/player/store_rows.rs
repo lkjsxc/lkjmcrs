@@ -1,6 +1,6 @@
 use crate::player::storage::PlayerStoreError;
 use crate::player::{GameMode, Inventory, InventorySlot, PlayerPosition, PlayerProfile, Vitals};
-use rusqlite::{Connection, OptionalExtension, params};
+use rusqlite::{Connection, OptionalExtension, TransactionBehavior, params};
 use uuid::Uuid;
 
 type ProfileRow = (String, String, f64, f64, f64, f64, f64, i64, f64, i64, f64);
@@ -41,7 +41,7 @@ pub(super) fn save_profile(
     profile: &PlayerProfile,
 ) -> Result<(), PlayerStoreError> {
     checked_hotbar(i64::from(profile.inventory.selected_hotbar_slot))?;
-    let tx = connection.transaction()?;
+    let tx = connection.transaction_with_behavior(TransactionBehavior::Immediate)?;
     let uuid = profile.uuid.to_string();
     tx.execute(
         profile_upsert_sql(),

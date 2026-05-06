@@ -4,9 +4,9 @@
 
 Protocol `774` is the only supported play protocol. Packet IDs are pinned from
 the `1.21.11` protocol table and must be updated as one batch with
-[version-1-21-11.md](version-1-21-11.md) during any version bump.
+[minecraft-1-21-11.md](minecraft-1-21-11.md) during any Minecraft target change.
 
-## Clientbound IDs Used By The First Milestone
+## Clientbound IDs Used By The Current Slice
 
 - `0x04 block_changed_ack`
 - `0x01 spawn_entity`
@@ -33,7 +33,7 @@ the `1.21.11` protocol table and must be updated as one batch with
 - `0x7a collect`
 - `0x4b entity_destroy`
 
-## Serverbound IDs Used By The First Milestone
+## Serverbound IDs Used By The Current Slice
 
 - `0x00 teleport_confirm`
 - `0x0a chunk_batch_received`
@@ -52,7 +52,7 @@ the `1.21.11` protocol table and must be updated as one batch with
 
 ## Regression Rule
 
-Never infer a packet ID from old names or neighboring Minecraft versions.
+Never infer a packet ID from old names or neighboring Minecraft releases.
 `0x21` is a chat packet in `1.21.11`, not a game event. Sending the level-chunk
 readiness payload on `0x21` makes the vanilla client parse byte `13` as NBT and
 disconnect before terrain can render.
