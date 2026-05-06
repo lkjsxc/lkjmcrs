@@ -2,11 +2,10 @@
 
 ## 2026-05-06
 
-Implementation tested: working tree after `5f28a6d`.
+Implementation tested: working tree after `32daa87`.
 
 Compose commands:
 
-- `docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v`
 - `docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm verify`
 - `docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v`
 - `docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build server`
@@ -63,16 +62,17 @@ Results:
   block updates without prediction acknowledgements.
 - Persistence smoke: pass, fixed-stone placement at `0,80,0` was written
   through the public play wire path, survived server restart with the compose
-  `server-data` volume, and was observed in the bootstrap chunk payload.
+  `server-data` volume backed by `world.sqlite3`, and was observed in the
+  bootstrap chunk payload.
 - Chunk-stream smoke: pass, movement from center `0,0` to `1,0` streamed
-  column `x=3`, movement to center `2,0` streamed column `x=4`, and a
-  successful reachable placement in streamed chunk column `x=3` used the normal
-  ack and block-update path.
+  column `x=3` and unloaded column `x=-2`; movement to center `2,0` streamed
+  column `x=4` and unloaded column `x=-1`; a successful reachable placement in
+  streamed chunk column `x=3` used the normal ack and block-update path.
 - Block mutation smoke: still covered by the actor side of the multiplayer
   probe.
 - Movement flags regression: pass, movement probe now sends one protocol `774`
   flags byte.
-- Rust tests: `104` passed.
+- Rust tests: `109` passed.
 - docs maximum line count: `103`.
 - source maximum line count: `200`.
 - Manual join: user-reported success in the task prompt, with no raw client log
