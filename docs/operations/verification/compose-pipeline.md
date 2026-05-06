@@ -40,6 +40,14 @@ docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
 13. Initial `down -v` removes stale named volumes before stateful probes.
 14. Final `down -v` removes disposable compose state.
 
+## Readiness
+
+- Compose services must not use Docker `healthcheck`.
+- Probe commands own readiness.
+- Live probes retry their own connection and login boundary for up to `60s`.
+- Retry delay starts at `250ms` and caps at `1s`.
+- A readiness timeout is a probe failure.
+
 ## Stop Rule
 
 No failing compose gate may be ignored for merge acceptance.

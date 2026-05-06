@@ -31,9 +31,10 @@ subscription includes the changed chunk.
 1. A session decodes a vanilla-shaped block interaction packet.
 2. The session submits the mutation to the owning region actor.
 3. The region actor returns the authoritative result.
-4. The initiating session receives the prediction acknowledgement.
+4. The initiating session receives prediction acknowledgement and direct
+   reconciliation on its own TCP writer.
 5. Accepted mutations in loaded chunks broadcast a single-block update to every
-   session subscribed to the changed chunk, including the initiator.
+   subscribed observer except the initiator.
 6. Dropped item entity spawn, collect, and destroy fan out to sessions
    subscribed to the entity chunk.
 

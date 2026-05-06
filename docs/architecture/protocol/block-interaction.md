@@ -10,9 +10,9 @@ Protocol `774` packet IDs are pinned from the official `1.21.11` server
 - `0x04 block_changed_ack`: VarInt sequence.
 - `0x08 block_update`: packed block position, VarInt block-state ID.
 
-The first mutation slice sends `block_changed_ack` for each handled
-client-predicted mutation packet, then sends `block_update` for the changed or
-reconciled position.
+For each handled client-predicted mutation packet, the initiator receives
+`block_changed_ack`, then a direct `block_update` for the changed or reconciled
+position.
 
 ## Serverbound Packets
 
@@ -49,3 +49,7 @@ The first mutation slice reuses the flat-world IDs documented in
 1. Decode tests reject trailing bytes.
 2. Packet ID tests cover every new ID.
 3. The smoke probe must prove placement and breaking over the live compose wire.
+4. Empty-hand placement is acknowledged and reconciled without mutation.
+5. Unsupported held items are acknowledged and reconciled without mutation.
+6. Accepted placement sends the initiator update before observer fanout.
+7. Observer fanout excludes the initiating session for that block update.

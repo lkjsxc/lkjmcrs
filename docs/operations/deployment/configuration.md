@@ -1,27 +1,25 @@
 # Configuration
 
-## Canonical Config
+## Canonical Runtime
 
-Server configuration is a committed JSON file selected by:
-
-```bash
-lkjmcrs serve --config config/default.json
-```
-
-Environment variables are not a server configuration contract. Compose files
-must select an explicit JSON config file.
+- `lkjmcrs serve` has no config-path argument.
+- Built-in defaults are enough to start a local server.
+- If `config/server.json` exists in the process working directory, the server
+  reads it once during startup and overlays it on the built-in defaults.
+- `config/server.json` is the only active runtime config file.
+- Environment variables are not a server configuration contract.
+- Example configs live in docs, not in `config/`.
+- Config rewrites require process restart or container recreate.
+- Config rewrites must not require Docker image rebuild.
 
 ## Fields
 
-- `schema`: config schema identifier, currently `lkjmcrs.config`.
 - `bind`: bind address, default `0.0.0.0:25565`.
 - `motd`: status MOTD, default `lkjmcrs 1.21.11`.
 - `max_players`: status max players, default `100`.
 - `online_mode`: authentication mode, default `false`.
 - `data_dir`: world and player storage root, default `data`.
-- `default_game_mode`: new-profile game mode, default `creative`.
-- `survival_starter_stone`: new-survival-profile starter stone count, default
-  `0`.
+- `default_game_mode`: new-profile game mode, default `survival`.
 - `view_distance`: advertised and streamed chunk radius, default `2`.
 - `simulation_distance`: advertised simulation radius, default equals
   `view_distance`.
@@ -31,10 +29,26 @@ must select an explicit JSON config file.
 
 1. Missing optional JSON fields use documented defaults.
 2. Invalid numeric fields fail startup.
-3. `online_mode: true` fails startup until online mode is implemented.
-4. Secrets are not required for the first milestone.
+3. Unknown JSON fields fail startup.
+4. `online_mode: true` fails startup until online mode is implemented.
 5. `data_dir` must be writable by the server process before TCP bind.
 6. `default_game_mode` accepts only `creative` or `survival`.
-7. `survival_starter_stone` must be between `0` and `64`.
-8. View and simulation distances must be between `2` and `8`.
-9. `ops` names are matched case-insensitively by exact player name.
+7. View and simulation distances must be between `2` and `8`.
+8. `ops` names are matched case-insensitively by exact player name.
+9. There is no starter-item config field.
+
+## Example
+
+```json
+{
+  "bind": "0.0.0.0:25565",
+  "motd": "lkjmcrs 1.21.11",
+  "max_players": 100,
+  "online_mode": false,
+  "data_dir": "data",
+  "default_game_mode": "survival",
+  "view_distance": 2,
+  "simulation_distance": 2,
+  "ops": []
+}
+```

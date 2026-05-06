@@ -5,62 +5,45 @@
 Start the Survival Sandbox with visible block mutation while preserving the
 region-ownership architecture.
 
-## First Slice
+## Block Mutation
 
-- Joined players remain in creative mode.
-- The server accepts basic block placement and block breaking in loaded spawn
-  chunks.
-- Placement writes a fixed `minecraft:stone` block.
+- New profiles default to survival unless config says otherwise.
+- The server accepts basic block placement and block breaking in loaded chunks.
 - Breaking writes `minecraft:air`.
 - Bedrock cannot be replaced or broken.
 - Mutations are visible to the initiating client through block update packets.
 - Accepted mutations fan out to subscribed players in the changed chunk.
-- Sparse block overrides persist across server restarts once the persistence
-  slice is implemented.
+- Sparse block overrides persist across server restarts.
 
-## Survival Item Slice
+## Placement
 
-- New profiles still default to creative unless configuration says otherwise.
-- `default_game_mode: "survival"` creates new profiles in survival mode.
-- `survival_starter_stone` grants new survival profiles that many
-  `minecraft:stone` items in selected hotbar slot `0`.
-- Creative placement keeps the fixed-stone behavior from the first slice.
-- Survival placement requires the selected slot to contain `minecraft:stone`.
-- Accepted survival placement consumes one selected stone item.
-- Survival placement without an item acknowledges prediction and reconciles the
-  target block without mutating the world.
-- Survival breaking writes `minecraft:air` for mutable blocks and adds a simple
-  drop to the player inventory.
-- Simple drops are deterministic: stone drops stone, dirt drops dirt, and
-  grass block drops dirt.
-- Inventory mutations are saved with the player profile on disconnect.
-
-## Material Loop Slice
-
-- Survival placement uses the selected server-side hotbar item.
+- Placement uses the selected server-side hotbar item.
+- The selected item must be in the main hand.
 - Selected `minecraft:stone` places `minecraft:stone`.
 - Selected `minecraft:dirt` places `minecraft:dirt`.
+- Empty hands do not mutate the world.
 - Unsupported selected items and empty selected slots do not mutate the world.
 - Rejected placement still acknowledges prediction and reconciles the target
   block.
 - Accepted survival placement consumes exactly one selected item.
-- Accepted survival breaking keeps the simple deterministic drops from the
-  Survival Item Slice.
+- Accepted creative placement consumes no item but still requires a supported
+  selected item.
 - Placement and breaking require the target block center to be within `6.0`
   blocks of the player's eye position.
 - The eye position is `(player.x, player.y + 1.62, player.z)`.
 - Out-of-reach interactions do not mutate chunks or inventory.
 
-## Dropped Item Slice
+## Drops
 
-- Accepted survival breaking spawns a visible dropped item entity instead of
-  adding the drop directly to inventory.
-- Supported dropped items remain `minecraft:stone` and `minecraft:dirt`.
+- Accepted survival breaking spawns a visible dropped item entity.
+- Supported dropped items are `minecraft:stone` and `minecraft:dirt`.
+- Simple drops are deterministic: stone drops stone, dirt drops dirt, and
+  grass block drops dirt.
 - Pickup adds the item to the player inventory only when a synced slot can
   accept it.
 - Pickup sends inventory deltas through the existing player-inventory
   projection.
-- Dropped items are in-memory only in this slice.
+- Dropped items are in-memory only.
 
 ## Player Boundary
 
@@ -85,3 +68,4 @@ region-ownership architecture.
    state and resend authoritative inventory selection when needed.
 7. Survival breaking creates a region-owned dropped item; pickup owns the later
    inventory mutation.
+8. No mode fabricates a fixed fallback block for placement.
