@@ -47,7 +47,8 @@ writing timed server packets during terrain loading.
 
 - The probe sends a vanilla-shaped `position_look` movement packet after
   teleport confirm.
-- The probe places fixed stone at `0,80,0` and then breaks it back to air.
+- The probe acquires dirt through breaking grass, places it at `0,80,0`, and
+  then breaks it back to air.
 - A second probe client observes both authoritative block updates.
 - The probe must observe at least one periodic time packet before the next
   keepalive.

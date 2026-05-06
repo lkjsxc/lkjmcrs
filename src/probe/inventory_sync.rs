@@ -4,6 +4,7 @@ use crate::probe::inventory_packets;
 use crate::probe::inventory_packets::PlayerInventorySlot;
 use crate::probe::item_entities;
 use crate::probe::play_client::PlayClient;
+use crate::probe::survival_expect;
 use crate::protocol::{codec, ids};
 use crate::world::BlockPos;
 use tokio::net::TcpStream;
@@ -14,19 +15,15 @@ pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut client = PlayClient::connect_with_block(host, NAME, Some(0)).await?;
     assert_bootstrap_inventory(&client)?;
     assert_invalid_held_slot_resends_authority(&mut client.stream).await?;
-    place_stone_consumes_selected_stack(&mut client.stream).await?;
-    break_stone_adds_matching_delta(&mut client.stream).await
+    break_grass_adds_dirt(&mut client.stream).await?;
+    place_dirt_consumes_selected_stack(&mut client.stream).await
 }
 
 fn assert_bootstrap_inventory(client: &PlayClient) -> Result<(), Box<dyn std::error::Error>> {
     if client.selected_hotbar_slot != 0 {
         return Err(Box::new(ProbeError::Phase("bootstrap held slot")));
     }
-    let Some(slot) = client.inventory_slots.first() else {
-        return Err(Box::new(ProbeError::Phase("bootstrap inventory")));
-    };
-    expect_slot(slot, 0, 1, Some(1), "bootstrap starter stone")?;
-    for slot in client.inventory_slots.iter().skip(1) {
+    for slot in &client.inventory_slots {
         expect_slot(slot, slot.slot_id, 0, None, "bootstrap empty slot")?;
     }
     Ok(())
@@ -52,25 +49,22 @@ async fn assert_invalid_held_slot_resends_authority(
     Ok(())
 }
 
-async fn place_stone_consumes_selected_stack(
-    stream: &mut TcpStream,
-) -> Result<(), Box<dyn std::error::Error>> {
-    block_mutation::send_use_item_on_at(stream, 60, BlockPos::new(0, 79, 0)).await?;
+async fn break_grass_adds_dirt(stream: &mut TcpStream) -> Result<(), Box<dyn std::error::Error>> {
+    block_mutation::send_start_destroy_at(stream, 60, BlockPos::new(0, 79, 0)).await?;
     expect_ack(stream, 60).await?;
-    let slot = expect_inventory_delta(stream).await?;
-    expect_slot(&slot, 0, 0, None, "placement inventory delta")?;
-    expect_update(stream, 1).await
+    expect_update(stream, 0).await?;
+    let slot = item_entities::collect_drop(stream, 28, "inventory dirt pickup").await?;
+    expect_slot(&slot, 0, 1, Some(28), "breaking inventory delta")
 }
 
-async fn break_stone_adds_matching_delta(
+async fn place_dirt_consumes_selected_stack(
     stream: &mut TcpStream,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    block_mutation::send_start_destroy_at(stream, 61, BlockPos::new(0, 80, 0)).await?;
+    block_mutation::send_use_item_on_at(stream, 61, BlockPos::new(0, 79, 0)).await?;
     expect_ack(stream, 61).await?;
-    expect_update(stream, 0).await?;
-    let slot = item_entities::collect_drop(stream, 1, "inventory pickup").await?;
-    expect_slot(&slot, 0, 1, Some(1), "breaking inventory delta")?;
-    Ok(())
+    expect_update(stream, 10).await?;
+    let slot = expect_inventory_delta(stream).await?;
+    expect_slot(&slot, 0, 0, None, "placement inventory delta")
 }
 
 async fn expect_ack(
@@ -87,7 +81,7 @@ async fn expect_ack(
 async fn expect_inventory_delta(
     stream: &mut TcpStream,
 ) -> Result<PlayerInventorySlot, Box<dyn std::error::Error>> {
-    let packet = block_mutation::read_next_non_time(stream, "inventory delta").await?;
+    let packet = survival_expect::read_next_live_packet(stream).await?;
     if packet.id != ids::play::SET_PLAYER_INVENTORY {
         return Err(Box::new(ProbeError::Phase("inventory delta id")));
     }

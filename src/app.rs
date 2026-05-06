@@ -39,10 +39,6 @@ enum QualityCommand {
 
 #[derive(Subcommand)]
 enum ProbeCommand {
-    Status {
-        #[arg(long, default_value = "127.0.0.1:25565")]
-        host: String,
-    },
     LoginPlay {
         #[arg(long, default_value = "127.0.0.1:25565")]
         host: String,
@@ -101,7 +97,6 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
             QualityCommand::CheckLines => quality::check_lines()?,
         },
         Command::Probe { command } => match command {
-            ProbeCommand::Status { host } => crate::probe::status(&host).await?,
             ProbeCommand::LoginPlay { host } => crate::probe::login_play(&host).await?,
             ProbeCommand::MultiplayerMutation { host } => {
                 crate::probe::multiplayer_mutation(&host).await?

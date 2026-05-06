@@ -15,7 +15,7 @@ wire path.
 5. Validate exactly `5` unload packets for the old column `x=-2`.
 6. Validate one chunk batch with exactly `5` chunks in the new column `x=3`.
 7. Validate every streamed `level_chunk_with_light` and `update_light` payload.
-8. Place fixed stone in one newly streamed chunk and observe the normal
+8. Acquire dirt in one newly streamed chunk, place it, and observe the normal
    prediction acknowledgement and block update.
 
 ## Assertions

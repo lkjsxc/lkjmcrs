@@ -13,11 +13,9 @@ const NAME: &str = "SurvivalItem";
 
 pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut first = PlayClient::connect(host, NAME).await?;
-    place_initial_stone(&mut first).await?;
-    break_stone_for_drop(&mut first).await?;
-    reject_far_selected_item(&mut first).await?;
-    place_near_stone_after_reject(&mut first).await?;
+    expect_empty_selected_slot(&mut first, 0, 30).await?;
     break_grass_for_dirt(&mut first).await?;
+    reject_far_selected_item(&mut first).await?;
     place_dirt(&mut first).await?;
     break_dirt_for_persistence(&mut first).await?;
     first.stream.shutdown().await?;
@@ -27,31 +25,6 @@ pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut second = PlayClient::connect_with_block(host, NAME, Some(0)).await?;
     place_persisted_dirt(&mut second).await?;
     expect_empty_selected_slot(&mut second, 4, 38).await
-}
-
-async fn place_initial_stone(client: &mut PlayClient) -> Result<(), Box<dyn std::error::Error>> {
-    block_mutation::send_use_item_on_at(&mut client.stream, 30, BlockPos::new(0, 79, 0)).await?;
-    expect_update_at(
-        &mut client.stream,
-        30,
-        BlockPos::new(0, 80, 0),
-        1,
-        "initial stone",
-    )
-    .await
-}
-
-async fn break_stone_for_drop(client: &mut PlayClient) -> Result<(), Box<dyn std::error::Error>> {
-    break_at(
-        &mut client.stream,
-        31,
-        BlockPos::new(0, 80, 0),
-        0,
-        "stone break",
-    )
-    .await?;
-    item_entities::collect_drop(&mut client.stream, 1, "stone pickup").await?;
-    Ok(())
 }
 
 async fn reject_far_selected_item(
@@ -65,21 +38,6 @@ async fn reject_far_selected_item(
         BlockPos::new(20, 80, 0),
         0,
         "far reach",
-    )
-    .await
-}
-
-async fn place_near_stone_after_reject(
-    client: &mut PlayClient,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let base = BlockPos::new(2, 79, 0);
-    block_mutation::send_use_item_on_at(&mut client.stream, 33, base).await?;
-    expect_update_at(
-        &mut client.stream,
-        33,
-        BlockPos::new(2, 80, 0),
-        1,
-        "near stone",
     )
     .await
 }

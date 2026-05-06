@@ -34,24 +34,39 @@ impl PlayClient {
         name: &str,
         expected_block: Option<i32>,
     ) -> Result<Self, Box<dyn std::error::Error>> {
-        let mut stream = TcpStream::connect(host).await?;
-        super::send_handshake(&mut stream, host, NextState::Login).await?;
-        let login = LoginStart::encode(name, Uuid::from_u128(0));
-        codec::write_packet(&mut stream, ids::login::START, &login).await?;
-        let success = super::expect(&mut stream, ids::login::SUCCESS, "login success").await?;
-        validate_login_success(success.data, name)?;
-        codec::write_packet(&mut stream, ids::login::ACKNOWLEDGED, &[]).await?;
-        complete_configuration(&mut stream).await?;
-        let (login, declared_commands, selected_hotbar_slot, inventory_slots, initial_position) =
-            complete_play_bootstrap(&mut stream, expected_block).await?;
-        Ok(Self {
-            stream,
-            login,
-            initial_position,
-            declared_commands,
-            selected_hotbar_slot,
-            inventory_slots,
+        let host = host.to_string();
+        let name = name.to_string();
+        super::retry_connect(|| {
+            let host = host.clone();
+            let name = name.clone();
+            async move {
+                let mut stream = TcpStream::connect(&host).await?;
+                super::send_handshake(&mut stream, &host, NextState::Login).await?;
+                let login = LoginStart::encode(&name, Uuid::from_u128(0));
+                codec::write_packet(&mut stream, ids::login::START, &login).await?;
+                let success =
+                    super::expect(&mut stream, ids::login::SUCCESS, "login success").await?;
+                validate_login_success(success.data, &name)?;
+                codec::write_packet(&mut stream, ids::login::ACKNOWLEDGED, &[]).await?;
+                complete_configuration(&mut stream).await?;
+                let (
+                    login,
+                    declared_commands,
+                    selected_hotbar_slot,
+                    inventory_slots,
+                    initial_position,
+                ) = complete_play_bootstrap(&mut stream, expected_block).await?;
+                Ok::<Self, Box<dyn std::error::Error>>(Self {
+                    stream,
+                    login,
+                    initial_position,
+                    declared_commands,
+                    selected_hotbar_slot,
+                    inventory_slots,
+                })
+            }
         })
+        .await
     }
 }
 

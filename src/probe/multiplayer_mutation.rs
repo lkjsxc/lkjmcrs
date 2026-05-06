@@ -5,11 +5,17 @@ use crate::protocol::ids;
 
 pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut actor = PlayClient::connect(host, "ProbeA").await?;
+    block_mutation::acquire_dirt(
+        &mut actor.stream,
+        crate::world::BlockPos::new(0, 79, 0),
+        "actor dirt",
+    )
+    .await?;
     let mut observer = PlayClient::connect(host, "ProbeB").await?;
 
     block_mutation::send_use_item_on(&mut actor.stream, 20).await?;
-    block_mutation::expect_ack_and_update(&mut actor.stream, 20, 1).await?;
-    expect_observer_update(&mut observer, 1).await?;
+    block_mutation::expect_ack_and_update(&mut actor.stream, 20, 10).await?;
+    expect_observer_update(&mut observer, 10).await?;
 
     block_mutation::send_start_destroy(&mut actor.stream, 21).await?;
     block_mutation::expect_ack_and_update(&mut actor.stream, 21, 0).await?;

@@ -83,7 +83,8 @@ The first Survival Core slice adds creative-style mutation packets:
 - `0x08 block_update`: sends one packed position and one block-state ID.
 - `0x28 player_action`: starts or stops block breaking.
 - `0x3c swing`: accepted and ignored.
-- `0x3f use_item_on`: places fixed stone beside the targeted face.
+- `0x3f use_item_on`: places the selected supported main-hand block beside
+  the targeted face.
 
 See [block-interaction.md](block-interaction.md) for payload details.
 

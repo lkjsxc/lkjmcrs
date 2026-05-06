@@ -5,7 +5,7 @@ use crate::protocol::{chunk, codec};
 use crate::world::MIN_Y;
 use std::io::{Cursor, Read};
 
-const TARGET_STATE: i32 = 1;
+const TARGET_STATE: i32 = 10;
 const TARGET_Y: i32 = 80;
 const BLOCK_ENTRY_COUNT: usize = 4096;
 const BIOME_ENTRY_COUNT: usize = 64;
@@ -14,6 +14,12 @@ const HEIGHTMAP_LONG_BYTES: usize = 37 * 8;
 
 pub(super) async fn place(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut client = PlayClient::connect(host, "PersistA").await?;
+    block_mutation::acquire_dirt(
+        &mut client.stream,
+        crate::world::BlockPos::new(0, 79, 0),
+        "persist dirt",
+    )
+    .await?;
     block_mutation::send_use_item_on(&mut client.stream, 30).await?;
     block_mutation::expect_ack_and_update(&mut client.stream, 30, TARGET_STATE).await
 }

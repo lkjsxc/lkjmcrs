@@ -17,13 +17,13 @@ mod survival_item;
 mod validation;
 
 use crate::probe::play_client::PlayClient;
-use crate::probe::validation::validate_status_json;
 use crate::protocol::PROTOCOL_VERSION;
 use crate::protocol::ids;
 use crate::protocol::types::{Handshake, NextState};
-use std::io::Cursor;
+use std::future::Future;
 use thiserror::Error;
 use tokio::net::TcpStream;
+use tokio::time::{Duration, Instant, sleep};
 
 #[derive(Debug, Error)]
 enum ProbeError {
@@ -31,25 +31,29 @@ enum ProbeError {
     Phase(&'static str),
 }
 
-pub async fn status(host: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let mut stream = TcpStream::connect(host).await?;
-    send_handshake(&mut stream, host, NextState::Status).await?;
-    codec::write_packet(&mut stream, ids::status::REQUEST, &[]).await?;
-    let response = codec::read_packet(&mut stream).await?;
-    if response.id != ids::status::RESPONSE {
-        return Err(Box::new(ProbeError::Phase("status response id")));
+const RETRY_TOTAL: Duration = Duration::from_secs(60);
+const RETRY_INITIAL: Duration = Duration::from_millis(250);
+const RETRY_MAX: Duration = Duration::from_secs(1);
+
+pub(super) async fn retry_connect<T, F, Fut>(
+    mut attempt: F,
+) -> Result<T, Box<dyn std::error::Error>>
+where
+    F: FnMut() -> Fut,
+    Fut: Future<Output = Result<T, Box<dyn std::error::Error>>>,
+{
+    let start = Instant::now();
+    let mut delay = RETRY_INITIAL;
+    loop {
+        match attempt().await {
+            Ok(value) => return Ok(value),
+            Err(err) if start.elapsed() >= RETRY_TOTAL => return Err(err),
+            Err(_) => {
+                sleep(delay).await;
+                delay = (delay * 2).min(RETRY_MAX);
+            }
+        }
     }
-    let json = codec::read_string(&mut Cursor::new(response.data))?;
-    validate_status_json(&json)?;
-    let mut ping = Vec::new();
-    codec::write_i64(&mut ping, 42);
-    codec::write_packet(&mut stream, ids::status::PING, &ping).await?;
-    let pong = codec::read_packet(&mut stream).await?;
-    if pong.id != ids::status::PONG || codec::read_i64(&mut Cursor::new(pong.data))? != 42 {
-        return Err(Box::new(ProbeError::Phase("status pong")));
-    }
-    println!("status probe ok");
-    Ok(())
 }
 
 pub async fn login_play(host: &str) -> Result<(), Box<dyn std::error::Error>> {

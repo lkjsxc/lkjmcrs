@@ -1,6 +1,6 @@
 use crate::probe::ProbeError;
 use crate::protocol::configuration::{self, KnownPack};
-use crate::protocol::{MINECRAFT_VERSION, PROTOCOL_VERSION, codec, play};
+use crate::protocol::{codec, play};
 use std::io::Cursor;
 
 #[derive(Debug, Clone, Copy)]
@@ -15,15 +15,6 @@ pub(super) struct PositionPacket {
 #[derive(Debug, Clone, Copy)]
 pub(super) struct LoginPacket {
     pub game_mode: i8,
-}
-
-pub(super) fn validate_status_json(json: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let value: serde_json::Value = serde_json::from_str(json)?;
-    let version = &value["version"];
-    if version["name"] != MINECRAFT_VERSION || version["protocol"] != PROTOCOL_VERSION {
-        return Err(Box::new(ProbeError::Phase("status version")));
-    }
-    Ok(())
 }
 
 pub(super) fn validate_known_packs(data: Vec<u8>) -> Result<(), Box<dyn std::error::Error>> {

@@ -7,7 +7,7 @@ play wire path.
 
 ## Compose Command
 
-Run the dedicated survival server with one starter stone:
+Run the dedicated survival server:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build survival-server
@@ -19,10 +19,10 @@ docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
 
 - Play bootstrap sends `held_item_slot` with slot `0`.
 - Play bootstrap sends `set_player_inventory` for slots `0..35`.
-- Starter stone appears in slot `0` as item ID `1` and count `1`.
+- All bootstrap inventory slots are empty.
 - Invalid held-slot input resends authoritative selected slot `0`.
-- Accepted placement sends a slot `0` delta to empty.
-- Accepted breaking sends a slot `0` delta with stone item ID `1`.
+- Breaking grass and pickup sends a slot `0` delta with dirt item ID `28`.
+- Accepted dirt placement sends a slot `0` delta to empty.
 
 ## Boundary
 

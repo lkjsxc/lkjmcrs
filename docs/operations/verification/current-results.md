@@ -37,13 +37,11 @@ Results:
 - `inventory-sync`: pass, `inventory-sync probe ok`.
 - `item-pickup`: pass, `item-pickup probe ok`.
 - `smp-commands`: pass, `smp-commands probe ok`.
-- Survival material loop smoke: pass, a survival profile placed starter stone,
-  broke it, observed and picked up a simple stone drop, rejected an
-  out-of-reach placement without consuming the selected item, placed the
-  retained stone nearby, broke grass, observed and picked up a dirt drop,
-  placed dirt from the selected server-side item, broke that dirt for a
-  persisted pickup, reconnected, placed the persisted dirt, and reconciled an
-  empty selected slot without mutation.
+- Survival material loop smoke: pass, a survival profile joined empty,
+  reconciled empty-hand placement, broke grass, picked up dirt, rejected an
+  out-of-reach placement without consuming the selected item, placed dirt,
+  broke dirt for a persisted pickup, reconnected, placed the persisted dirt,
+  and reconciled an empty selected slot without mutation.
 - Reach regression: pass, block interactions outside `6.0` blocks from eye
   position acknowledge prediction and reconcile without chunk or inventory
   mutation.
@@ -54,10 +52,10 @@ Results:
   `Admin` changed `Guest` to survival, survival mode and the home row
   persisted across reconnect, and `Admin` kicked `Guest` with a play disconnect
   reason.
-- Survival item smoke: pass, a new survival profile received one starter
-  stone, consumed it on successful placement, reconciled a second empty-slot
-  placement without mutation, broke the placed block for a simple drop, saved
-  on disconnect, and spent the persisted drop after reconnect.
+- Survival item smoke: pass, a new survival profile joined empty, reconciled
+  empty-hand placement, acquired dirt through grass break and pickup, rejected
+  out-of-reach placement, placed and broke dirt, saved on disconnect, and spent
+  the persisted drop after reconnect.
 - Inventory sync smoke: pass, play bootstrap sent authoritative selected
   hotbar slot `0` and player inventory slots `0..35`; invalid held-slot input
   resent slot `0`; accepted placement sent a matching empty slot `0` delta;
@@ -71,10 +69,10 @@ Results:
   position and look values, disconnected, reconnected with the same offline
   UUID, and received the saved state in the initial position packet.
 - Multiplayer mutation smoke: pass, two play clients completed bootstrap; the
-  actor observed fixed-stone placement and break through prediction
+  actor observed held-item placement and break through prediction
   acknowledgements and block updates; the observer received both authoritative
   block updates without prediction acknowledgements.
-- Persistence smoke: pass, fixed-stone placement at `0,80,0` was written
+- Persistence smoke: pass, held-item dirt placement at `0,80,0` was written
   through the public play wire path, survived server restart with the compose
   `server-data` volume backed by `world.sqlite3`, and was observed in the
   bootstrap chunk payload.

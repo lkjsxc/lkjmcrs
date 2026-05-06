@@ -6,7 +6,7 @@ Verify the first survival item loop through the public play wire path.
 
 ## Compose Command
 
-Run the dedicated survival server with one starter stone:
+Run the dedicated survival server:
 
 ```bash
 docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build survival-server
@@ -17,10 +17,10 @@ docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
 
 ## Expected Behavior
 
-- A new survival profile joins with one selected stone item.
-- The first placement succeeds and consumes that stone.
-- The second placement is acknowledged but reconciled without mutation.
-- Breaking a mutable block adds one deterministic simple drop.
+- A new survival profile joins with an empty synced inventory.
+- Empty-hand placement is acknowledged and reconciled without mutation.
+- Breaking grass, pickup, dirt placement, and dirt breaking use the selected
+  server-side inventory state.
 - A reconnect sees the persisted position and inventory state.
 
 ## Boundary
