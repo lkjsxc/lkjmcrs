@@ -1,6 +1,8 @@
 use crate::probe::ProbeError;
+use crate::probe::block_mutation;
 use crate::probe::live_play;
 use crate::probe::play_client::PlayClient;
+use crate::protocol::{codec, ids};
 use tokio::io::AsyncWriteExt;
 use tokio::time::{Duration, sleep};
 
@@ -14,7 +16,7 @@ const PITCH: f32 = 10.0;
 pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut first = PlayClient::connect(host, NAME).await?;
     live_play::send_position_look_at(&mut first.stream, X, Y, Z, YAW, PITCH).await?;
-    sleep(Duration::from_millis(200)).await;
+    confirm_ordered_packet_processing(&mut first.stream).await?;
     first.stream.shutdown().await?;
     drop(first);
     sleep(Duration::from_millis(500)).await;
@@ -24,6 +26,22 @@ pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
         return Err(Box::new(ProbeError::Phase("profile reconnect position")));
     }
     Ok(())
+}
+
+async fn confirm_ordered_packet_processing(
+    stream: &mut tokio::net::TcpStream,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut payload = Vec::new();
+    codec::write_string(&mut payload, "homes");
+    codec::write_packet(stream, ids::play::SERVERBOUND_CHAT_COMMAND, &payload).await?;
+    let packet = block_mutation::read_next_non_time(stream, "profile barrier").await?;
+    if packet.id == ids::play::SYSTEM_CHAT
+        && String::from_utf8_lossy(&packet.data).contains("Homes")
+    {
+        Ok(())
+    } else {
+        Err(Box::new(ProbeError::Phase("profile barrier")))
+    }
 }
 
 fn matches_saved_position(client: &PlayClient) -> bool {
