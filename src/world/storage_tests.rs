@@ -1,21 +1,16 @@
 use crate::world::{BlockPos, BlockState, ChunkPos, ChunkSnapshot, WorldStorage};
+use rusqlite::Connection;
 use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 #[test]
-fn saves_and_loads_one_overridden_chunk() {
+fn schema_initializes_with_version_one() {
     let root = temp_root();
     let storage = WorldStorage::new(&root);
-    let pos = ChunkPos::new(-1, 0);
-    let block = BlockPos::new(-1, 80, 0);
-    let mut chunk = ChunkSnapshot::flat(pos);
-    chunk.set_block(block, BlockState::Stone);
 
-    storage.save_chunk(&chunk).unwrap();
-    let loaded = storage.load_chunk(pos).unwrap();
-
-    assert_eq!(loaded.block_at_pos(block), BlockState::Stone);
+    assert_eq!(storage.schema_version().unwrap(), 1);
+    assert!(root.join("world.sqlite3").exists());
     cleanup(root);
 }
 
@@ -33,7 +28,26 @@ fn missing_chunk_loads_flat_base() {
 }
 
 #[test]
-fn reset_to_base_deletes_chunk_file() {
+fn override_save_and_load_round_trips_multiple_blocks() {
+    let root = temp_root();
+    let storage = WorldStorage::new(&root);
+    let pos = ChunkPos::new(-1, 0);
+    let west = BlockPos::new(-1, 80, 0);
+    let east = BlockPos::new(-16, 79, 15);
+    let mut chunk = ChunkSnapshot::flat(pos);
+    chunk.set_block(west, BlockState::Stone);
+    chunk.set_block(east, BlockState::Dirt);
+
+    storage.save_chunk(&chunk).unwrap();
+    let loaded = storage.load_chunk(pos).unwrap();
+
+    assert_eq!(loaded.block_at_pos(west), BlockState::Stone);
+    assert_eq!(loaded.block_at_pos(east), BlockState::Dirt);
+    cleanup(root);
+}
+
+#[test]
+fn reset_to_base_deletes_override_rows() {
     let root = temp_root();
     let storage = WorldStorage::new(&root);
     let pos = ChunkPos::new(0, 0);
@@ -45,43 +59,30 @@ fn reset_to_base_deletes_chunk_file() {
     chunk.set_block(block, BlockState::Air);
     storage.save_chunk(&chunk).unwrap();
 
-    assert!(!root.join("chunks/c.0.0.json").exists());
-    cleanup(root);
-}
-
-#[test]
-fn rejects_coordinate_mismatch() {
-    let root = temp_root();
-    fs::create_dir_all(root.join("chunks")).unwrap();
-    fs::write(
-        root.join("chunks/c.0.0.json"),
-        r#"{"schema":1,"chunk_x":1,"chunk_z":0,"overrides":[]}"#,
-    )
-    .unwrap();
-
-    assert!(storage_error(&root).contains("coordinate mismatch"));
+    assert_eq!(override_count(&root), 0);
     cleanup(root);
 }
 
 #[test]
 fn rejects_unsupported_schema() {
     let root = temp_root();
-    fs::create_dir_all(root.join("chunks")).unwrap();
-    fs::write(
-        root.join("chunks/c.0.0.json"),
-        r#"{"schema":2,"chunk_x":0,"chunk_z":0,"overrides":[]}"#,
-    )
-    .unwrap();
+    fs::create_dir_all(&root).unwrap();
+    let connection = Connection::open(root.join("world.sqlite3")).unwrap();
+    connection.pragma_update(None, "user_version", 2).unwrap();
 
-    assert!(storage_error(&root).contains("schema version"));
+    let error = WorldStorage::new(&root)
+        .load_chunk(ChunkPos::new(0, 0))
+        .unwrap_err()
+        .to_string();
+    assert!(error.contains("schema version 2"));
     cleanup(root);
 }
 
-fn storage_error(root: &PathBuf) -> String {
-    WorldStorage::new(root)
-        .load_chunk(ChunkPos::new(0, 0))
-        .unwrap_err()
-        .to_string()
+fn override_count(root: &PathBuf) -> i64 {
+    Connection::open(root.join("world.sqlite3"))
+        .unwrap()
+        .query_row("SELECT COUNT(*) FROM chunk_overrides", [], |row| row.get(0))
+        .unwrap()
 }
 
 fn temp_root() -> PathBuf {

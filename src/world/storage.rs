@@ -1,10 +1,11 @@
 use crate::world::{BlockPos, BlockState, ChunkPos, ChunkSnapshot};
-use serde::{Deserialize, Serialize};
+use rusqlite::{Connection, params};
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use thiserror::Error;
 
 const SCHEMA_VERSION: u32 = 1;
+const BUSY_TIMEOUT_MS: u64 = 5_000;
 
 #[derive(Debug, Clone)]
 pub struct WorldStorage {
@@ -15,32 +16,14 @@ pub struct WorldStorage {
 pub enum WorldStorageError {
     #[error("storage I/O failed: {0}")]
     Io(#[from] std::io::Error),
-    #[error("storage JSON failed: {0}")]
-    Json(#[from] serde_json::Error),
-    #[error("unsupported chunk schema version {0}")]
+    #[error("storage SQLite failed: {0}")]
+    Sqlite(#[from] rusqlite::Error),
+    #[error("unsupported world schema version {0}")]
     UnsupportedSchema(u32),
-    #[error("chunk file coordinate mismatch")]
-    CoordinateMismatch,
     #[error("invalid block state {0}")]
     InvalidState(String),
     #[error("invalid stored block at {0},{1},{2}")]
     InvalidBlock(i32, i32, i32),
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct StoredChunk {
-    schema: u32,
-    chunk_x: i32,
-    chunk_z: i32,
-    overrides: Vec<StoredBlock>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-struct StoredBlock {
-    x: i32,
-    y: i32,
-    z: i32,
-    state: String,
 }
 
 impl WorldStorage {
@@ -48,87 +31,119 @@ impl WorldStorage {
         Self { root: root.into() }
     }
 
+    pub fn schema_version(&self) -> Result<u32, WorldStorageError> {
+        let connection = self.connection()?;
+        Ok(connection.query_row("PRAGMA user_version", [], |row| row.get(0))?)
+    }
+
     pub fn load_chunk(&self, pos: ChunkPos) -> Result<ChunkSnapshot, WorldStorageError> {
-        let path = self.chunk_path(pos);
-        let Some(bytes) = read_optional(&path)? else {
-            return Ok(ChunkSnapshot::flat(pos));
-        };
-        let stored: StoredChunk = serde_json::from_slice(&bytes)?;
-        validate_header(&stored, pos)?;
+        let connection = self.connection()?;
         let mut chunk = ChunkSnapshot::flat(pos);
-        for block in stored.overrides {
+        let mut rows = connection.prepare(
+            "SELECT local_x, y, local_z, state
+             FROM chunk_overrides
+             WHERE chunk_x = ?1 AND chunk_z = ?2",
+        )?;
+        let overrides = rows.query_map(params![pos.x, pos.z], |row| {
+            Ok(StoredBlock {
+                local_x: row.get(0)?,
+                y: row.get(1)?,
+                local_z: row.get(2)?,
+                state: row.get(3)?,
+            })
+        })?;
+        for row in overrides {
+            let block = row?;
             let state = block_state(&block.state)?;
-            let pos = BlockPos::new(block.x, block.y, block.z);
-            if chunk.set_block(pos, state) != Some(state) {
-                return Err(WorldStorageError::InvalidBlock(block.x, block.y, block.z));
+            let global = block.global_pos(pos);
+            if chunk.set_block(global, state) != Some(state) {
+                return Err(WorldStorageError::InvalidBlock(
+                    block.local_x,
+                    block.y,
+                    block.local_z,
+                ));
             }
         }
         Ok(chunk)
     }
 
     pub fn save_chunk(&self, chunk: &ChunkSnapshot) -> Result<(), WorldStorageError> {
-        let path = self.chunk_path(chunk.pos);
-        if chunk.override_count() == 0 {
-            remove_optional(&path)?;
-            return Ok(());
+        let mut connection = self.connection()?;
+        let tx = connection.transaction()?;
+        tx.execute(
+            "DELETE FROM chunk_overrides WHERE chunk_x = ?1 AND chunk_z = ?2",
+            params![chunk.pos.x, chunk.pos.z],
+        )?;
+        for (pos, state) in chunk.override_entries() {
+            tx.execute(
+                "INSERT INTO chunk_overrides
+                 (chunk_x, chunk_z, local_x, y, local_z, state)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
+                params![
+                    chunk.pos.x,
+                    chunk.pos.z,
+                    pos.local_x() as i32,
+                    pos.y,
+                    pos.local_z() as i32,
+                    state_name(state),
+                ],
+            )?;
         }
-        let stored = StoredChunk {
-            schema: SCHEMA_VERSION,
-            chunk_x: chunk.pos.x,
-            chunk_z: chunk.pos.z,
-            overrides: stored_blocks(chunk),
-        };
-        if let Some(parent) = path.parent() {
-            fs::create_dir_all(parent)?;
-        }
-        fs::write(path, serde_json::to_vec_pretty(&stored)?)?;
+        tx.commit()?;
         Ok(())
     }
 
-    fn chunk_path(&self, pos: ChunkPos) -> PathBuf {
-        self.root
-            .join("chunks")
-            .join(format!("c.{}.{}.json", pos.x, pos.z))
+    fn connection(&self) -> Result<Connection, WorldStorageError> {
+        fs::create_dir_all(&self.root)?;
+        let connection = Connection::open(self.root.join("world.sqlite3"))?;
+        connection.pragma_update(None, "journal_mode", "WAL")?;
+        connection.busy_timeout(std::time::Duration::from_millis(BUSY_TIMEOUT_MS))?;
+        ensure_schema(&connection)?;
+        Ok(connection)
     }
 }
 
-fn read_optional(path: &Path) -> Result<Option<Vec<u8>>, WorldStorageError> {
-    match fs::read(path) {
-        Ok(bytes) => Ok(Some(bytes)),
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(None),
-        Err(error) => Err(error.into()),
+#[derive(Debug)]
+struct StoredBlock {
+    local_x: i32,
+    y: i32,
+    local_z: i32,
+    state: String,
+}
+
+impl StoredBlock {
+    fn global_pos(&self, chunk: ChunkPos) -> BlockPos {
+        BlockPos::new(
+            chunk.x * 16 + self.local_x,
+            self.y,
+            chunk.z * 16 + self.local_z,
+        )
     }
 }
 
-fn remove_optional(path: &Path) -> Result<(), WorldStorageError> {
-    match fs::remove_file(path) {
-        Ok(()) => Ok(()),
-        Err(error) if error.kind() == std::io::ErrorKind::NotFound => Ok(()),
-        Err(error) => Err(error.into()),
+fn ensure_schema(connection: &Connection) -> Result<(), WorldStorageError> {
+    let version: u32 = connection.query_row("PRAGMA user_version", [], |row| row.get(0))?;
+    match version {
+        0 => create_schema(connection),
+        SCHEMA_VERSION => Ok(()),
+        other => Err(WorldStorageError::UnsupportedSchema(other)),
     }
 }
 
-fn validate_header(stored: &StoredChunk, pos: ChunkPos) -> Result<(), WorldStorageError> {
-    if stored.schema != SCHEMA_VERSION {
-        return Err(WorldStorageError::UnsupportedSchema(stored.schema));
-    }
-    if stored.chunk_x != pos.x || stored.chunk_z != pos.z {
-        return Err(WorldStorageError::CoordinateMismatch);
-    }
+fn create_schema(connection: &Connection) -> Result<(), WorldStorageError> {
+    connection.execute_batch(
+        "CREATE TABLE IF NOT EXISTS chunk_overrides (
+            chunk_x INTEGER NOT NULL,
+            chunk_z INTEGER NOT NULL,
+            local_x INTEGER NOT NULL CHECK(local_x BETWEEN 0 AND 15),
+            y INTEGER NOT NULL,
+            local_z INTEGER NOT NULL CHECK(local_z BETWEEN 0 AND 15),
+            state TEXT NOT NULL,
+            PRIMARY KEY (chunk_x, chunk_z, local_x, y, local_z)
+        );
+        PRAGMA user_version = 1;",
+    )?;
     Ok(())
-}
-
-fn stored_blocks(chunk: &ChunkSnapshot) -> Vec<StoredBlock> {
-    chunk
-        .override_entries()
-        .into_iter()
-        .map(|(pos, state)| StoredBlock {
-            x: pos.x,
-            y: pos.y,
-            z: pos.z,
-            state: state_name(state).to_string(),
-        })
-        .collect()
 }
 
 fn state_name(state: BlockState) -> &'static str {
