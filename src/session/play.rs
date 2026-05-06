@@ -21,6 +21,13 @@ const KEEPALIVE_INTERVAL: Duration = Duration::from_secs(10);
 const TIME_INTERVAL: Duration = Duration::from_secs(1);
 const TIME_STEP_TICKS: i64 = 20;
 
+#[derive(Debug, Clone, Copy)]
+pub struct PlaySettings {
+    pub max_players: usize,
+    pub view_distance: i32,
+    pub simulation_distance: i32,
+}
+
 struct RegisteredSession {
     id: SessionId,
     outbound: tokio::sync::mpsc::Receiver<PlayOutbound>,
@@ -29,9 +36,7 @@ struct RegisteredSession {
 
 pub async fn handle_play(
     stream: &mut TcpStream,
-    max_players: usize,
-    view_distance: i32,
-    simulation_distance: i32,
+    settings: PlaySettings,
     region: RegionHandle,
     sessions: SessionRegistry,
     mut profile: PlayerProfile,
@@ -46,9 +51,7 @@ pub async fn handle_play(
     };
     let result = run_play(
         stream,
-        max_players,
-        view_distance,
-        simulation_distance,
+        settings,
         region,
         sessions.clone(),
         player_store.clone(),
@@ -70,9 +73,7 @@ pub async fn handle_play(
 
 async fn run_play(
     stream: &mut TcpStream,
-    max_players: usize,
-    view_distance: i32,
-    simulation_distance: i32,
+    settings: PlaySettings,
     region: RegionHandle,
     sessions: SessionRegistry,
     player_store: PlayerStore,
@@ -80,8 +81,7 @@ async fn run_play(
     profile: &mut PlayerProfile,
 ) -> Result<(), ConnectionError> {
     let phase = SessionState::Play;
-    let bootstrap =
-        bootstrap_from_profile(max_players, view_distance, simulation_distance, profile);
+    let bootstrap = bootstrap_from_profile(settings, profile);
     let mut session = PlaySession::new(bootstrap, registered.id, registered.is_op);
     let mut outbound = registered.outbound;
     let mut chunk_stream = ChunkStream::new(
@@ -111,7 +111,7 @@ async fn run_play(
                         PlayPacketContext {
                             region: &region,
                             sessions: &sessions,
-                            max_players,
+                            max_players: settings.max_players,
                             player_store: &player_store,
                             writer: &mut writer,
                         },
@@ -131,7 +131,7 @@ async fn run_play(
                         apply_game_mode(
                             &mut writer,
                             phase,
-                            max_players,
+                            settings.max_players,
                             profile,
                             game_mode,
                         ).await
@@ -174,14 +174,9 @@ async fn run_play(
     result
 }
 
-fn bootstrap_from_profile(
-    max_players: usize,
-    view_distance: i32,
-    simulation_distance: i32,
-    profile: &PlayerProfile,
-) -> play::Bootstrap {
-    play::Bootstrap::new(max_players)
-        .with_distances(view_distance, simulation_distance)
+fn bootstrap_from_profile(settings: PlaySettings, profile: &PlayerProfile) -> play::Bootstrap {
+    play::Bootstrap::new(settings.max_players)
+        .with_distances(settings.view_distance, settings.simulation_distance)
         .with_player_state(
             (profile.position.x, profile.position.y, profile.position.z),
             (profile.position.yaw, profile.position.pitch),

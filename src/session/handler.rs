@@ -11,7 +11,7 @@ use crate::session::error::ConnectionError;
 use crate::session::io::{
     codec_error, expect_packet, is_connection_closed, protocol_error, read_packet, write_packet,
 };
-use crate::session::play::handle_play;
+use crate::session::play::{PlaySettings, handle_play};
 use crate::session::profile::{offline_uuid, validate_name};
 use crate::session::registry::SessionRegistry;
 use crate::world::{RegionId, WorldStorage};
@@ -131,9 +131,11 @@ async fn handle_login(
     let is_op = context.config.is_op(&login.name);
     let play_result = handle_play(
         &mut stream,
-        context.config.max_players,
-        context.config.view_distance,
-        context.config.simulation_distance,
+        PlaySettings {
+            max_players: context.config.max_players,
+            view_distance: context.config.view_distance,
+            simulation_distance: context.config.simulation_distance,
+        },
         context.region.clone(),
         context.sessions.clone(),
         profile,

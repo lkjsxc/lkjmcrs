@@ -1,6 +1,7 @@
 use crate::world::{BlockPos, BlockState, ChunkPos, ChunkSnapshot, WorldStorage};
 use rusqlite::Connection;
 use std::fs;
+use std::path::Path;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -78,7 +79,7 @@ fn rejects_unsupported_schema() {
     cleanup(root);
 }
 
-fn override_count(root: &PathBuf) -> i64 {
+fn override_count(root: &Path) -> i64 {
     Connection::open(root.join("world.sqlite3"))
         .unwrap()
         .query_row("SELECT COUNT(*) FROM chunk_overrides", [], |row| row.get(0))
