@@ -51,7 +51,7 @@ gameplay contract is owned by [survival-core.md](survival-core.md):
 
 - Full vanilla registry synchronization.
 - Full variant registry contents beyond one valid entry per required registry.
-- Terrain outside the advertised deterministic spawn batch.
+- Natural terrain generation beyond deterministic flat chunks.
 - Entity AI.
 - Full inventory behavior and recipes.
 - Chat signing.

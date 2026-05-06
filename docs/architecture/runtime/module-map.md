@@ -5,7 +5,7 @@
 - `app`: CLI dispatch and command execution.
 - `config`: JSON configuration and defaults.
 - `net`: TCP listener and connection loop.
-- `protocol`: packet framing, types, encoding, decoding.
+- `protocol`: packet framing, types, encoding, decoding, and wire DTOs.
 - `player`: persistent player model, inventory, named locations, and SQLite
   storage.
 - `session`: login, configuration, play state, keepalive, commands, and travel
@@ -31,3 +31,6 @@
 - `player::schema`: current player database schema.
 - `session::command_dispatch`: command permission and routing entrypoint.
 - `session::travel_commands`: `/spawn`, homes, and warps.
+
+The strict protocol boundary is owned by
+[../protocol/module-boundary.md](../protocol/module-boundary.md).

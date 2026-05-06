@@ -29,5 +29,10 @@ The smoke probe checks:
 ## Stop and Clean State
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
+docker compose down
 ```
+
+This preserves the `server-data` named volume.
+
+Use the destructive acceptance cleanup only when following
+[../operations/verification/compose-pipeline.md](../operations/verification/compose-pipeline.md).

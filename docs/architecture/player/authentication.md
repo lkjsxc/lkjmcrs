@@ -6,6 +6,9 @@
 - Player name is validated for basic length and allowed characters.
 - UUID is deterministic from `OfflinePlayer:<name>`.
 - No Mojang session request is made.
+- Offline-mode runtime is private-only when reachable players are not trusted.
+- Exposure rules live in
+  [../../operations/deployment/exposure-policy.md](../../operations/deployment/exposure-policy.md).
 
 ## Online Mode
 
@@ -19,3 +22,4 @@
 2. Login rejects unsupported protocol before creating a session.
 3. Offline UUID generation is covered by tests.
 4. Online-mode implementation must include compose-verifiable failure tests.
+5. Name-based operator permission is unsafe for public offline-mode servers.

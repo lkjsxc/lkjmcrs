@@ -24,6 +24,7 @@
 - `simulation_distance`: advertised simulation radius, default equals
   `view_distance`.
 - `ops`: operator player names, default `[]`.
+- Offline-mode exposure policy requires shared configs to keep `ops: []`.
 
 ## Rules
 
@@ -36,6 +37,7 @@
 7. View and simulation distances must be between `2` and `8`.
 8. `ops` names are matched case-insensitively by exact player name.
 9. There is no starter-item config field.
+10. Checked-in shared config must not grant operator names.
 
 ## Example
 

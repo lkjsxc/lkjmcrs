@@ -16,6 +16,9 @@
 - The service runs `lkjmcrs serve`.
 - The Docker image does not copy runtime config files.
 - The service has no Docker healthcheck.
+- Long-lived runtime commands live in [runtime-compose.md](runtime-compose.md).
+- Offline-mode exposure rules live in
+  [exposure-policy.md](exposure-policy.md).
 
 ## Rules
 
@@ -23,3 +26,4 @@
 2. Verification may use separate cache volumes.
 3. Runtime state persists until `docker compose down -v` removes volumes.
 4. Config edits require container restart or recreate, not image rebuild.
+5. Normal runtime docs must use `docker compose down`, not `down -v`.

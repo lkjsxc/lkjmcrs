@@ -53,8 +53,8 @@ region-ownership architecture.
   inventory mutations.
 - Survival mining speed, recipes, and item durability are not validated in this
   slice.
-- Block interactions outside the loaded spawn-radius chunks are acknowledged and
-  reconciled without loading new chunks.
+- Block interactions outside loaded chunks are acknowledged and reconciled
+  without mutating chunks or inventory.
 
 ## Rules
 

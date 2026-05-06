@@ -12,6 +12,8 @@
 - `online_mode=true` is a documented future mode.
 - If `online_mode=true` is configured before implementation, startup must fail
   with a clear unsupported-mode error.
+- Offline-mode deployment is private-only unless an external access boundary
+  makes all reachable players trusted.
 
 ## Server List
 

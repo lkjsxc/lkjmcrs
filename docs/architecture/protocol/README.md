@@ -15,6 +15,7 @@ Use this subtree for Minecraft `1.21.11` wire contracts.
 - [play-packet-ids.md](play-packet-ids.md): pinned play packet IDs used by
   the current protocol slice.
 - [packet-contract.md](packet-contract.md): packet IDs and payload contracts.
+- [module-boundary.md](module-boundary.md): protocol dependency boundary.
 - [block-interaction.md](block-interaction.md): block placement and breaking
   packet contracts.
 - [chat-and-commands.md](chat-and-commands.md): SMP chat and command packets.
