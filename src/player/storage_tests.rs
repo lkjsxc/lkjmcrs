@@ -78,6 +78,33 @@ async fn saves_and_reloads_profile_state() {
     cleanup(root);
 }
 
+#[tokio::test]
+async fn concurrent_profile_saves_wait_for_sqlite_writer() {
+    let root = temp_root();
+    let store = PlayerStore::open(&root).unwrap();
+    let mut tasks = Vec::new();
+
+    for index in 0..8 {
+        let store = store.clone();
+        tasks.push(tokio::spawn(async move {
+            let mut profile = PlayerProfile::new(Uuid::from_u128(100 + index), "Probe");
+            profile.position.x = index as f64;
+            profile.inventory.slots.push(InventorySlot {
+                slot: 0,
+                item_id: "minecraft:dirt".to_string(),
+                count: 1,
+                data: None,
+            });
+            store.save(profile).await
+        }));
+    }
+
+    for task in tasks {
+        task.await.unwrap().unwrap();
+    }
+    cleanup(root);
+}
+
 #[test]
 fn rejects_unsupported_schema_version() {
     let root = temp_root();

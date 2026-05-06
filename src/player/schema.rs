@@ -4,10 +4,7 @@ use rusqlite::Connection;
 const SCHEMA_VERSION: i32 = 3;
 
 pub(super) fn initialize_schema(connection: &Connection) -> Result<(), PlayerStoreError> {
-    let version: i32 = connection.pragma_query_value(None, "user_version", |row| row.get(0))?;
-    if version != 0 && version != SCHEMA_VERSION {
-        return Err(PlayerStoreError::UnsupportedSchema(version));
-    }
+    validate_new_or_current_schema(connection)?;
     connection.execute_batch(
         "
         CREATE TABLE IF NOT EXISTS player_profiles (
@@ -32,6 +29,33 @@ pub(super) fn initialize_schema(connection: &Connection) -> Result<(), PlayerSto
           data TEXT,
           PRIMARY KEY (uuid, slot)
         );
+        ",
+    )?;
+    initialize_locations(connection)?;
+    connection.pragma_update(None, "user_version", SCHEMA_VERSION)?;
+    Ok(())
+}
+
+pub(super) fn validate_schema(connection: &Connection) -> Result<(), PlayerStoreError> {
+    let version: i32 = connection.pragma_query_value(None, "user_version", |row| row.get(0))?;
+    if version == SCHEMA_VERSION {
+        Ok(())
+    } else {
+        Err(PlayerStoreError::UnsupportedSchema(version))
+    }
+}
+
+fn validate_new_or_current_schema(connection: &Connection) -> Result<(), PlayerStoreError> {
+    let version: i32 = connection.pragma_query_value(None, "user_version", |row| row.get(0))?;
+    if version != 0 && version != SCHEMA_VERSION {
+        return Err(PlayerStoreError::UnsupportedSchema(version));
+    }
+    Ok(())
+}
+
+fn initialize_locations(connection: &Connection) -> Result<(), PlayerStoreError> {
+    connection.execute_batch(
+        "
         CREATE TABLE IF NOT EXISTS player_homes (
           uuid TEXT NOT NULL,
           name TEXT NOT NULL,
@@ -53,7 +77,6 @@ pub(super) fn initialize_schema(connection: &Connection) -> Result<(), PlayerSto
           pitch REAL NOT NULL,
           created_by_uuid TEXT NOT NULL
         );
-        PRAGMA user_version = 3;
         ",
     )?;
     Ok(())

@@ -21,7 +21,8 @@ minimal flat spawn area.
 - Spawn defaults to `0, 80, 0`.
 - World entry sends the vanilla level-chunk readiness game event.
 - The initial world-entry batch covers the full advertised radius `2`.
-- New player profiles default to creative for easier smoke testing.
+- New player profiles default to survival unless `config/server.json` says
+  otherwise.
 - Time starts at `0` and advances by server ticks.
 
 ## Player Behavior
@@ -40,6 +41,7 @@ gameplay contract is owned by [survival-core.md](survival-core.md):
 
 - creative-style block placement and breaking are implemented for loaded spawn
   chunks,
+- survival placement requires a selected held item,
 - block mutations are region-owned,
 - initiating clients receive prediction acknowledgements and authoritative
   block updates,

@@ -39,6 +39,11 @@ quests, parties, and cross-player queries.
 4. Home and warp writes happen synchronously during command dispatch.
 5. Storage failures disconnect the affected login or play session.
 6. SQLite access must not run from region actor tick paths.
+7. Startup is the only path that creates or updates the player schema.
+8. Per-session operations open short-lived checked connections.
+9. Checked connections validate `user_version` but do not rewrite schema.
+10. Checked connections use a busy timeout so overlapping saves wait briefly
+    instead of failing immediately with `database is locked`.
 
 ## Out of Scope
 

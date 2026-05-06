@@ -1,5 +1,5 @@
 use crate::player::location_rows;
-use crate::player::schema::initialize_schema;
+use crate::player::schema::{initialize_schema, validate_schema};
 use crate::player::store_rows::{load_profile, save_profile};
 use crate::player::{NamedLocation, PlayerDefaults, PlayerProfile};
 use rusqlite::Connection;
@@ -9,6 +9,7 @@ use thiserror::Error;
 use uuid::Uuid;
 
 const MAX_HOMES: usize = 16;
+const BUSY_TIMEOUT_MS: u64 = 5_000;
 
 #[derive(Debug, Clone)]
 pub struct PlayerStore {
@@ -41,7 +42,7 @@ impl PlayerStore {
     pub fn open(root: impl AsRef<Path>) -> Result<Self, PlayerStoreError> {
         fs::create_dir_all(root.as_ref())?;
         let path = root.as_ref().join("players.sqlite3");
-        let connection = Connection::open(&path)?;
+        let connection = open_configured(&path)?;
         initialize_schema(&connection)?;
         Ok(Self { path })
     }
@@ -144,7 +145,14 @@ impl PlayerStore {
 }
 
 fn open_checked(path: &Path) -> Result<Connection, PlayerStoreError> {
+    let connection = open_configured(path)?;
+    validate_schema(&connection)?;
+    Ok(connection)
+}
+
+fn open_configured(path: &Path) -> Result<Connection, PlayerStoreError> {
     let connection = Connection::open(path)?;
-    initialize_schema(&connection)?;
+    connection.pragma_update(None, "journal_mode", "WAL")?;
+    connection.busy_timeout(std::time::Duration::from_millis(BUSY_TIMEOUT_MS))?;
     Ok(connection)
 }
