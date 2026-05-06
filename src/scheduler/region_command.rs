@@ -64,7 +64,6 @@ pub(super) struct PendingLoad {
 
 #[derive(Debug)]
 pub(super) struct PendingSave {
-    pub before: BlockState,
     pub mutation: BlockMutation,
-    pub reply: oneshot::Sender<Result<BlockMutation, RegionActorError>>,
+    pub attempts: u8,
 }

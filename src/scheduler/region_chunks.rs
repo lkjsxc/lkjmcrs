@@ -36,12 +36,12 @@ impl RegionActor {
             return;
         };
         let id = self.next_job();
+        let _ = reply.send(Ok(mutation));
         self.pending_saves.insert(
             id,
             PendingSave {
-                before: before.unwrap_or(BlockState::Air),
                 mutation,
-                reply,
+                attempts: 0,
             },
         );
         storage_jobs::save_chunk(
@@ -108,17 +108,27 @@ impl RegionActor {
         };
         match result {
             Ok(()) => {
-                let _ = pending.reply.send(Ok(pending.mutation));
+                tracing::trace!(region = self.id.0, "chunk save completed");
             }
             Err(error) => {
                 tracing::warn!(region = self.id.0, %error, "chunk save failed");
-                if let Some(chunk) = self.chunks.get_mut(&pending.mutation.chunk) {
-                    chunk.set_block(pending.mutation.pos, pending.before);
+                if pending.attempts >= 3 {
+                    return;
                 }
-                let _ = pending.reply.send(Ok(BlockMutation {
-                    state: pending.before,
-                    ..pending.mutation
-                }));
+                if let (Some(storage), Some(chunk)) = (
+                    self.storage.clone(),
+                    self.chunks.get(&pending.mutation.chunk).cloned(),
+                ) {
+                    let retry = self.next_job();
+                    self.pending_saves.insert(
+                        retry,
+                        PendingSave {
+                            mutation: pending.mutation,
+                            attempts: pending.attempts + 1,
+                        },
+                    );
+                    storage_jobs::save_chunk(retry, storage, chunk, self.outbox.clone());
+                }
             }
         }
     }

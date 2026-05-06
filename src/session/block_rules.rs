@@ -23,13 +23,11 @@ pub(super) async fn place_block(
     if current != Some(BlockState::Air) {
         return Ok(reconcile(pos, current));
     }
-    let Some((state, item_id)) = placement_state(game_mode, inventory) else {
+    let Some((state, item_id)) = placement_state(inventory) else {
         return Ok(reconcile(pos, current));
     };
     let result = set_block(region, pos, state, phase).await?;
-    if result.broadcast.is_some()
-        && let Some(item_id) = item_id
-    {
+    if game_mode == GameMode::Survival && result.broadcast.is_some() {
         inventory.consume_selected(item_id);
     }
     Ok(result)
@@ -117,16 +115,10 @@ pub(super) fn simple_drop(state: Option<BlockState>) -> Option<&'static str> {
     }
 }
 
-pub(super) fn placement_state(
-    game_mode: GameMode,
-    inventory: &Inventory,
-) -> Option<(BlockState, Option<&'static str>)> {
-    match game_mode {
-        GameMode::Creative => Some((BlockState::Stone, None)),
-        GameMode::Survival => match inventory.selected_item_id()? {
-            STONE_ITEM => Some((BlockState::Stone, Some(STONE_ITEM))),
-            DIRT_ITEM => Some((BlockState::Dirt, Some(DIRT_ITEM))),
-            _ => None,
-        },
+pub(super) fn placement_state(inventory: &Inventory) -> Option<(BlockState, &'static str)> {
+    match inventory.selected_item_id()? {
+        STONE_ITEM => Some((BlockState::Stone, STONE_ITEM)),
+        DIRT_ITEM => Some((BlockState::Dirt, DIRT_ITEM)),
+        _ => None,
     }
 }

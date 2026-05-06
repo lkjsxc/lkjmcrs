@@ -36,14 +36,14 @@ where
 {
     match interaction {
         BlockInteraction::UseItemOn {
-            hand: _,
+            hand,
             pos,
             face,
             sequence,
         } => {
             let before = profile.inventory.clone();
             let target = pos.offset(face);
-            let result = if can_reach_block(session, target) {
+            let result = if hand == 0 && can_reach_block(session, target) {
                 block_rules::place_block(
                     region,
                     target,
@@ -56,8 +56,9 @@ where
                 reconcile(region, target, phase).await?
             };
             send_prediction_ack(writer, phase, sequence).await?;
+            send_block_update(writer, phase, result.pos, result.state).await?;
             send_inventory_delta(writer, phase, &before, profile, &result).await?;
-            publish_or_reconcile(result, phase, sessions, writer).await?;
+            publish_observers(result, sessions, session.id).await;
         }
         BlockInteraction::PlayerAction {
             action,
@@ -80,8 +81,9 @@ where
                 reconcile(region, pos, phase).await?
             };
             send_prediction_ack(writer, phase, sequence).await?;
+            send_block_update(writer, phase, result.pos, result.state).await?;
             send_inventory_delta(writer, phase, &before, profile, &result).await?;
-            publish_or_reconcile(result, phase, sessions, writer).await?;
+            publish_observers(result, sessions, session.id).await;
         }
         BlockInteraction::Swing { hand: _ } => {
             tracing::debug!(phase = %phase, "swing packet accepted");
@@ -123,26 +125,19 @@ async fn reconcile(
     })
 }
 
-async fn publish_or_reconcile<W>(
+async fn publish_observers(
     result: InteractionResult,
-    phase: SessionState,
     sessions: &SessionRegistry,
-    writer: &mut W,
-) -> Result<(), ConnectionError>
-where
-    W: AsyncWrite + Unpin,
-{
+    initiator: crate::session::registry::SessionId,
+) {
     if let Some(chunk) = result.broadcast {
         sessions
-            .broadcast_block_update(chunk, result.pos, result.state)
+            .broadcast_block_update(chunk, result.pos, result.state, Some(initiator))
             .await;
-    } else {
-        send_block_update(writer, phase, result.pos, result.state).await?;
     }
     if let Some(item) = result.spawned_item {
         sessions.broadcast_item_spawn(item.chunk, item).await;
     }
-    Ok(())
 }
 
 async fn send_prediction_ack<W>(

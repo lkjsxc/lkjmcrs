@@ -80,14 +80,14 @@ impl SessionRegistry {
     pub async fn unregister(&self, id: SessionId) {
         self.inner.sessions.lock().await.remove(&id);
     }
-
     pub async fn broadcast_block_update(
         &self,
         chunk: ChunkPos,
         pos: BlockPos,
         state: BlockState,
+        exclude: Option<SessionId>,
     ) -> usize {
-        self.broadcast_chunk(chunk, PlayOutbound::BlockUpdate { pos, state }, None)
+        self.broadcast_chunk(chunk, PlayOutbound::BlockUpdate { pos, state }, exclude)
             .await
     }
 

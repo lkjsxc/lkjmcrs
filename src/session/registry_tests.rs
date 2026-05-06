@@ -20,6 +20,7 @@ async fn broadcasts_only_to_subscribed_sessions() {
             ChunkPos::new(0, 0),
             BlockPos::new(0, 80, 0),
             BlockState::Stone,
+            None,
         )
         .await;
 
@@ -47,6 +48,7 @@ async fn unregister_removes_subscriptions() {
             ChunkPos::new(0, 0),
             BlockPos::new(0, 80, 0),
             BlockState::Stone,
+            None,
         )
         .await;
 
@@ -66,6 +68,7 @@ async fn newly_subscribed_chunks_are_fanout_eligible() {
             ChunkPos::new(3, 0),
             BlockPos::new(48, 80, 0),
             BlockState::Stone,
+            None,
         )
         .await;
 
@@ -92,6 +95,7 @@ async fn unsubscribe_removes_block_update_fanout_eligibility() {
             ChunkPos::new(0, 0),
             BlockPos::new(0, 80, 0),
             BlockState::Stone,
+            None,
         )
         .await;
 

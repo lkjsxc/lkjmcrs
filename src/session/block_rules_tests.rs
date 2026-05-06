@@ -1,4 +1,4 @@
-use crate::player::{GameMode, Inventory, InventorySlot};
+use crate::player::{Inventory, InventorySlot};
 use crate::session::block_rules::{placement_state, simple_drop};
 use crate::world::BlockState;
 
@@ -30,8 +30,8 @@ fn survival_placement_uses_selected_material() {
     };
 
     assert_eq!(
-        placement_state(GameMode::Survival, &inventory),
-        Some((BlockState::Dirt, Some("minecraft:dirt")))
+        placement_state(&inventory),
+        Some((BlockState::Dirt, "minecraft:dirt"))
     );
 }
 
@@ -47,5 +47,5 @@ fn unsupported_survival_item_cannot_place() {
         }],
     };
 
-    assert_eq!(placement_state(GameMode::Survival, &inventory), None);
+    assert_eq!(placement_state(&inventory), None);
 }

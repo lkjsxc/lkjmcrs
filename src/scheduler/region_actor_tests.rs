@@ -60,7 +60,7 @@ async fn processes_mailbox_while_storage_load_is_pending() {
 }
 
 #[tokio::test]
-async fn save_failure_rolls_back_tentative_mutation() {
+async fn save_failure_keeps_authoritative_memory_state() {
     let root = temp_root();
     let storage = WorldStorage::with_save_failure_for_tests(&root);
     let handle = RegionActor::spawn_persistent(RegionId(3), storage);
@@ -69,9 +69,12 @@ async fn save_failure_rolls_back_tentative_mutation() {
 
     let mutation = handle.set_block(pos, BlockState::Stone).await.unwrap();
 
-    assert_eq!(mutation.state, BlockState::Air);
-    assert!(!mutation.accepted());
-    assert_eq!(handle.get_block(pos).await.unwrap(), Some(BlockState::Air));
+    assert_eq!(mutation.state, BlockState::Stone);
+    assert!(mutation.accepted());
+    assert_eq!(
+        handle.get_block(pos).await.unwrap(),
+        Some(BlockState::Stone)
+    );
     cleanup(root);
 }
 
