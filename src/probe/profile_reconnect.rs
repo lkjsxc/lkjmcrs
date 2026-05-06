@@ -14,6 +14,7 @@ const PITCH: f32 = 10.0;
 pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut first = PlayClient::connect(host, NAME).await?;
     live_play::send_position_look_at(&mut first.stream, X, Y, Z, YAW, PITCH).await?;
+    sleep(Duration::from_millis(200)).await;
     first.stream.shutdown().await?;
     drop(first);
     sleep(Duration::from_millis(500)).await;

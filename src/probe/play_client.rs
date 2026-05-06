@@ -26,7 +26,7 @@ pub(super) struct PlayClient {
 
 impl PlayClient {
     pub async fn connect(host: &str, name: &str) -> Result<Self, Box<dyn std::error::Error>> {
-        Self::connect_with_block(host, name, None).await
+        Self::connect_with_block(host, name, Some(0)).await
     }
 
     pub async fn connect_with_block(

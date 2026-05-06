@@ -14,6 +14,8 @@ const STREAM_PLACE_SEQUENCE: i32 = 20;
 
 pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut client = PlayClient::connect(host, "ChunkStream").await?;
+    block_mutation::acquire_dirt(&mut client.stream, BlockPos::new(2, 79, 0), "stream dirt")
+        .await?;
     live_play::send_position_look_at(&mut client.stream, 16.5, 80.0, 0.5, 0.0, 0.0).await?;
     expect_cache_center(&mut client.stream, 1, 0).await?;
     expect_unload_column(&mut client.stream, -2).await?;
@@ -103,7 +105,6 @@ fn validate_new_column(
 async fn place_in_streamed_chunk(stream: &mut TcpStream) -> Result<(), Box<dyn std::error::Error>> {
     let base = BlockPos::new(48, 79, 0);
     let placed = BlockPos::new(48, 80, 0);
-    block_mutation::acquire_dirt(stream, base, "stream dirt").await?;
     block_mutation::send_use_item_on_at(stream, STREAM_PLACE_SEQUENCE, base).await?;
     let ack = block_mutation::read_next_non_time(stream, "stream placement ack").await?;
     if ack.id != ids::play::BLOCK_CHANGED_ACK {

@@ -11,7 +11,7 @@ pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
         "actor dirt",
     )
     .await?;
-    let mut observer = PlayClient::connect(host, "ProbeB").await?;
+    let mut observer = PlayClient::connect_with_block(host, "ProbeB", Some(0)).await?;
 
     block_mutation::send_use_item_on(&mut actor.stream, 20).await?;
     block_mutation::expect_ack_and_update(&mut actor.stream, 20, 10).await?;
