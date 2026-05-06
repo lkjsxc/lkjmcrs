@@ -19,7 +19,7 @@ pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     confirm_ordered_packet_processing(&mut first.stream).await?;
     first.stream.shutdown().await?;
     drop(first);
-    sleep(Duration::from_millis(500)).await;
+    sleep(Duration::from_millis(2_000)).await;
 
     let second = PlayClient::connect(host, NAME).await?;
     if !matches_saved_position(&second) {
