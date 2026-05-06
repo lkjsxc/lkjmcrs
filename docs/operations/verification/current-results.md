@@ -1,5 +1,39 @@
 # Current Results
 
+## 2026-05-07 Serialized World Storage Writes
+
+Implementation tested: `f7fa393`, serialized `WorldStorage` chunk writes and
+world persistence docs cleanup after container logs showed repeated
+`database is locked` chunk-save warnings.
+
+Command owner:
+
+- [compose-pipeline.md](compose-pipeline.md)
+
+Result:
+
+- initial `down -v`: pass.
+- `verify`: pass with compact output:
+  `verify fmt ... ok`, `verify clippy ... ok`, `verify test ... ok`,
+  `verify docs-topology ... ok`, `verify line-limits ... ok`, `verify pass`.
+- `server` startup: pass.
+- `smoke`: pass, `multiplayer-mutation probe ok`.
+- `profile-reconnect`: pass, `profile-reconnect probe ok`.
+- `chunk-stream`: pass, `chunk-stream probe ok`.
+- `persist-place`: pass, `persist-place probe ok`.
+- server restart: pass.
+- `persist-check`: pass, `persist-check probe ok`.
+- `survival-server` startup: pass.
+- `survival-item`: pass, `survival-item probe ok`.
+- `inventory-sync`: pass, `inventory-sync probe ok`.
+- `item-pickup`: pass, `item-pickup probe ok`.
+- `smp-server` startup: pass.
+- `smp-commands`: pass, `smp-commands probe ok`.
+- final `down -v`: pass.
+- Focused log check after persistence probes: no `WARN`, `ERROR`,
+  `database is locked`, or `chunk save failed` lines in the checked server log
+  tail.
+
 ## 2026-05-07 Runtime Safety And Protocol Boundary
 
 Implementation tested: `7388244`, docs canon cleanup, safe runtime operator
