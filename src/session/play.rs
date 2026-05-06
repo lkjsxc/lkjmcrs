@@ -30,6 +30,8 @@ struct RegisteredSession {
 pub async fn handle_play(
     stream: &mut TcpStream,
     max_players: usize,
+    view_distance: i32,
+    simulation_distance: i32,
     region: RegionHandle,
     sessions: SessionRegistry,
     mut profile: PlayerProfile,
@@ -45,6 +47,8 @@ pub async fn handle_play(
     let result = run_play(
         stream,
         max_players,
+        view_distance,
+        simulation_distance,
         region,
         sessions.clone(),
         player_store.clone(),
@@ -67,6 +71,8 @@ pub async fn handle_play(
 async fn run_play(
     stream: &mut TcpStream,
     max_players: usize,
+    view_distance: i32,
+    simulation_distance: i32,
     region: RegionHandle,
     sessions: SessionRegistry,
     player_store: PlayerStore,
@@ -74,7 +80,8 @@ async fn run_play(
     profile: &mut PlayerProfile,
 ) -> Result<(), ConnectionError> {
     let phase = SessionState::Play;
-    let bootstrap = bootstrap_from_profile(max_players, profile);
+    let bootstrap =
+        bootstrap_from_profile(max_players, view_distance, simulation_distance, profile);
     let mut session = PlaySession::new(bootstrap, registered.id, registered.is_op);
     let mut outbound = registered.outbound;
     let mut chunk_stream = ChunkStream::new(
@@ -167,13 +174,20 @@ async fn run_play(
     result
 }
 
-fn bootstrap_from_profile(max_players: usize, profile: &PlayerProfile) -> play::Bootstrap {
-    play::Bootstrap::new(max_players).with_player_state(
-        (profile.position.x, profile.position.y, profile.position.z),
-        (profile.position.yaw, profile.position.pitch),
-        (
-            profile.game_mode.vanilla_id(),
-            profile.game_mode.ability_flags(),
-        ),
-    )
+fn bootstrap_from_profile(
+    max_players: usize,
+    view_distance: i32,
+    simulation_distance: i32,
+    profile: &PlayerProfile,
+) -> play::Bootstrap {
+    play::Bootstrap::new(max_players)
+        .with_distances(view_distance, simulation_distance)
+        .with_player_state(
+            (profile.position.x, profile.position.y, profile.position.z),
+            (profile.position.yaw, profile.position.pitch),
+            (
+                profile.game_mode.vanilla_id(),
+                profile.game_mode.ability_flags(),
+            ),
+        )
 }

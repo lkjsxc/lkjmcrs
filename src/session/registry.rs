@@ -66,6 +66,17 @@ impl SessionRegistry {
         }
     }
 
+    pub async fn unsubscribe<I>(&self, id: SessionId, chunks: I)
+    where
+        I: IntoIterator<Item = ChunkPos>,
+    {
+        if let Some(entry) = self.inner.sessions.lock().await.get_mut(&id) {
+            for chunk in chunks {
+                entry.chunks.remove(&chunk);
+            }
+        }
+    }
+
     pub async fn unregister(&self, id: SessionId) {
         self.inner.sessions.lock().await.remove(&id);
     }

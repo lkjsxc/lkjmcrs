@@ -1,26 +1,13 @@
-use crate::scheduler::storage_jobs;
 use crate::scheduler::region_command::{PendingLoad, PendingSave, RegionCommand};
 use crate::scheduler::region_handle::RegionHandle;
+use crate::scheduler::region_state::RegionActor;
+use crate::scheduler::storage_jobs;
 use crate::scheduler::{BlockMutation, RegionActorError};
 use crate::world::{
     BlockPos, BlockState, ChunkPos, ChunkSnapshot, FlatWorld, RegionId, WorldStorage,
 };
 use std::collections::HashMap;
 use tokio::sync::{mpsc, oneshot};
-
-#[derive(Debug)]
-pub struct RegionActor {
-    id: RegionId,
-    applied: usize,
-    chunks: HashMap<ChunkPos, ChunkSnapshot>,
-    world: FlatWorld,
-    storage: Option<WorldStorage>,
-    outbox: mpsc::Sender<RegionCommand>,
-    inbox: mpsc::Receiver<RegionCommand>,
-    pending_loads: HashMap<u64, PendingLoad>,
-    pending_saves: HashMap<u64, PendingSave>,
-    next_job: u64,
-}
 
 impl RegionActor {
     pub fn spawn(id: RegionId) -> RegionHandle {
@@ -57,9 +44,11 @@ impl RegionActor {
                     self.applied += 1;
                     let _ = reply.send(self.applied);
                 }
-                RegionCommand::SpawnChunks { center, radius, reply } => {
-                    self.spawn_chunks(center, radius, reply)
-                }
+                RegionCommand::SpawnChunks {
+                    center,
+                    radius,
+                    reply,
+                } => self.spawn_chunks(center, radius, reply),
                 RegionCommand::ChunkSnapshot { pos, reply } => {
                     let _ = reply.send(self.chunks.get(&pos).cloned());
                 }
@@ -67,9 +56,7 @@ impl RegionActor {
                     let block = self.chunks.get(&pos.chunk()).map(|c| c.block_at_pos(pos));
                     let _ = reply.send(block);
                 }
-                RegionCommand::SetBlock { pos, state, reply } => {
-                    self.set_block(pos, state, reply)
-                }
+                RegionCommand::SetBlock { pos, state, reply } => self.set_block(pos, state, reply),
                 RegionCommand::Snapshot { reply } => {
                     let _ = reply.send(self.applied);
                 }
@@ -117,7 +104,12 @@ impl RegionActor {
                 reply,
             },
         );
-        storage_jobs::save_chunk(id, self.storage.clone().unwrap(), chunk, self.outbox.clone());
+        storage_jobs::save_chunk(
+            id,
+            self.storage.clone().unwrap(),
+            chunk,
+            self.outbox.clone(),
+        );
     }
 
     fn spawn_chunks(
@@ -158,7 +150,9 @@ impl RegionActor {
                 chunks.into_iter().for_each(|c| {
                     self.chunks.insert(c.pos, c);
                 });
-                let _ = pending.reply.send(Ok(self.collect_chunks(&pending.positions)));
+                let _ = pending
+                    .reply
+                    .send(Ok(self.collect_chunks(&pending.positions)));
             }
             Err(error) => _ = pending.reply.send(Err(error)),
         }

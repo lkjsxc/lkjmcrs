@@ -16,9 +16,11 @@ pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut client = PlayClient::connect(host, "ChunkStream").await?;
     live_play::send_position_look_at(&mut client.stream, 16.5, 80.0, 0.5, 0.0, 0.0).await?;
     expect_cache_center(&mut client.stream, 1, 0).await?;
+    expect_unload_column(&mut client.stream, -2).await?;
     expect_column_batch(&mut client.stream, 3).await?;
     live_play::send_position_look_at(&mut client.stream, 44.5, 80.0, 0.5, 0.0, 0.0).await?;
     expect_cache_center(&mut client.stream, 2, 0).await?;
+    expect_unload_column(&mut client.stream, -1).await?;
     expect_column_batch(&mut client.stream, 4).await?;
     place_in_streamed_chunk(&mut client.stream).await
 }
@@ -37,6 +39,24 @@ async fn expect_cache_center(
         return Err(Box::new(ProbeError::Phase("stream cache center payload")));
     }
     Ok(())
+}
+
+async fn expect_unload_column(
+    stream: &mut TcpStream,
+    expected_x: i32,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut positions = HashSet::new();
+    for _ in 0..5 {
+        let packet = block_mutation::read_next_non_time(stream, "stream unload").await?;
+        if packet.id != ids::play::UNLOAD_CHUNK {
+            return Err(Box::new(ProbeError::Phase("stream unload id")));
+        }
+        let mut cursor = Cursor::new(packet.data);
+        let z = codec::read_i32(&mut cursor)?;
+        let x = codec::read_i32(&mut cursor)?;
+        positions.insert((x, z));
+    }
+    validate_new_column(positions, expected_x)
 }
 
 async fn expect_column_batch(

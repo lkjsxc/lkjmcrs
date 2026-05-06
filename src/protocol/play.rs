@@ -47,6 +47,12 @@ impl Bootstrap {
         }
     }
 
+    pub fn with_distances(mut self, view_distance: i32, simulation_distance: i32) -> Self {
+        self.view_distance = view_distance;
+        self.simulation_distance = simulation_distance;
+        self
+    }
+
     pub fn with_player_state(
         mut self,
         position: (f64, f64, f64),

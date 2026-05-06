@@ -32,6 +32,7 @@ pub mod play {
     pub const CHUNK_BATCH_START: i32 = 0x0c;
     pub const DECLARE_COMMANDS: i32 = 0x10;
     pub const KICK_DISCONNECT: i32 = 0x20;
+    pub const UNLOAD_CHUNK: i32 = 0x25;
     pub const GAME_STATE_CHANGE: i32 = 0x26;
     pub const KEEPALIVE: i32 = 0x2b;
     pub const LEVEL_CHUNK_WITH_LIGHT: i32 = 0x2c;
@@ -95,6 +96,7 @@ mod tests {
         assert_eq!(play::CHUNK_BATCH_START, 0x0c);
         assert_eq!(play::DECLARE_COMMANDS, 0x10);
         assert_eq!(play::KICK_DISCONNECT, 0x20);
+        assert_eq!(play::UNLOAD_CHUNK, 0x25);
         assert_eq!(play::GAME_STATE_CHANGE, 0x26);
         assert_eq!(play::KEEPALIVE, 0x2b);
         assert_eq!(play::LEVEL_CHUNK_WITH_LIGHT, 0x2c);

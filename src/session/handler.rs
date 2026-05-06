@@ -132,6 +132,8 @@ async fn handle_login(
     let play_result = handle_play(
         &mut stream,
         context.config.max_players,
+        context.config.view_distance,
+        context.config.simulation_distance,
         context.region.clone(),
         context.sessions.clone(),
         profile,

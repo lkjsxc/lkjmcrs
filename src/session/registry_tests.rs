@@ -79,6 +79,26 @@ async fn newly_subscribed_chunks_are_fanout_eligible() {
     );
 }
 
+#[tokio::test]
+async fn unsubscribe_removes_block_update_fanout_eligibility() {
+    let registry = SessionRegistry::default();
+    let mover = profile("Mover");
+    let (id, mut rx) = registry.register(&mover).await;
+    registry.subscribe(id, [ChunkPos::new(0, 0)]).await;
+    registry.unsubscribe(id, [ChunkPos::new(0, 0)]).await;
+
+    let sent = registry
+        .broadcast_block_update(
+            ChunkPos::new(0, 0),
+            BlockPos::new(0, 80, 0),
+            BlockState::Stone,
+        )
+        .await;
+
+    assert_eq!(sent, 0);
+    assert!(rx.try_recv().is_err());
+}
+
 fn profile(name: &str) -> PlayerProfile {
     PlayerProfile::new(Uuid::from_u128(name.len() as u128), name)
 }

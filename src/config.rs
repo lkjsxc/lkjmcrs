@@ -11,6 +11,8 @@ pub struct Config {
     pub data_dir: PathBuf,
     pub default_game_mode: GameMode,
     pub survival_starter_stone: u8,
+    pub view_distance: i32,
+    pub simulation_distance: i32,
     pub ops: Vec<String>,
 }
 
@@ -30,6 +32,10 @@ pub enum ConfigError {
     StarterStone(String),
     #[error("LKJMCRS_SURVIVAL_STARTER_STONE must be between 0 and 64")]
     StarterStoneRange,
+    #[error("invalid {0}: {1}")]
+    Distance(&'static str, String),
+    #[error("{0} must be between 2 and 8")]
+    DistanceRange(&'static str),
 }
 
 impl Config {
@@ -43,6 +49,14 @@ impl Config {
             parse_game_mode(&env_value("LKJMCRS_DEFAULT_GAME_MODE", "creative"))?;
         let survival_starter_stone =
             parse_starter_stone(&env_value("LKJMCRS_SURVIVAL_STARTER_STONE", "0"))?;
+        let view_distance = parse_distance(
+            "LKJMCRS_VIEW_DISTANCE",
+            &env_value("LKJMCRS_VIEW_DISTANCE", "2"),
+        )?;
+        let simulation_distance = parse_distance(
+            "LKJMCRS_SIMULATION_DISTANCE",
+            &env_value("LKJMCRS_SIMULATION_DISTANCE", &view_distance.to_string()),
+        )?;
         let ops = parse_ops(&env_value("LKJMCRS_OPS", ""));
 
         if online_mode {
@@ -57,6 +71,8 @@ impl Config {
             data_dir,
             default_game_mode,
             survival_starter_stone,
+            view_distance,
+            simulation_distance,
             ops,
         })
     }
@@ -93,6 +109,17 @@ fn parse_starter_stone(value: &str) -> Result<u8, ConfigError> {
     }
 }
 
+fn parse_distance(key: &'static str, value: &str) -> Result<i32, ConfigError> {
+    let parsed: i32 = value
+        .parse()
+        .map_err(|_| ConfigError::Distance(key, value.to_string()))?;
+    if (2..=8).contains(&parsed) {
+        Ok(parsed)
+    } else {
+        Err(ConfigError::DistanceRange(key))
+    }
+}
+
 fn parse_ops(value: &str) -> Vec<String> {
     value
         .split(',')
@@ -104,8 +131,8 @@ fn parse_ops(value: &str) -> Vec<String> {
 
 #[cfg(test)]
 mod tests {
-    use super::parse_ops;
     use super::{parse_bool, parse_game_mode, parse_starter_stone};
+    use super::{parse_distance, parse_ops};
     use crate::player::GameMode;
 
     #[test]
@@ -121,6 +148,17 @@ mod tests {
         assert!(parse_game_mode("adventure").is_err());
         assert_eq!(parse_starter_stone("64").unwrap(), 64);
         assert!(parse_starter_stone("65").is_err());
+    }
+
+    #[test]
+    fn parses_chunk_distances() {
+        assert_eq!(parse_distance("LKJMCRS_VIEW_DISTANCE", "2").unwrap(), 2);
+        assert_eq!(
+            parse_distance("LKJMCRS_SIMULATION_DISTANCE", "8").unwrap(),
+            8
+        );
+        assert!(parse_distance("LKJMCRS_VIEW_DISTANCE", "1").is_err());
+        assert!(parse_distance("LKJMCRS_VIEW_DISTANCE", "far").is_err());
     }
 
     #[test]

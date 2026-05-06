@@ -1,6 +1,6 @@
-use crate::protocol::chunk::{SECTION_COUNT, encode_level_chunk_with_light};
+use crate::protocol::chunk::{SECTION_COUNT, encode_level_chunk_with_light, encode_unload_chunk};
 use crate::protocol::chunk_palette::fixed_long_count;
-use crate::protocol::{chunk, codec};
+use crate::protocol::{chunk, codec, ids};
 use crate::world::{ChunkPos, ChunkSnapshot};
 use std::io::Cursor;
 
@@ -62,6 +62,19 @@ fn level_chunk_and_update_light_packets_remain_separate() {
     let chunk = ChunkSnapshot::flat(ChunkPos::new(0, 0));
     assert!(encode_level_chunk_with_light(&chunk).len() > 4096);
     assert!(chunk::encode_update_light(&chunk).len() > 4096);
+}
+
+#[test]
+fn unload_chunk_payload_is_z_then_x() {
+    assert_eq!(ids::play::UNLOAD_CHUNK, 0x25);
+    assert_eq!(
+        encode_unload_chunk(ChunkPos::new(7, -3)),
+        (-3_i32)
+            .to_be_bytes()
+            .into_iter()
+            .chain(7_i32.to_be_bytes())
+            .collect::<Vec<_>>()
+    );
 }
 
 fn parse_level_chunk_sections(packet: Vec<u8>) -> Vec<SectionShape> {

@@ -1,5 +1,5 @@
-use crate::protocol::ids;
 use crate::protocol::play;
+use crate::protocol::{chunk, ids};
 use crate::scheduler::RegionHandle;
 use crate::session::SessionState;
 use crate::session::bootstrap::send_chunk_batch;
@@ -14,7 +14,7 @@ use tokio::io::AsyncWrite;
 pub struct ChunkStream {
     center: ChunkPos,
     radius: i32,
-    subscribed: HashSet<ChunkPos>,
+    visible: HashSet<ChunkPos>,
 }
 
 impl ChunkStream {
@@ -22,7 +22,7 @@ impl ChunkStream {
         Self {
             center,
             radius,
-            subscribed: visible_chunks(center, radius).into_iter().collect(),
+            visible: visible_chunks(center, radius).into_iter().collect(),
         }
     }
 
@@ -38,22 +38,35 @@ impl ChunkStream {
         W: AsyncWrite + Unpin,
     {
         let next_center = chunk_center(x, z);
-        let Some(newly_visible) = self.advance(next_center) else {
+        let Some(diff) = self.advance(next_center) else {
             return Ok(());
         };
-        let chunks = load_newly_visible(
-            context.region,
-            phase,
-            next_center,
-            self.radius,
-            &newly_visible,
-        )
-        .await?;
         write_packet(
             writer,
             phase,
             ids::play::CHUNK_CACHE_CENTER,
             &play::encode_chunk_cache_center(next_center.x, next_center.z),
+        )
+        .await?;
+        for pos in &diff.leaving {
+            write_packet(
+                writer,
+                phase,
+                ids::play::UNLOAD_CHUNK,
+                &chunk::encode_unload_chunk(*pos),
+            )
+            .await?;
+        }
+        context
+            .sessions
+            .unsubscribe(context.session_id, diff.leaving.iter().copied())
+            .await;
+        let chunks = load_newly_visible(
+            context.region,
+            phase,
+            next_center,
+            self.radius,
+            &diff.entering,
         )
         .await?;
         if !chunks.is_empty() {
@@ -66,17 +79,32 @@ impl ChunkStream {
         Ok(())
     }
 
-    fn advance(&mut self, next_center: ChunkPos) -> Option<HashSet<ChunkPos>> {
+    fn advance(&mut self, next_center: ChunkPos) -> Option<VisibleDiff> {
         if next_center == self.center {
             return None;
         }
+        let next = visible_chunks(next_center, self.radius);
+        let next_set: HashSet<_> = next.iter().copied().collect();
+        let previous = std::mem::replace(&mut self.visible, next_set.clone());
         self.center = next_center;
-        let newly_visible = visible_chunks(next_center, self.radius)
+        let mut entering = next
             .into_iter()
-            .filter(|pos| self.subscribed.insert(*pos))
-            .collect();
-        Some(newly_visible)
+            .filter(|pos| !previous.contains(pos))
+            .collect::<Vec<_>>();
+        let mut leaving = previous
+            .into_iter()
+            .filter(|pos| !next_set.contains(pos))
+            .collect::<Vec<_>>();
+        entering.sort_by_key(|pos| (pos.x, pos.z));
+        leaving.sort_by_key(|pos| (pos.x, pos.z));
+        Some(VisibleDiff { entering, leaving })
     }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
+struct VisibleDiff {
+    entering: Vec<ChunkPos>,
+    leaving: Vec<ChunkPos>,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -106,8 +134,9 @@ async fn load_newly_visible(
     phase: SessionState,
     center: ChunkPos,
     radius: i32,
-    newly_visible: &HashSet<ChunkPos>,
+    newly_visible: &[ChunkPos],
 ) -> Result<Vec<ChunkSnapshot>, ConnectionError> {
+    let newly_visible: HashSet<_> = newly_visible.iter().copied().collect();
     region
         .spawn_chunks_around(center, radius)
         .await
@@ -141,9 +170,11 @@ mod tests {
     #[test]
     fn visible_diff_from_origin_to_east_is_new_column() {
         let mut stream = ChunkStream::new(ChunkPos::new(0, 0), 2);
-        let new = stream.advance(ChunkPos::new(1, 0)).unwrap();
-        let expected: HashSet<_> = (-2..=2).map(|z| ChunkPos::new(3, z)).collect();
-        assert_eq!(new, expected);
+        let diff = stream.advance(ChunkPos::new(1, 0)).unwrap();
+        let entering: HashSet<_> = diff.entering.into_iter().collect();
+        let leaving: HashSet<_> = diff.leaving.into_iter().collect();
+        assert_eq!(entering, (-2..=2).map(|z| ChunkPos::new(3, z)).collect());
+        assert_eq!(leaving, (-2..=2).map(|z| ChunkPos::new(-2, z)).collect());
     }
 
     #[test]

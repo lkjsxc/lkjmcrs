@@ -1,7 +1,7 @@
 use crate::protocol::chunk_palette;
 use crate::protocol::codec;
 use crate::world::blocks::MIN_Y;
-use crate::world::{BlockState, ChunkSnapshot};
+use crate::world::{BlockState, ChunkPos, ChunkSnapshot};
 
 pub const SECTION_COUNT: usize = 24;
 const LIGHT_SECTION_COUNT: usize = SECTION_COUNT + 2;
@@ -37,6 +37,13 @@ pub fn encode_update_light(chunk: &ChunkSnapshot) -> Vec<u8> {
 pub fn encode_chunk_batch_finished(size: usize) -> Vec<u8> {
     let mut out = Vec::new();
     codec::write_var_i32(&mut out, size as i32);
+    out
+}
+
+pub fn encode_unload_chunk(pos: ChunkPos) -> Vec<u8> {
+    let mut out = Vec::new();
+    codec::write_i32(&mut out, pos.z);
+    codec::write_i32(&mut out, pos.x);
     out
 }
 
