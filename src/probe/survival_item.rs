@@ -101,12 +101,12 @@ async fn expect_empty_selected_slot(
 }
 
 async fn place_persisted_dirt(client: &mut PlayClient) -> Result<(), Box<dyn std::error::Error>> {
-    let base = BlockPos::new(3, 79, 0);
+    let base = BlockPos::new(2, 79, 0);
     block_mutation::send_use_item_on_at(&mut client.stream, 37, base).await?;
     expect_update_at(
         &mut client.stream,
         37,
-        BlockPos::new(3, 80, 0),
+        BlockPos::new(2, 80, 0),
         10,
         "persisted dirt",
     )
