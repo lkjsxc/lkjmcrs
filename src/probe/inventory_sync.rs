@@ -38,7 +38,10 @@ async fn assert_invalid_held_slot_resends_authority(
     let mut saw_held = false;
     let mut saw_chat = false;
     for _ in 0..20 {
-        let packet = block_mutation::read_next_non_time(stream, "invalid held slot").await?;
+        let packet = survival_expect::read_next_live_packet(stream).await?;
+        if packet.id == ids::play::SET_PLAYER_INVENTORY {
+            continue;
+        }
         match packet.id {
             ids::play::HELD_ITEM_SLOT => {
                 if inventory_packets::decode_held_item_slot(packet.data)? != 0 {
