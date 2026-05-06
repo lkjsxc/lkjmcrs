@@ -34,14 +34,15 @@ async fn confirm_ordered_packet_processing(
     let mut payload = Vec::new();
     codec::write_string(&mut payload, "homes");
     codec::write_packet(stream, ids::play::SERVERBOUND_CHAT_COMMAND, &payload).await?;
-    let packet = block_mutation::read_next_non_time(stream, "profile barrier").await?;
-    if packet.id == ids::play::SYSTEM_CHAT
-        && String::from_utf8_lossy(&packet.data).contains("Homes")
-    {
-        Ok(())
-    } else {
-        Err(Box::new(ProbeError::Phase("profile barrier")))
+    for _ in 0..20 {
+        let packet = block_mutation::read_next_non_time(stream, "profile barrier").await?;
+        if packet.id == ids::play::SYSTEM_CHAT
+            && String::from_utf8_lossy(&packet.data).contains("Homes")
+        {
+            return Ok(());
+        }
     }
+    Err(Box::new(ProbeError::Phase("profile barrier")))
 }
 
 fn matches_saved_position(client: &PlayClient) -> bool {
