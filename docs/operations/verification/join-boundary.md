@@ -32,19 +32,14 @@ smoke coverage:
 - periodic play keepalives,
 - advertised chunk radius versus sent chunk count,
 - level-chunk readiness game-state event `13`.
+- oversized dropped item `add_entity` packet tail.
 
 ## Active Manual Boundary
 
-The active boundary is the user-pasted
-`2026-05-07 03:47:22` Fabric/modded client report in
-[client-reports/add-entity-tail.md](client-reports/add-entity-tail.md):
-
-- Minecraft Java Edition `1.21.11`,
-- protocol state: play,
-- clientbound packet decoded by the client:
-  `play/clientbound/minecraft:add_entity`,
-- root cause: the dropped item spawn packet used an oversized protocol `774`
-  tail and left `5` extra bytes after decoding.
+No active disconnect boundary is known after the dropped item `add_entity` tail
+fix and focused live item-entity verification. The next active boundary is the
+first newer stock Minecraft Java Edition `1.21.11` disconnect or gameplay
+blocker recorded against implementation commit `e936794` or later.
 
 ## Evidence Rules
 

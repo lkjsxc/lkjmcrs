@@ -12,8 +12,8 @@ Use this subtree for manual Minecraft client disconnect evidence.
 
 - Reports listed here are historical unless
   [../join-boundary.md](../join-boundary.md) names one as active.
-- [add-entity-tail.md](add-entity-tail.md): active play disconnect caused by
-  an oversized `add_entity` tail in the dropped item spawn packet.
+- [add-entity-tail.md](add-entity-tail.md): fixed play disconnect caused by an
+  oversized `add_entity` tail in the dropped item spawn packet.
 - [game-state-packet-id.md](game-state-packet-id.md): fixed vanilla disconnect
   caused by sending game-state event `13` on chat packet ID `0x21`.
 - [registry-variant-timeline.md](registry-variant-timeline.md): fixed

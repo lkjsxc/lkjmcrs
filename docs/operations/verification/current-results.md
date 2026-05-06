@@ -1,5 +1,31 @@
 # Current Results
 
+## 2026-05-07 Add Entity Tail Fix
+
+Implementation tested: `e936794`, dropped item `add_entity` tail fix.
+
+Commands:
+
+- `docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --build --quiet-build --quiet-pull -T verify`
+- `docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml down -v`
+- `docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml up -d --build --quiet-build --quiet-pull survival-server`
+- `docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T survival-item`
+- `docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T inventory-sync`
+- `docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T item-pickup`
+- `docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml down -v`
+
+Result:
+
+- `verify`: pass with compact output:
+  `verify fmt ... ok`, `verify clippy ... ok`, `verify test ... ok`,
+  `verify docs-topology ... ok`, `verify line-limits ... ok`, `verify pass`.
+- initial `down -v`: pass.
+- `survival-server` startup: pass.
+- `survival-item`: pass, `survival-item probe ok`.
+- `inventory-sync`: pass, `inventory-sync probe ok`.
+- `item-pickup`: pass, `item-pickup probe ok`.
+- final `down -v`: pass.
+
 ## 2026-05-07 Registry Contract Verification
 
 Implementation tested: `6141465`, registry contract docs cleanup plus live
