@@ -127,3 +127,28 @@ Command:
 Result:
 
 - `verify`: pass with compact output.
+
+## 2026-05-07 Full Quiet Compose Pipeline
+
+Command owner:
+
+- [compose-pipeline.md](compose-pipeline.md)
+
+Result:
+
+- initial `down -v`: pass.
+- `verify`: pass with compact output.
+- `server` startup: pass.
+- `smoke`: pass.
+- `profile-reconnect`: pass.
+- `chunk-stream`: pass.
+- `persist-place`: pass.
+- server restart: pass.
+- `persist-check`: pass.
+- `survival-server` startup: pass.
+- `survival-item`: pass.
+- `inventory-sync`: pass.
+- `item-pickup`: pass.
+- `smp-server` startup: pass.
+- `smp-commands`: pass.
+- final `down -v`: pass.
