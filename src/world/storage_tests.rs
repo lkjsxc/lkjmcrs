@@ -65,6 +65,24 @@ fn reset_to_base_deletes_override_rows() {
 }
 
 #[test]
+fn cloned_storage_serializes_concurrent_saves() {
+    let root = temp_root();
+    let storage = WorldStorage::new(&root);
+    let first = storage.clone();
+    let second = storage.clone();
+    let first_chunk = changed_chunk(ChunkPos::new(0, 0), BlockPos::new(0, 80, 0));
+    let second_chunk = changed_chunk(ChunkPos::new(1, 0), BlockPos::new(16, 80, 0));
+
+    let left = std::thread::spawn(move || first.save_chunk(&first_chunk));
+    let right = std::thread::spawn(move || second.save_chunk(&second_chunk));
+
+    left.join().unwrap().unwrap();
+    right.join().unwrap().unwrap();
+    assert_eq!(override_count(&root), 2);
+    cleanup(root);
+}
+
+#[test]
 fn rejects_unsupported_schema() {
     let root = temp_root();
     fs::create_dir_all(&root).unwrap();
@@ -77,6 +95,12 @@ fn rejects_unsupported_schema() {
         .to_string();
     assert!(error.contains("schema version 2"));
     cleanup(root);
+}
+
+fn changed_chunk(pos: ChunkPos, block: BlockPos) -> ChunkSnapshot {
+    let mut chunk = ChunkSnapshot::flat(pos);
+    chunk.set_block(block, BlockState::Stone);
+    chunk
 }
 
 fn override_count(root: &Path) -> i64 {

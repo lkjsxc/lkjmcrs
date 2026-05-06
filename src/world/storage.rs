@@ -4,6 +4,7 @@ use crate::world::{ChunkPos, ChunkSnapshot};
 use rusqlite::{Connection, params};
 use std::fs;
 use std::path::PathBuf;
+use std::sync::{Arc, Mutex};
 #[cfg(test)]
 use std::time::Duration;
 use thiserror::Error;
@@ -13,6 +14,7 @@ const BUSY_TIMEOUT_MS: u64 = 5_000;
 #[derive(Debug, Clone)]
 pub struct WorldStorage {
     root: PathBuf,
+    write_lock: Arc<Mutex<()>>,
     #[cfg(test)]
     test: TestStorage,
 }
@@ -42,6 +44,7 @@ impl WorldStorage {
     pub fn new(root: impl Into<PathBuf>) -> Self {
         Self {
             root: root.into(),
+            write_lock: Arc::new(Mutex::new(())),
             #[cfg(test)]
             test: TestStorage::default(),
         }
@@ -51,6 +54,7 @@ impl WorldStorage {
     pub fn with_delay_for_tests(root: impl Into<PathBuf>, delay: Duration) -> Self {
         Self {
             root: root.into(),
+            write_lock: Arc::new(Mutex::new(())),
             test: TestStorage {
                 delay: Some(delay),
                 fail_saves: false,
@@ -62,6 +66,7 @@ impl WorldStorage {
     pub fn with_save_failure_for_tests(root: impl Into<PathBuf>) -> Self {
         Self {
             root: root.into(),
+            write_lock: Arc::new(Mutex::new(())),
             test: TestStorage {
                 delay: None,
                 fail_saves: true,
@@ -113,6 +118,10 @@ impl WorldStorage {
     pub fn save_chunk(&self, chunk: &ChunkSnapshot) -> Result<(), WorldStorageError> {
         self.pause_for_test();
         self.fail_save_for_test()?;
+        let _guard = self
+            .write_lock
+            .lock()
+            .map_err(|_| std::io::Error::other("world storage write lock poisoned"))?;
         let mut connection = self.connection()?;
         let tx = connection.transaction()?;
         tx.execute(
@@ -141,8 +150,8 @@ impl WorldStorage {
     fn connection(&self) -> Result<Connection, WorldStorageError> {
         fs::create_dir_all(&self.root)?;
         let connection = Connection::open(self.root.join("world.sqlite3"))?;
-        connection.pragma_update(None, "journal_mode", "WAL")?;
         connection.busy_timeout(std::time::Duration::from_millis(BUSY_TIMEOUT_MS))?;
+        connection.pragma_update(None, "journal_mode", "WAL")?;
         ensure_schema(&connection)?;
         Ok(connection)
     }

@@ -156,3 +156,30 @@ pub(crate) fn block_state_id(state: BlockState) -> i32 {
         BlockState::GrassBlock => chunk::GRASS_BLOCK_ID,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::WireChunk;
+    use crate::protocol::{chunk, codec};
+    use crate::world::{ChunkPos, ChunkSnapshot};
+    use std::io::Cursor;
+
+    #[test]
+    fn world_flat_chunk_wire_shape_matches_probe_contract() {
+        let snapshot = ChunkSnapshot::flat(ChunkPos::new(0, 0));
+        let packet = chunk::encode_level_chunk_with_light(&WireChunk(&snapshot));
+        let mut cursor = Cursor::new(packet);
+        cursor.set_position(8);
+        skip_heightmaps(&mut cursor);
+        assert_eq!(codec::read_var_i32(&mut cursor).unwrap(), 6294);
+    }
+
+    fn skip_heightmaps(cursor: &mut Cursor<Vec<u8>>) {
+        let count = codec::read_var_i32(cursor).unwrap();
+        for _ in 0..count {
+            let _kind = codec::read_var_i32(cursor).unwrap();
+            let longs = codec::read_var_i32(cursor).unwrap();
+            cursor.set_position(cursor.position() + longs as u64 * 8);
+        }
+    }
+}
