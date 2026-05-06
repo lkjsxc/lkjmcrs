@@ -26,9 +26,11 @@ pub mod play;
 #[cfg(test)]
 mod play_tests;
 pub mod registry;
+pub mod registry_contract;
 mod registry_damage;
 #[cfg(test)]
 mod registry_damage_tests;
+pub mod registry_decode;
 #[cfg(test)]
 mod registry_tests;
 pub mod registry_values;

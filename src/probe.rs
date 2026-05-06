@@ -11,6 +11,7 @@ mod multiplayer_mutation;
 mod persistence;
 mod play_client;
 mod profile_reconnect;
+mod registry_assert;
 mod smp_commands;
 mod survival_expect;
 mod survival_item;

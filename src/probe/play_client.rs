@@ -4,6 +4,7 @@ use crate::probe::inventory_packets;
 use crate::probe::inventory_packets::PlayerInventorySlot;
 use crate::probe::live_play;
 use crate::probe::persistence;
+use crate::probe::registry_assert;
 use crate::probe::validation::{
     LoginPacket, PositionPacket, decode_login_packet, decode_position_packet,
     validate_chunk_batch_finished, validate_chunk_radius, validate_game_state_change,
@@ -84,10 +85,7 @@ async fn complete_configuration(stream: &mut TcpStream) -> Result<(), Box<dyn st
         &configuration::encode_select_known_packs(),
     )
     .await?;
-    for _ in 0..configuration::registry_packet_count() {
-        super::expect(stream, ids::config::REGISTRY_DATA, "registry data").await?;
-    }
-    super::expect(stream, ids::config::TAGS, "configuration tags").await?;
+    registry_assert::expect_configuration_registries(stream).await?;
     let features = super::expect(stream, ids::config::FEATURE_FLAGS, "feature flags").await?;
     if features.data != configuration::encode_enabled_features() {
         return Err(Box::new(ProbeError::Phase("feature flags payload")));
