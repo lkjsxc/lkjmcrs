@@ -62,7 +62,7 @@ async fn assert_invalid_held_slot_resends_authority(
 async fn break_grass_adds_dirt(stream: &mut TcpStream) -> Result<(), Box<dyn std::error::Error>> {
     block_mutation::send_start_destroy_at(stream, 60, BlockPos::new(0, 79, 0)).await?;
     expect_ack(stream, 60).await?;
-    expect_update(stream, 0).await?;
+    expect_update_at(stream, BlockPos::new(0, 79, 0), 0).await?;
     let slot = item_entities::collect_drop(stream, 28, "inventory dirt pickup").await?;
     expect_slot(&slot, 0, 1, Some(28), "breaking inventory delta")
 }
@@ -72,7 +72,7 @@ async fn place_dirt_consumes_selected_stack(
 ) -> Result<(), Box<dyn std::error::Error>> {
     block_mutation::send_use_item_on_at(stream, 61, BlockPos::new(0, 79, 0)).await?;
     expect_ack(stream, 61).await?;
-    expect_update(stream, 10).await?;
+    expect_update_at(stream, BlockPos::new(0, 80, 0), 10).await?;
     let slot = expect_inventory_delta(stream).await?;
     expect_slot(&slot, 0, 0, None, "placement inventory delta")
 }
@@ -98,15 +98,16 @@ async fn expect_inventory_delta(
     inventory_packets::decode_player_inventory_slot(packet.data)
 }
 
-async fn expect_update(
+async fn expect_update_at(
     stream: &mut TcpStream,
+    pos: BlockPos,
     block_state: i32,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let update = block_mutation::read_next_non_time(stream, "inventory update").await?;
     if update.id != ids::play::BLOCK_UPDATE {
         return Err(Box::new(ProbeError::Phase("inventory update id")));
     }
-    block_mutation::validate_update(update.data, block_state)
+    block_mutation::validate_update_at(update.data, pos, block_state)
 }
 
 fn expect_slot(
