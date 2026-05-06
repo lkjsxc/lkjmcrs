@@ -20,7 +20,7 @@ pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     break_dirt_for_persistence(&mut first).await?;
     first.stream.shutdown().await?;
     drop(first);
-    sleep(Duration::from_millis(500)).await;
+    sleep(Duration::from_secs(2)).await;
 
     let mut second = PlayClient::connect_with_block(host, NAME, Some(0)).await?;
     place_persisted_dirt(&mut second).await?;

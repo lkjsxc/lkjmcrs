@@ -56,11 +56,18 @@ pub(super) fn validate_update_state(
     phase: &'static str,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut cursor = Cursor::new(data);
-    if codec::read_position(&mut cursor)? != (pos.x, pos.y, pos.z) {
-        return Err(Box::new(ProbeError::Phase(phase)));
+    let actual_pos = codec::read_position(&mut cursor)?;
+    if actual_pos != (pos.x, pos.y, pos.z) {
+        return Err(Box::new(std::io::Error::other(format!(
+            "{phase}: expected position {},{},{} got {},{},{}",
+            pos.x, pos.y, pos.z, actual_pos.0, actual_pos.1, actual_pos.2
+        ))));
     }
-    if codec::read_var_i32(&mut cursor)? != state {
-        return Err(Box::new(ProbeError::Phase(phase)));
+    let actual_state = codec::read_var_i32(&mut cursor)?;
+    if actual_state != state {
+        return Err(Box::new(std::io::Error::other(format!(
+            "{phase}: expected state {state} got {actual_state}"
+        ))));
     }
     if cursor.position() != cursor.get_ref().len() as u64 {
         return Err(Box::new(ProbeError::Phase(phase)));
