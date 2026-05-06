@@ -118,8 +118,8 @@ Protocol `774` slot encoding for this slice:
 The dropped item slice uses these protocol `774` clientbound packets:
 
 - `0x01 spawn_entity`: entity ID VarInt, UUID, type VarInt `71`, position
-  `f64 x/y/z`, zero velocity vector, zero pitch/yaw/head pitch, object data
-  VarInt `0`.
+  `f64 x/y/z`, zero `LP_VECTOR3` velocity byte `0x00`, zero pitch/yaw/headYaw
+  bytes, object data VarInt `0`.
 - `0x61 entity_metadata`: entity ID VarInt plus metadata entry index `8`, type
   `7 item_stack`, encoded `Slot`, and terminator byte `0xff`.
 - `0x7a collect`: collected entity ID, collector entity ID, and item count.

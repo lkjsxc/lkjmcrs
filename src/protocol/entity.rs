@@ -14,9 +14,7 @@ pub fn encode_spawn_entity(entity: &DroppedItemEntity) -> Vec<u8> {
     codec::write_f64(&mut out, entity.x);
     codec::write_f64(&mut out, entity.y);
     codec::write_f64(&mut out, entity.z);
-    codec::write_i16(&mut out, 0);
-    codec::write_i16(&mut out, 0);
-    codec::write_i16(&mut out, 0);
+    codec::write_u8(&mut out, 0);
     codec::write_i8(&mut out, 0);
     codec::write_i8(&mut out, 0);
     codec::write_i8(&mut out, 0);
@@ -59,8 +57,29 @@ pub fn encode_destroy(entity_ids: &[i32]) -> Vec<u8> {
 
 #[cfg(test)]
 mod tests {
-    use super::{encode_collect, encode_destroy, encode_item_metadata};
+    use super::{ITEM_ENTITY_TYPE_ID, encode_collect, encode_destroy, encode_item_metadata};
+    use crate::protocol::codec;
     use crate::world::{BlockPos, DroppedItemEntity};
+    use std::io::{Cursor, Read};
+
+    #[test]
+    fn spawn_entity_uses_protocol_774_zero_velocity_tail() {
+        let entity = DroppedItemEntity::new(1000, BlockPos::new(1, 79, 0), "minecraft:dirt", 1);
+        let payload = super::encode_spawn_entity(&entity);
+        let mut cursor = Cursor::new(payload);
+        assert_eq!(codec::read_var_i32(&mut cursor).unwrap(), 1000);
+        let _uuid = codec::read_uuid(&mut cursor).unwrap();
+        assert_eq!(
+            codec::read_var_i32(&mut cursor).unwrap(),
+            ITEM_ENTITY_TYPE_ID
+        );
+        for _ in 0..3 {
+            let _ = codec::read_f64(&mut cursor).unwrap();
+        }
+        let mut tail = Vec::new();
+        cursor.read_to_end(&mut tail).unwrap();
+        assert_eq!(tail, [0, 0, 0, 0, 0]);
+    }
 
     #[test]
     fn item_metadata_uses_slot_payload_and_terminator() {

@@ -47,14 +47,17 @@ async fn expect_spawn(
     for _ in 0..3 {
         let _ = codec::read_f64(&mut cursor)?;
     }
-    for _ in 0..3 {
-        let _ = codec::read_i16(&mut cursor)?;
+    if codec::read_u8(&mut cursor)? != 0 {
+        return Err(Box::new(ProbeError::Phase("item zero velocity")));
     }
     for _ in 0..3 {
         let _ = codec::read_u8(&mut cursor)?;
     }
     if codec::read_var_i32(&mut cursor)? != 0 {
         return Err(Box::new(ProbeError::Phase("item object data")));
+    }
+    if cursor.position() != cursor.get_ref().len() as u64 {
+        return Err(Box::new(ProbeError::Phase("item spawn trailing bytes")));
     }
     Ok(entity_id)
 }
