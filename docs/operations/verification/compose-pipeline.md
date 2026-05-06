@@ -15,6 +15,7 @@ docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm persi
 docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build survival-server
 docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm survival-item
 docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm inventory-sync
+docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm item-pickup
 docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build smp-server
 docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm smp-commands
 docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
@@ -31,11 +32,13 @@ docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
 7. `persist-check` verifies that mutation after restart.
 8. `survival-item` verifies survival profile defaults and item persistence.
 9. `inventory-sync` verifies client-visible hotbar and player inventory sync.
-10. `smp-commands` verifies offline chat, permissions, travel commands, and
+10. `item-pickup` verifies dropped item entity spawn, pickup, and inventory
+    delta sync.
+11. `smp-commands` verifies offline chat, permissions, travel commands, and
     kick.
-11. Non-zero from any step blocks acceptance.
-12. Initial `down -v` removes stale named volumes before stateful probes.
-13. Final `down -v` removes disposable compose state.
+12. Non-zero from any step blocks acceptance.
+13. Initial `down -v` removes stale named volumes before stateful probes.
+14. Final `down -v` removes disposable compose state.
 
 ## Stop Rule
 

@@ -26,7 +26,7 @@ subscription includes the changed chunk.
 - Backpressure policy is fail-closed for now: a full outbound channel may drop
   that session from the registry rather than blocking region progress.
 
-## Block Mutation Fanout
+## Fanout
 
 1. A session decodes a vanilla-shaped block interaction packet.
 2. The session submits the mutation to the owning region actor.
@@ -34,6 +34,8 @@ subscription includes the changed chunk.
 4. The initiating session receives the prediction acknowledgement.
 5. Accepted mutations in loaded chunks broadcast a single-block update to every
    session subscribed to the changed chunk, including the initiator.
+6. Dropped item entity spawn, collect, and destroy fan out to sessions
+   subscribed to the entity chunk.
 
 Invalid, immutable, or unloaded mutations must not broadcast to observers. The
 initiator may still receive reconciliation so its predicted local state matches
@@ -43,6 +45,6 @@ the region-owned state.
 
 - Region actors remain the authority for final block state.
 - Sessions never mutate chunk state directly.
-- Observer fanout sends block updates only; it does not resend whole chunks.
+- Observer fanout sends small deltas; it does not resend whole chunks.
 - The multiplayer and chunk-stream smoke probes own the acceptance evidence for
   this contract.

@@ -10,5 +10,5 @@ Use this subtree for mandatory quality gates.
 
 ## Child Index
 
-- [line-limits.md](line-limits.md): docs and source file limits.
+- [gate-line-checks.md](gate-line-checks.md): compose line-check gate.
 - [gates.md](gates.md): required checks for commits.

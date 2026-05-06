@@ -119,3 +119,18 @@ Protocol `774` slot encoding for this slice:
 - Empty slot writes VarInt `itemCount = 0`.
 - Non-empty slot writes VarInt `itemCount`, VarInt `itemId`, VarInt
   `addedComponentCount = 0`, and VarInt `removedComponentCount = 0`.
+
+## Item Entities
+
+The dropped item slice uses these protocol `774` clientbound packets:
+
+- `0x01 spawn_entity`: entity ID VarInt, UUID, type VarInt `71`, position
+  `f64 x/y/z`, zero velocity vector, zero pitch/yaw/head pitch, object data
+  VarInt `0`.
+- `0x61 entity_metadata`: entity ID VarInt plus metadata entry index `8`, type
+  `7 item_stack`, encoded `Slot`, and terminator byte `0xff`.
+- `0x7a collect`: collected entity ID, collector entity ID, and item count.
+- `0x4b entity_destroy`: VarInt-counted entity ID array.
+
+Item entity packet facts are pinned from the same `minecraft-data` `1.21.11`
+source as packet IDs. The item entity type ID is `71`.

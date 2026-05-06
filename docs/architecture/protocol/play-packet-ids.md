@@ -9,6 +9,7 @@ the `1.21.11` protocol table and must be updated as one batch with
 ## Clientbound IDs Used By The First Milestone
 
 - `0x04 block_changed_ack`
+- `0x01 spawn_entity`
 - `0x0b chunk_batch_finished`
 - `0x0c chunk_batch_start`
 - `0x08 block_update`
@@ -24,10 +25,13 @@ the `1.21.11` protocol table and must be updated as one batch with
 - `0x5d update_view_distance`
 - `0x5e set_cursor_item` deferred
 - `0x5f spawn_position`
+- `0x61 entity_metadata`
 - `0x67 held_item_slot`
 - `0x6a set_player_inventory`
 - `0x6f update_time`
 - `0x77 system_chat`
+- `0x7a collect`
+- `0x4b entity_destroy`
 
 ## Serverbound IDs Used By The First Milestone
 

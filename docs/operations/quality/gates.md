@@ -7,11 +7,11 @@
 - `cargo test`
 - docs topology validation
 - line-limit validation
-- live smoke probe for protocol changes
+- live compose probes for protocol changes
 
 ## Acceptance
 
-1. Relevant gates pass in Docker Compose.
+1. Static `verify` and relevant live probes pass in Docker Compose.
 2. Docs and implementation agree.
 3. Git commits are coherent and frequent.
 4. Failures are fixed or documented as blockers.

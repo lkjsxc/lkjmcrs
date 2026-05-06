@@ -78,3 +78,9 @@ that target a session arrive through the internal outbound channel documented in
 [chunk-observers.md](chunk-observers.md). This keeps TCP ownership local to the
 session while allowing region actors and registries to publish authoritative
 updates.
+
+## Pickup Polling
+
+The play loop checks nearby dropped items after accepted movement and after
+survival block interactions. Successful pickup sends collect, destroy, and
+inventory delta packets through the same TCP writer owned by the session.

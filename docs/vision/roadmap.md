@@ -1,6 +1,6 @@
 # Roadmap
 
-## Milestone 1: Playable Skeleton
+## Playable Skeleton
 
 - Minimal first-party `1.21.11` wire protocol.
 - Offline-mode login and play-state entry.
@@ -8,7 +8,7 @@
 - Region scheduler primitives and tests.
 - Docker Compose verify and smoke gates.
 
-## Milestone 2: Survival Core
+## Survival Sandbox
 
 - Region-owned block mutation.
 - Creative placement, breaking, and multiplayer observer smoke coverage.
@@ -17,10 +17,17 @@
 - Persistent player profiles, gamemode, inventory shell, and vitals shell.
 - Inventory and item stack model.
 - Offline-mode SMP chat and command control surface.
-- Entity registry and simple entity ticking.
+- Client-visible dropped item entities and pickup.
 - More complete registry and data-pack handling.
 
-## Milestone 3: Scale Architecture
+## Basic Normal Survival
+
+- Health, hunger, damage, death, and respawn effects.
+- Minimal crafting, recipes, tools, durability, and mining speed.
+- Passive and hostile mob smoke behavior.
+- Day-night gameplay effects.
+
+## Scale Architecture
 
 - Region splitting and merging.
 - Region-local task queues.
@@ -28,14 +35,14 @@
 - Contraption-focused tick benchmarks.
 - Operational metrics for per-region tick pressure.
 
-## Milestone 4: Extension Surface
+## Extension Surface
 
 - Internal module hooks before public plugin API.
 - Capability-scoped event contracts.
 - Async-safe command and task APIs.
 - No Bukkit compatibility unless explicitly re-approved.
 
-## Milestone 5: Original Gameplay
+## Original Gameplay
 
 - Add original systems inspired by `lkjmcsmp`.
 - Keep custom gameplay modular and removable.
