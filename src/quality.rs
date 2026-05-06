@@ -29,6 +29,8 @@ pub fn validate_docs_topology() -> Result<(), QualityError> {
         let readme = dir.join("README.md");
         if !readme.exists() {
             failures.push(format!("missing README.md: {}", dir.display()));
+        } else {
+            validate_readme_index(dir, &readme, &mut failures)?;
         }
         let child_count = fs::read_dir(dir)?
             .filter_map(Result::ok)
@@ -40,6 +42,42 @@ pub fn validate_docs_topology() -> Result<(), QualityError> {
         Ok(())
     })?;
     finish(failures, "docs topology ok")
+}
+
+fn validate_readme_index(
+    dir: &Path,
+    readme: &Path,
+    failures: &mut Vec<String>,
+) -> Result<(), QualityError> {
+    let contents = fs::read_to_string(readme)?;
+    for entry in fs::read_dir(dir)? {
+        let path = entry?.path();
+        let Some(target) = child_link_target(&path) else {
+            continue;
+        };
+        if !contents.contains(&format!("]({target})")) {
+            failures.push(format!(
+                "README missing child link {}: {}",
+                target,
+                readme.display()
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn child_link_target(path: &Path) -> Option<String> {
+    let name = path.file_name()?.to_str()?;
+    if name == "README.md" {
+        return None;
+    }
+    if path.is_dir() {
+        return Some(format!("{name}/README.md"));
+    }
+    if path.extension().and_then(|ext| ext.to_str()) == Some("md") {
+        return Some(name.to_string());
+    }
+    None
 }
 
 pub fn check_lines() -> Result<(), QualityError> {

@@ -5,6 +5,8 @@
 - Every docs directory has one `README.md`.
 - Every docs directory has multiple children besides `README.md`.
 - Parent `README.md` files act as tables of contents.
+- Parent `README.md` files link every immediate child Markdown file and child
+  directory by exact relative target.
 - Links are relative.
 
 ## Rules

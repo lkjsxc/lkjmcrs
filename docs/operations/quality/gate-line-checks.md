@@ -16,3 +16,5 @@ The limits are owned by
 - The gate fails when any checked file exceeds its canonical limit.
 - Actively edited source files should target `<= 180` lines when a clean split
   is available.
+- `docs validate-topology` also fails when a docs directory `README.md` omits
+  an immediate child link.
