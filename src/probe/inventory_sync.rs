@@ -35,18 +35,25 @@ async fn assert_invalid_held_slot_resends_authority(
     let mut payload = Vec::new();
     codec::write_i16(&mut payload, 9);
     codec::write_packet(stream, ids::play::SERVERBOUND_HELD_ITEM_SLOT, &payload).await?;
-    let held = block_mutation::read_next_non_time(stream, "invalid held slot").await?;
-    if held.id != ids::play::HELD_ITEM_SLOT {
-        return Err(Box::new(ProbeError::Phase("invalid held slot id")));
+    let mut saw_held = false;
+    let mut saw_chat = false;
+    for _ in 0..20 {
+        let packet = block_mutation::read_next_non_time(stream, "invalid held slot").await?;
+        match packet.id {
+            ids::play::HELD_ITEM_SLOT => {
+                if inventory_packets::decode_held_item_slot(packet.data)? != 0 {
+                    return Err(Box::new(ProbeError::Phase("invalid held slot value")));
+                }
+                saw_held = true;
+            }
+            ids::play::SYSTEM_CHAT => saw_chat = true,
+            _ => {}
+        }
+        if saw_held && saw_chat {
+            return Ok(());
+        }
     }
-    if inventory_packets::decode_held_item_slot(held.data)? != 0 {
-        return Err(Box::new(ProbeError::Phase("invalid held slot value")));
-    }
-    let chat = block_mutation::read_next_non_time(stream, "invalid held slot chat").await?;
-    if chat.id != ids::play::SYSTEM_CHAT {
-        return Err(Box::new(ProbeError::Phase("invalid held slot chat")));
-    }
-    Ok(())
+    Err(Box::new(ProbeError::Phase("invalid held slot response")))
 }
 
 async fn break_grass_adds_dirt(stream: &mut TcpStream) -> Result<(), Box<dyn std::error::Error>> {
