@@ -39,6 +39,13 @@ where
         Some(PlayOutbound::Damage { amount }) => {
             vitals::apply_damage(writer, phase, profile, session, amount).await?;
         }
+        Some(PlayOutbound::SetVitals {
+            health,
+            hunger,
+            saturation,
+        }) => {
+            vitals::set_values(writer, phase, profile, session, health, hunger, saturation).await?;
+        }
         Some(PlayOutbound::Kick { reason }) => {
             send_kick(writer, phase, &reason).await?;
             return Ok(OutboundStep::Close);

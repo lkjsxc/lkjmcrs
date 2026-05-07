@@ -141,6 +141,18 @@ impl SessionRegistry {
             .await
     }
 
+    pub async fn set_vitals(&self, name: &str, health: f32, hunger: u8, saturation: f32) -> bool {
+        self.send_to_name(
+            name,
+            PlayOutbound::SetVitals {
+                health,
+                hunger,
+                saturation,
+            },
+        )
+        .await
+    }
+
     pub async fn kick(&self, name: &str, reason: String) -> bool {
         self.send_to_name(name, PlayOutbound::Kick { reason }).await
     }

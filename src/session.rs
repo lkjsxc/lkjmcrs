@@ -18,6 +18,7 @@ mod entity_packets;
 pub mod error;
 pub mod game_mode;
 pub mod handler;
+mod hunger;
 mod inventory_sync;
 pub mod io;
 mod item_pickup;
@@ -25,6 +26,7 @@ mod item_visibility;
 mod online_login;
 pub mod outbound;
 pub mod play;
+mod play_bootstrap_state;
 mod play_outbound;
 pub mod play_packets;
 #[cfg(test)]
@@ -32,6 +34,7 @@ mod play_packets_tests;
 pub mod play_state;
 #[cfg(test)]
 mod play_state_tests;
+mod play_ticks;
 pub mod profile;
 pub mod reach;
 pub mod registry;
@@ -42,6 +45,7 @@ mod status;
 mod travel_commands;
 mod travel_teleport;
 mod vitals;
+mod vitals_command;
 
 pub use error::ConnectionLogLevel;
 pub use handler::{ServerContext, handle_connection};

@@ -19,6 +19,12 @@ pub enum ServerCommand {
         target: String,
         amount: f32,
     },
+    Vitals {
+        target: String,
+        health: f32,
+        hunger: u8,
+        saturation: f32,
+    },
     Kick {
         target: String,
         reason: String,
@@ -44,6 +50,7 @@ pub fn parse(input: &str) -> Result<ServerCommand, &'static str> {
         "say" => parse_say(trimmed),
         "gamemode" => parse_gamemode(parts),
         "damage" => parse_damage(parts),
+        "vitals" => crate::session::vitals_command::parse_vitals(parts),
         "kick" => parse_kick(trimmed),
         _ => Err("Unknown command"),
     }
@@ -57,6 +64,7 @@ impl ServerCommand {
                 | Self::Say(_)
                 | Self::Gamemode { .. }
                 | Self::Damage { .. }
+                | Self::Vitals { .. }
                 | Self::Kick { .. }
         )
     }

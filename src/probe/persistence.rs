@@ -1,8 +1,8 @@
 use crate::probe::ProbeError;
 use crate::probe::block_mutation;
 use crate::probe::play_client::PlayClient;
+use crate::probe::position::{BlockPos, MIN_Y};
 use crate::protocol::{chunk, codec};
-use crate::world::MIN_Y;
 use std::io::{Cursor, Read};
 
 const TARGET_STATE: i32 = 10;
@@ -15,22 +15,13 @@ const HEIGHTMAP_LONG_BYTES: usize = 37 * 8;
 
 pub(super) async fn place(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut client = PlayClient::connect(host, "PersistA").await?;
-    block_mutation::acquire_dirt(
-        &mut client.stream,
-        crate::world::BlockPos::new(1, 79, 0),
-        "persist dirt",
-    )
-    .await?;
-    block_mutation::send_use_item_on_at(
-        &mut client.stream,
-        30,
-        crate::world::BlockPos::new(3, 79, 0),
-    )
-    .await?;
+    block_mutation::acquire_dirt(&mut client.stream, BlockPos::new(1, 79, 0), "persist dirt")
+        .await?;
+    block_mutation::send_use_item_on_at(&mut client.stream, 30, BlockPos::new(3, 79, 0)).await?;
     block_mutation::expect_ack_and_update_at(
         &mut client.stream,
         30,
-        crate::world::BlockPos::new(3, 80, 0),
+        BlockPos::new(3, 80, 0),
         TARGET_STATE,
     )
     .await

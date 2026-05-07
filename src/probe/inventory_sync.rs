@@ -4,9 +4,9 @@ use crate::probe::inventory_packets;
 use crate::probe::inventory_packets::PlayerInventorySlot;
 use crate::probe::item_entities;
 use crate::probe::play_client::PlayClient;
+use crate::probe::position::BlockPos;
 use crate::probe::survival_expect;
 use crate::protocol::{codec, ids};
-use crate::world::BlockPos;
 use tokio::net::TcpStream;
 
 const NAME: &str = "InventorySync";

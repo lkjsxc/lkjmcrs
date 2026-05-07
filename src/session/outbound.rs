@@ -16,6 +16,11 @@ pub enum PlayOutbound {
     Damage {
         amount: f32,
     },
+    SetVitals {
+        health: f32,
+        hunger: u8,
+        saturation: f32,
+    },
     Kick {
         reason: String,
     },

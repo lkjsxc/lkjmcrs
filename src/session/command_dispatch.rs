@@ -61,6 +61,12 @@ where
         }
         ServerCommand::Gamemode { mode, target } => gamemode(mode, target, profile, context).await,
         ServerCommand::Damage { target, amount } => damage(target, amount, context).await,
+        ServerCommand::Vitals {
+            target,
+            health,
+            hunger,
+            saturation,
+        } => vitals(target, health, hunger, saturation, context).await,
         ServerCommand::Kick { target, reason } => kick(target, reason, context).await,
     }
 }
@@ -72,7 +78,7 @@ where
     send_system_chat(
         writer,
         phase,
-        "Commands: /help, /spawn, /sethome, /home, /homes, /warp, /warps, /say, /gamemode, /kick",
+        "Commands: /help, /spawn, /sethome, /home, /homes, /warp, /warps, /say, /gamemode, /damage, /vitals, /kick",
     )
     .await
 }
@@ -115,6 +121,27 @@ where
 {
     if context.sessions.damage(&target, amount).await {
         send_system_chat(context.writer, context.phase, "Damage applied").await
+    } else {
+        send_system_chat(context.writer, context.phase, "Player not found").await
+    }
+}
+
+async fn vitals<W>(
+    target: String,
+    health: f32,
+    hunger: u8,
+    saturation: f32,
+    context: CommandDispatchContext<'_, W>,
+) -> Result<(), ConnectionError>
+where
+    W: AsyncWrite + Unpin,
+{
+    if context
+        .sessions
+        .set_vitals(&target, health, hunger, saturation)
+        .await
+    {
+        send_system_chat(context.writer, context.phase, "Vitals updated").await
     } else {
         send_system_chat(context.writer, context.phase, "Player not found").await
     }

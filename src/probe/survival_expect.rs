@@ -1,6 +1,6 @@
 use crate::probe::ProbeError;
+use crate::probe::position::BlockPos;
 use crate::protocol::{codec, ids};
-use crate::world::BlockPos;
 use std::io::Cursor;
 use tokio::net::TcpStream;
 

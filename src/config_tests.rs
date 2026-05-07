@@ -61,6 +61,18 @@ fn rejects_insecure_session_server_without_fixture_allowance() {
 }
 
 #[test]
+fn rejects_invalid_session_server_urls() {
+    assert!(matches!(
+        Config::from_json(r#"{"session_server_url":"sessionserver"}"#),
+        Err(ConfigError::InvalidSessionServerUrl)
+    ));
+    assert!(matches!(
+        Config::from_json(r#"{"session_server_url":"ftp://sessionserver"}"#),
+        Err(ConfigError::InvalidSessionServerUrl)
+    ));
+}
+
+#[test]
 fn rejects_range_failures() {
     assert!(Config::from_json(r#"{"starter_items":[]}"#).is_err());
     assert!(matches!(

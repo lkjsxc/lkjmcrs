@@ -13,8 +13,10 @@ mod online_auth_probe;
 mod persistence;
 mod play_bootstrap;
 mod play_client;
+mod position;
 mod profile_reconnect;
 mod registry_assert;
+mod smoke;
 mod smp_commands;
 mod survival_expect;
 mod survival_item;
@@ -22,7 +24,6 @@ mod survival_vitals;
 mod validation;
 mod vitals_packets;
 
-use crate::probe::play_client::PlayClient;
 use crate::protocol::PROTOCOL_VERSION;
 use crate::protocol::ids;
 use crate::protocol::types::{Handshake, NextState};
@@ -64,12 +65,7 @@ where
 }
 
 pub async fn login_play(host: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let mut client = PlayClient::connect(host, "Probe").await?;
-    block_mutation::place_and_break(&mut client.stream).await?;
-    let next_keepalive = live_play::expect_keepalive_after_time(&mut client.stream).await?;
-    if next_keepalive != 2 {
-        return Err(Box::new(ProbeError::Phase("periodic keepalive id")));
-    }
+    smoke::run(host).await?;
     println!("login-play probe ok");
     Ok(())
 }

@@ -1,7 +1,7 @@
 use crate::player::{GameMode, PlayerProfile};
 use crate::protocol::ids;
 use crate::protocol::play;
-use crate::protocol::vitals;
+use crate::protocol::vitals::{self, HealthUpdate};
 use crate::session::SessionState;
 use crate::session::error::ConnectionError;
 use crate::session::io::write_packet;
@@ -27,14 +27,34 @@ where
     send_update(writer, phase, profile).await?;
     if profile.vitals.is_dead() {
         session.dead = true;
-        let message = format!("{} died", profile.name);
-        write_packet(
-            writer,
-            phase,
-            ids::play::DEATH_COMBAT_EVENT,
-            &vitals::encode_death_combat_event(PLAYER_ENTITY_ID, &message),
-        )
-        .await?;
+        send_death(writer, phase, &profile.name).await?;
+    }
+    Ok(())
+}
+
+pub async fn set_values<W>(
+    writer: &mut W,
+    phase: SessionState,
+    profile: &mut PlayerProfile,
+    session: &mut PlaySession,
+    health: f32,
+    hunger: u8,
+    saturation: f32,
+) -> Result<(), ConnectionError>
+where
+    W: AsyncWrite + Unpin,
+{
+    profile.vitals.health = health.clamp(0.0, 20.0);
+    profile.vitals.hunger = hunger.min(20);
+    profile.vitals.saturation = saturation.clamp(0.0, 20.0);
+    send_update(writer, phase, profile).await?;
+    if profile.vitals.is_dead() {
+        if !session.dead {
+            session.dead = true;
+            send_death(writer, phase, &profile.name).await?;
+        }
+    } else {
+        session.dead = false;
     }
     Ok(())
 }
@@ -86,7 +106,29 @@ where
         writer,
         phase,
         ids::play::UPDATE_HEALTH,
-        &vitals::encode_update_health(&profile.vitals),
+        &vitals::encode_update_health(HealthUpdate {
+            health: profile.vitals.health,
+            hunger: i32::from(profile.vitals.hunger),
+            saturation: profile.vitals.saturation,
+        }),
+    )
+    .await
+}
+
+async fn send_death<W>(
+    writer: &mut W,
+    phase: SessionState,
+    name: &str,
+) -> Result<(), ConnectionError>
+where
+    W: AsyncWrite + Unpin,
+{
+    let message = format!("{name} died");
+    write_packet(
+        writer,
+        phase,
+        ids::play::DEATH_COMBAT_EVENT,
+        &vitals::encode_death_combat_event(PLAYER_ENTITY_ID, &message),
     )
     .await
 }

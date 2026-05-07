@@ -1,10 +1,16 @@
-use crate::player::Vitals;
 use crate::protocol::{codec, nbt};
 
-pub fn encode_update_health(vitals: &Vitals) -> Vec<u8> {
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub struct HealthUpdate {
+    pub health: f32,
+    pub hunger: i32,
+    pub saturation: f32,
+}
+
+pub fn encode_update_health(vitals: HealthUpdate) -> Vec<u8> {
     let mut out = Vec::new();
     codec::write_f32(&mut out, vitals.health);
-    codec::write_var_i32(&mut out, i32::from(vitals.hunger));
+    codec::write_var_i32(&mut out, vitals.hunger);
     codec::write_f32(&mut out, vitals.saturation);
     out
 }
@@ -27,14 +33,13 @@ pub fn encode_respawn_request(action_id: i32) -> Vec<u8> {
 
 #[cfg(test)]
 mod tests {
-    use super::{encode_death_combat_event, encode_update_health};
-    use crate::player::Vitals;
+    use super::{HealthUpdate, encode_death_combat_event, encode_update_health};
     use crate::protocol::codec;
     use std::io::Cursor;
 
     #[test]
     fn update_health_writes_protocol_payload() {
-        let payload = encode_update_health(&Vitals {
+        let payload = encode_update_health(HealthUpdate {
             health: 12.5,
             hunger: 20,
             saturation: 5.0,

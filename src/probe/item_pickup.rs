@@ -2,9 +2,9 @@ use crate::probe::ProbeError;
 use crate::probe::block_mutation;
 use crate::probe::item_entities;
 use crate::probe::play_client::PlayClient;
+use crate::probe::position::BlockPos;
 use crate::probe::survival_expect;
 use crate::protocol::ids;
-use crate::world::BlockPos;
 
 const NAME: &str = "ItemPickup";
 

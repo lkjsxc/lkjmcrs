@@ -3,7 +3,7 @@ use crate::protocol::chunk;
 use crate::protocol::commands;
 use crate::protocol::ids;
 use crate::protocol::play;
-use crate::protocol::vitals;
+use crate::protocol::vitals::{self, HealthUpdate};
 use crate::scheduler::RegionHandle;
 use crate::session::SessionState;
 use crate::session::error::ConnectionError;
@@ -49,7 +49,11 @@ where
         stream,
         phase,
         ids::play::UPDATE_HEALTH,
-        &vitals::encode_update_health(player_vitals),
+        &vitals::encode_update_health(HealthUpdate {
+            health: player_vitals.health,
+            hunger: i32::from(player_vitals.hunger),
+            saturation: player_vitals.saturation,
+        }),
     )
     .await?;
     write_packet(

@@ -35,6 +35,8 @@ pub enum ConfigError {
     Bind(#[from] std::net::AddrParseError),
     #[error("insecure session_server_url requires allow_insecure_session_server=true")]
     InsecureSessionServer,
+    #[error("session_server_url must be a valid http or https URL")]
+    InvalidSessionServerUrl,
     #[error("invalid default_game_mode: {0}")]
     DefaultGameMode(String),
     #[error("{0} must be between 2 and 8")]
@@ -100,6 +102,7 @@ impl RawConfig {
         let session_server_url = self
             .session_server_url
             .unwrap_or_else(default_session_server_url);
+        validate_session_server_url(&session_server_url)?;
         if session_server_url.starts_with("http://") && !self.allow_insecure_session_server {
             return Err(ConfigError::InsecureSessionServer);
         }
@@ -129,6 +132,14 @@ fn validate_distance(name: &'static str, value: i32) -> Result<(), ConfigError> 
         Ok(())
     } else {
         Err(ConfigError::DistanceRange(name))
+    }
+}
+
+fn validate_session_server_url(url: &str) -> Result<(), ConfigError> {
+    let parsed = reqwest::Url::parse(url).map_err(|_| ConfigError::InvalidSessionServerUrl)?;
+    match parsed.scheme() {
+        "http" | "https" => Ok(()),
+        _ => Err(ConfigError::InvalidSessionServerUrl),
     }
 }
 

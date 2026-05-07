@@ -7,7 +7,7 @@ pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut actor = PlayClient::connect(host, "ProbeA").await?;
     block_mutation::acquire_dirt(
         &mut actor.stream,
-        crate::world::BlockPos::new(0, 79, 0),
+        crate::probe::position::BlockPos::new(0, 79, 0),
         "actor dirt",
     )
     .await?;
@@ -22,7 +22,7 @@ pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     expect_observer_update(&mut observer, 0).await
 }
 
-async fn expect_observer_update(
+pub(super) async fn expect_observer_update(
     observer: &mut PlayClient,
     state: i32,
 ) -> Result<(), Box<dyn std::error::Error>> {

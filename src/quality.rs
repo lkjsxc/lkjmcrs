@@ -2,6 +2,8 @@ use serde::Serialize;
 use std::{fs, path::Path};
 use thiserror::Error;
 
+mod imports;
+
 const DOC_LIMIT: usize = 300;
 const SRC_LIMIT: usize = 200;
 
@@ -99,6 +101,7 @@ pub fn check_lines() -> Result<(), QualityError> {
         &mut report.src_max,
         &mut report.violations,
     )?;
+    imports::check_boundaries(&mut report.violations)?;
     if !report.violations.is_empty() {
         report.status = "fail";
     }

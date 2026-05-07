@@ -45,3 +45,22 @@ pub fn validate_health(
     }
     Ok(())
 }
+
+pub fn validate_state(
+    state: HealthState,
+    health: f32,
+    food: i32,
+    saturation: f32,
+    phase: &'static str,
+) -> Result<(), Box<dyn std::error::Error>> {
+    if (state.health - health).abs() > f32::EPSILON
+        || state.food != food
+        || (state.saturation - saturation).abs() > f32::EPSILON
+    {
+        return Err(Box::new(std::io::Error::other(format!(
+            "{phase}: got health {} food {} saturation {}",
+            state.health, state.food, state.saturation
+        ))));
+    }
+    Ok(())
+}

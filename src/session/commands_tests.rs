@@ -17,6 +17,7 @@ fn identifies_operator_commands() {
     assert!(!parse("help").unwrap().requires_op());
     assert!(parse("say hello").unwrap().requires_op());
     assert!(parse("damage Guest 1").unwrap().requires_op());
+    assert!(parse("vitals Guest 20 20 5").unwrap().requires_op());
     assert!(parse("setwarp base").unwrap().requires_op());
 }
 
@@ -44,4 +45,20 @@ fn parses_damage_amount() {
     );
     assert!(parse("damage Guest nan").is_err());
     assert!(parse("damage Guest 0").is_err());
+}
+
+#[test]
+fn parses_vitals_values() {
+    assert_eq!(
+        parse("vitals Guest 19.5 18 3.5").unwrap(),
+        ServerCommand::Vitals {
+            target: "Guest".to_string(),
+            health: 19.5,
+            hunger: 18,
+            saturation: 3.5,
+        }
+    );
+    assert!(parse("vitals Guest 21 20 5").is_err());
+    assert!(parse("vitals Guest 20 21 5").is_err());
+    assert!(parse("vitals Guest 20 20 nan").is_err());
 }

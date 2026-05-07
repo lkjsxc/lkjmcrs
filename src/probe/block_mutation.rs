@@ -1,24 +1,9 @@
 use crate::probe::ProbeError;
 use crate::probe::item_entities;
+use crate::probe::position::BlockPos;
 use crate::protocol::{codec, ids};
-use crate::world::BlockPos;
 use std::io::Cursor;
 use tokio::net::TcpStream;
-
-const PLACE_SEQUENCE: i32 = 10;
-const BREAK_SEQUENCE: i32 = 11;
-
-pub(super) async fn place_and_break(
-    stream: &mut TcpStream,
-) -> Result<(), Box<dyn std::error::Error>> {
-    acquire_dirt(stream, BlockPos::new(0, 79, 0), "smoke dirt").await?;
-    send_use_item_on(stream, PLACE_SEQUENCE).await?;
-    expect_ack_and_update(stream, PLACE_SEQUENCE, 10).await?;
-    send_start_destroy(stream, BREAK_SEQUENCE).await?;
-    expect_ack_and_update(stream, BREAK_SEQUENCE, 0).await?;
-    item_entities::collect_drop(stream, 28, "smoke dirt cleanup").await?;
-    Ok(())
-}
 
 pub(super) async fn acquire_dirt(
     stream: &mut TcpStream,

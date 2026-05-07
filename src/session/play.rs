@@ -18,6 +18,7 @@ use tokio::time::{self, Duration, Instant, MissedTickBehavior};
 
 const KEEPALIVE_INTERVAL: Duration = Duration::from_secs(10);
 const TIME_INTERVAL: Duration = Duration::from_secs(1);
+const HUNGER_INTERVAL: Duration = Duration::from_secs(4);
 const TIME_STEP_TICKS: i64 = 20;
 
 #[derive(Debug, Clone, Copy)]
@@ -86,7 +87,7 @@ where
     S: AsyncRead + AsyncWrite + Unpin,
 {
     let phase = SessionState::Play;
-    let bootstrap = bootstrap_from_profile(settings, profile);
+    let bootstrap = crate::session::play_bootstrap_state::from_profile(settings, profile);
     let mut session = PlaySession::new(bootstrap, registered.id, registered.is_op);
     let mut outbound = registered.outbound;
     let mut chunk_stream = ChunkStream::new(
@@ -109,6 +110,8 @@ where
     keepalives.set_missed_tick_behavior(MissedTickBehavior::Delay);
     let mut times = time::interval_at(Instant::now() + TIME_INTERVAL, TIME_INTERVAL);
     times.set_missed_tick_behavior(MissedTickBehavior::Delay);
+    let mut hunger_ticks = time::interval_at(Instant::now() + HUNGER_INTERVAL, HUNGER_INTERVAL);
+    hunger_ticks.set_missed_tick_behavior(MissedTickBehavior::Delay);
     let mut next_keepalive_id = 2_i64;
 
     let result = loop {
@@ -176,6 +179,14 @@ where
                     .await
                 }
             }
+            _ = hunger_ticks.tick() => {
+                crate::session::play_ticks::handle_hunger(
+                    &mut writer,
+                    phase,
+                    profile,
+                    &mut session,
+                ).await
+            }
         };
         if let Err(error) = step {
             break Err(error);
@@ -183,17 +194,4 @@ where
     };
     session.write_profile(profile);
     result
-}
-
-fn bootstrap_from_profile(settings: PlaySettings, profile: &PlayerProfile) -> play::Bootstrap {
-    play::Bootstrap::new(settings.max_players)
-        .with_distances(settings.view_distance, settings.simulation_distance)
-        .with_player_state(
-            (profile.position.x, profile.position.y, profile.position.z),
-            (profile.position.yaw, profile.position.pitch),
-            (
-                profile.game_mode.vanilla_id(),
-                profile.game_mode.ability_flags(),
-            ),
-        )
 }
