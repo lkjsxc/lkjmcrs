@@ -30,17 +30,18 @@ the next work batch.
 
 - Manual stock-client evidence still needs a fresh raw client log or explicit
   success artifact after the latest packet-shape fixes.
-- Normal survival is incomplete: hunger drain and regeneration are absent,
-  tools and crafting are absent, terrain is flat, and mobs/weather are not
-  gameplay systems yet.
+- Normal survival is incomplete: tools and crafting are absent, terrain is
+  flat, and mobs/weather are not gameplay systems yet.
+- Large distance targets require progressive chunk streaming before the
+  configured cap can increase.
 
 ## Next Implementation Target
 
-Online identity is the active foundation for public-safe deployment:
+Progressive chunk streaming is the active foundation for scale work:
 
-- keep the encrypted login and verifier boundary documented,
-- keep public exposure tied to authenticated UUID identity,
-- broaden live acceptance around online-mode joins before larger exposure work.
+- keep the near bootstrap small,
+- send farther chunks under explicit budgets,
+- preserve current small-radius behavior while adding scale probes.
 
 ## Rules
 

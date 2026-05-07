@@ -27,6 +27,10 @@ Use this subtree for required compose verification contracts.
   persistence smoke.
 - [chunk-stream-smoke.md](chunk-stream-smoke.md): movement-driven chunk
   streaming smoke.
+- [scale-chunk-stream-smoke.md](scale-chunk-stream-smoke.md): progressive
+  larger-radius chunk streaming smoke.
+- [load-and-metrics.md](load-and-metrics.md): scale verification and metric
+  targets.
 - [smp-commands-smoke.md](smp-commands-smoke.md): chat and command smoke.
 - [survival-item-smoke.md](survival-item-smoke.md): survival item-loop smoke.
 - [inventory-sync-smoke.md](inventory-sync-smoke.md): hotbar and player

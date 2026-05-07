@@ -14,6 +14,10 @@ Use this subtree for chunk, region, and world-data contracts.
 - [chunk-storage.md](chunk-storage.md): chunk representation and persistence boundary.
 - [chunk-streaming.md](chunk-streaming.md): bounded player-driven chunk
   streaming.
+- [large-distance-streaming.md](large-distance-streaming.md): progressive
+  chunk delivery for larger configured radii.
+- [terrain-generation.md](terrain-generation.md): terrain pipeline direction
+  after the flat world.
 - [item-entities.md](item-entities.md): dropped item entity ownership and
   pickup.
 - [mutable-chunks.md](mutable-chunks.md): sparse in-memory block overrides.

@@ -16,6 +16,6 @@ contracts. The repo is intentionally new and has no compatibility burden.
 
 - Host Rust is not required.
 - Docker Compose is required.
-- The current server implements offline-mode only.
-- Online-mode is documented but intentionally not active yet.
+- Offline-mode and online-mode login paths are implemented.
+- Public exposure requires `online_mode: true` and authenticated UUID identity.
 - Public plugin API is intentionally deferred.
