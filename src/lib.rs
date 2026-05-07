@@ -7,4 +7,5 @@ pub mod protocol;
 pub mod quality;
 pub mod scheduler;
 pub mod session;
+pub mod session_fixture;
 pub mod world;

@@ -1,5 +1,40 @@
 # Current Results
 
+## 2026-05-07 Online Identity Foundation
+
+Implementation tested: working tree with `online_mode=true`, encrypted login,
+fixture-backed session verification, UUID-based operators, and the
+`online-auth` compose probe.
+
+Command owner:
+
+- [compose-pipeline.md](compose-pipeline.md)
+
+Result:
+
+- initial `down -v`: pass.
+- `verify`: pass with compact output:
+  `verify fmt ... ok`, `verify clippy ... ok`, `verify test ... ok`,
+  `verify docs-topology ... ok`, `verify line-limits ... ok`, `verify pass`.
+- `server` startup: pass.
+- `smoke`: pass, `multiplayer-mutation probe ok`.
+- `profile-reconnect`: pass, `profile-reconnect probe ok`.
+- `chunk-stream`: pass, `chunk-stream probe ok`.
+- `persist-place`: pass, `persist-place probe ok`.
+- server restart: pass.
+- `persist-check`: pass, `persist-check probe ok`.
+- `survival-server` startup: pass.
+- `survival-item`: pass, `survival-item probe ok`.
+- `inventory-sync`: pass, `inventory-sync probe ok`.
+- `item-pickup`: pass, `item-pickup probe ok`.
+- `survival-vitals-server` startup: pass.
+- `survival-vitals`: pass, `survival-vitals probe ok`.
+- `smp-server` startup: pass.
+- `smp-commands`: pass, `smp-commands probe ok`.
+- `online-server` startup with session fixture: pass.
+- `online-auth`: pass, `online-auth probe ok`.
+- final `down -v`: pass.
+
 ## 2026-05-07 Keepalive Timeout
 
 Implementation tested: working tree after `589a2bb`, with play sessions closing

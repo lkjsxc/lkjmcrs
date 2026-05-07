@@ -1,3 +1,4 @@
+mod auth;
 pub mod block_actions;
 mod block_packets;
 mod block_rules;
@@ -21,6 +22,7 @@ mod inventory_sync;
 pub mod io;
 mod item_pickup;
 mod item_visibility;
+mod online_login;
 pub mod outbound;
 pub mod play;
 mod play_outbound;
@@ -36,6 +38,7 @@ pub mod registry;
 #[cfg(test)]
 mod registry_tests;
 pub mod state;
+mod status;
 mod travel_commands;
 mod travel_teleport;
 mod vitals;

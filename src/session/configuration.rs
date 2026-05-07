@@ -3,9 +3,12 @@ use crate::protocol::ids;
 use crate::session::SessionState;
 use crate::session::error::ConnectionError;
 use crate::session::io::{codec_error, protocol_error, read_until_packet, write_packet};
-use tokio::net::TcpStream;
+use tokio::io::{AsyncRead, AsyncWrite};
 
-pub async fn handle_configuration(stream: &mut TcpStream) -> Result<(), ConnectionError> {
+pub async fn handle_configuration<S>(stream: &mut S) -> Result<(), ConnectionError>
+where
+    S: AsyncRead + AsyncWrite + Unpin,
+{
     let phase = SessionState::Configuration;
     let known_packs = configuration::encode_select_known_packs();
     write_packet(stream, phase, ids::config::SELECT_KNOWN_PACKS, &known_packs).await?;

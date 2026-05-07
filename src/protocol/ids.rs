@@ -10,6 +10,8 @@ pub mod status {
 pub mod login {
     pub const START: i32 = 0x00;
     pub const DISCONNECT: i32 = 0x00;
+    pub const ENCRYPTION_RESPONSE: i32 = 0x01;
+    pub const ENCRYPTION_REQUEST: i32 = 0x01;
     pub const SUCCESS: i32 = 0x02;
     pub const ACKNOWLEDGED: i32 = 0x03;
 }
@@ -83,6 +85,8 @@ mod tests {
     #[test]
     fn login_packet_ids_match_protocol_774() {
         assert_eq!(login::START, 0x00);
+        assert_eq!(login::ENCRYPTION_REQUEST, 0x01);
+        assert_eq!(login::ENCRYPTION_RESPONSE, 0x01);
         assert_eq!(login::SUCCESS, 0x02);
         assert_eq!(login::ACKNOWLEDGED, 0x03);
     }

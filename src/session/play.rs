@@ -13,7 +13,7 @@ use crate::session::play_outbound::{OutboundStep, handle_outbound};
 use crate::session::play_packets::{PlayPacketContext, handle_play_packet};
 use crate::session::play_state::PlaySession;
 use crate::session::registry::{SessionId, SessionRegistry};
-use tokio::net::TcpStream;
+use tokio::io::{AsyncRead, AsyncWrite};
 use tokio::time::{self, Duration, Instant, MissedTickBehavior};
 
 const KEEPALIVE_INTERVAL: Duration = Duration::from_secs(10);
@@ -33,15 +33,18 @@ struct RegisteredSession {
     is_op: bool,
 }
 
-pub async fn handle_play(
-    stream: &mut TcpStream,
+pub async fn handle_play<S>(
+    stream: &mut S,
     settings: PlaySettings,
     region: RegionHandle,
     sessions: SessionRegistry,
     mut profile: PlayerProfile,
     player_store: PlayerStore,
     is_op: bool,
-) -> Result<(), ConnectionError> {
+) -> Result<(), ConnectionError>
+where
+    S: AsyncRead + AsyncWrite + Unpin,
+{
     let (session_id, outbound) = sessions.register(&profile).await;
     let registered = RegisteredSession {
         id: session_id,
@@ -70,15 +73,18 @@ pub async fn handle_play(
     result
 }
 
-async fn run_play(
-    stream: &mut TcpStream,
+async fn run_play<S>(
+    stream: &mut S,
     settings: PlaySettings,
     region: RegionHandle,
     sessions: SessionRegistry,
     player_store: PlayerStore,
     registered: RegisteredSession,
     profile: &mut PlayerProfile,
-) -> Result<(), ConnectionError> {
+) -> Result<(), ConnectionError>
+where
+    S: AsyncRead + AsyncWrite + Unpin,
+{
     let phase = SessionState::Play;
     let bootstrap = bootstrap_from_profile(settings, profile);
     let mut session = PlaySession::new(bootstrap, registered.id, registered.is_op);
@@ -87,7 +93,7 @@ async fn run_play(
         crate::world::ChunkPos::new(bootstrap.chunk_x, bootstrap.chunk_z),
         bootstrap.view_distance,
     );
-    let (mut reader, mut writer) = stream.split();
+    let (mut reader, mut writer) = tokio::io::split(stream);
     let chunks = send_play_bootstrap(
         &mut writer,
         bootstrap,

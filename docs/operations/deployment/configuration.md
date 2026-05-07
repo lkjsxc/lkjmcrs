@@ -23,22 +23,28 @@
 - `view_distance`: advertised and streamed chunk radius, default `2`.
 - `simulation_distance`: advertised simulation radius, default equals
   `view_distance`.
-- `ops`: operator player names, default `[]`.
-- Offline-mode exposure policy requires shared configs to keep `ops: []`.
+- `session_server_url`: online verifier base URL, default
+  `https://sessionserver.mojang.com`.
+- `allow_insecure_session_server`: permits HTTP verifier URLs only for
+  disposable verification fixtures, default `false`.
+- `operator_uuids`: operator player UUIDs, default `[]`.
+- Offline-mode exposure policy requires shared configs to keep
+  `operator_uuids: []`.
 
 ## Rules
 
 1. Missing optional JSON fields use documented defaults.
 2. Invalid numeric fields fail startup.
 3. Unknown JSON fields fail startup.
-4. `online_mode: true` fails startup until online mode is implemented.
+4. `online_mode: true` requires a valid verifier URL.
 5. `data_dir` must be writable by the server process before TCP bind.
 6. `default_game_mode` accepts only `creative` or `survival`.
 7. View and simulation distances must be between `2` and `8`.
-8. `ops` names are matched case-insensitively by exact player name.
+8. Operator checks match exact authenticated UUIDs.
 9. There is no starter-item config field.
-10. Checked-in shared config must not grant operator names.
-11. Verification-only config overlays may grant names for disposable probes.
+10. Checked-in shared config must not grant operator UUIDs.
+11. Verification-only config overlays may grant UUIDs for disposable probes.
+12. HTTP verifier URLs require `allow_insecure_session_server: true`.
 
 ## Example
 
@@ -52,6 +58,8 @@
   "default_game_mode": "survival",
   "view_distance": 2,
   "simulation_distance": 2,
-  "ops": []
+  "session_server_url": "https://sessionserver.mojang.com",
+  "allow_insecure_session_server": false,
+  "operator_uuids": []
 }
 ```

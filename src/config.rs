@@ -3,6 +3,7 @@ use serde::Deserialize;
 use std::net::SocketAddr;
 use std::path::{Path, PathBuf};
 use thiserror::Error;
+use uuid::Uuid;
 
 const DEFAULT_PATH: &str = "config/server.json";
 
@@ -16,7 +17,9 @@ pub struct Config {
     pub default_game_mode: GameMode,
     pub view_distance: i32,
     pub simulation_distance: i32,
-    pub ops: Vec<String>,
+    pub session_server_url: String,
+    pub allow_insecure_session_server: bool,
+    pub operator_uuids: Vec<Uuid>,
 }
 
 #[derive(Debug, Error)]
@@ -30,8 +33,8 @@ pub enum ConfigError {
     Json(#[from] serde_json::Error),
     #[error("invalid bind: {0}")]
     Bind(#[from] std::net::AddrParseError),
-    #[error("online_mode=true is not implemented")]
-    OnlineMode,
+    #[error("insecure session_server_url requires allow_insecure_session_server=true")]
+    InsecureSessionServer,
     #[error("invalid default_game_mode: {0}")]
     DefaultGameMode(String),
     #[error("{0} must be between 2 and 8")]
@@ -57,7 +60,11 @@ struct RawConfig {
     view_distance: i32,
     simulation_distance: Option<i32>,
     #[serde(default)]
-    ops: Vec<String>,
+    session_server_url: Option<String>,
+    #[serde(default)]
+    allow_insecure_session_server: bool,
+    #[serde(default)]
+    operator_uuids: Vec<Uuid>,
 }
 
 impl Config {
@@ -83,15 +90,18 @@ impl Config {
         raw.validate()
     }
 
-    pub fn is_op(&self, name: &str) -> bool {
-        self.ops.iter().any(|op| op.eq_ignore_ascii_case(name))
+    pub fn is_op(&self, uuid: Uuid) -> bool {
+        self.operator_uuids.contains(&uuid)
     }
 }
 
 impl RawConfig {
     fn validate(self) -> Result<Config, ConfigError> {
-        if self.online_mode {
-            return Err(ConfigError::OnlineMode);
+        let session_server_url = self
+            .session_server_url
+            .unwrap_or_else(default_session_server_url);
+        if session_server_url.starts_with("http://") && !self.allow_insecure_session_server {
+            return Err(ConfigError::InsecureSessionServer);
         }
         let default_game_mode = GameMode::parse(&self.default_game_mode)
             .ok_or(ConfigError::DefaultGameMode(self.default_game_mode))?;
@@ -107,7 +117,9 @@ impl RawConfig {
             default_game_mode,
             view_distance: self.view_distance,
             simulation_distance,
-            ops: self.ops,
+            session_server_url,
+            allow_insecure_session_server: self.allow_insecure_session_server,
+            operator_uuids: self.operator_uuids,
         })
     }
 }
@@ -131,7 +143,9 @@ impl Default for RawConfig {
             default_game_mode: default_game_mode(),
             view_distance: default_distance(),
             simulation_distance: None,
-            ops: Vec::new(),
+            session_server_url: None,
+            allow_insecure_session_server: false,
+            operator_uuids: Vec::new(),
         }
     }
 }
@@ -158,6 +172,10 @@ fn default_game_mode() -> String {
 
 fn default_distance() -> i32 {
     2
+}
+
+fn default_session_server_url() -> String {
+    "https://sessionserver.mojang.com".to_string()
 }
 
 #[cfg(test)]

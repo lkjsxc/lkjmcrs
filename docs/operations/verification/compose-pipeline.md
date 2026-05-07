@@ -20,6 +20,8 @@ docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-com
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T survival-vitals
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml up -d --build --quiet-build --quiet-pull smp-server
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T smp-commands
+docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml up -d --build --quiet-build --quiet-pull online-server
+docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T online-auth
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml down -v
 ```
 
@@ -48,12 +50,15 @@ docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-com
     respawn.
 16. `smp-commands` verifies offline chat, permissions, travel commands, and
     kick.
-17. Non-zero from any step blocks acceptance.
-18. Initial `down -v` removes stale named volumes before stateful probes.
-19. Final `down -v` removes disposable compose state.
-20. Quiet flags are part of the contract for routine acceptance runs.
-21. `smp-server` mounts `config/verify/smp-server.json` so disposable operator
-    checks do not require operator names in normal runtime config.
+17. `online-auth` verifies encrypted login and fixture-authenticated UUIDs.
+18. Non-zero from any step blocks acceptance.
+19. Initial `down -v` removes stale named volumes before stateful probes.
+20. Final `down -v` removes disposable compose state.
+21. Quiet flags are part of the contract for routine acceptance runs.
+22. `smp-server` mounts `config/verify/smp-server.json` so disposable operator
+    checks do not require operator UUIDs in normal runtime config.
+23. `online-server` mounts `config/verify/online-server.json` and may use the
+    HTTP session fixture only with explicit insecure-fixture allowance.
 
 ## Readiness
 

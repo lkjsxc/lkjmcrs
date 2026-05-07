@@ -25,6 +25,10 @@ enum Command {
         #[command(subcommand)]
         command: ProbeCommand,
     },
+    Fixture {
+        #[command(subcommand)]
+        command: FixtureCommand,
+    },
 }
 
 #[derive(Subcommand)]
@@ -83,6 +87,18 @@ enum ProbeCommand {
         #[arg(long, default_value = "127.0.0.1:25565")]
         host: String,
     },
+    OnlineAuth {
+        #[arg(long, default_value = "127.0.0.1:25565")]
+        host: String,
+    },
+}
+
+#[derive(Subcommand)]
+enum FixtureCommand {
+    SessionServer {
+        #[arg(long, default_value = "0.0.0.0:25566")]
+        bind: String,
+    },
 }
 
 #[tokio::main]
@@ -116,6 +132,10 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
             ProbeCommand::InventorySync { host } => crate::probe::inventory_sync(&host).await?,
             ProbeCommand::ItemPickup { host } => crate::probe::item_pickup(&host).await?,
             ProbeCommand::SmpCommands { host } => crate::probe::smp_commands(&host).await?,
+            ProbeCommand::OnlineAuth { host } => crate::probe::online_auth(&host).await?,
+        },
+        Command::Fixture { command } => match command {
+            FixtureCommand::SessionServer { bind } => crate::session_fixture::serve(&bind).await?,
         },
     }
 

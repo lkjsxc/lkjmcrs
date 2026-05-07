@@ -1,4 +1,13 @@
 services:
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["serve"]
+    volumes:
+      - ./config:/app/config:ro
+      - server-data:/app/data
+
   survival-server:
     build:
       context: .
@@ -25,6 +34,23 @@ services:
     volumes:
       - ./config/verify/smp-server.json:/app/config/server.json:ro
       - survival-vitals-server-data:/app/data
+
+  session-fixture:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["fixture", "session-server", "--bind", "0.0.0.0:25566"]
+
+  online-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["serve"]
+    volumes:
+      - ./config/verify/online-server.json:/app/config/server.json:ro
+      - online-server-data:/app/data
+    depends_on:
+      - session-fixture
 
   verify:
     build:
@@ -188,9 +214,26 @@ services:
       - smp-server
     entrypoint: ["cargo", "run", "--", "probe", "smp-commands", "--host", "smp-server:25565"]
 
+  online-auth:
+    build:
+      context: .
+      dockerfile: Dockerfile.verify
+    working_dir: /workspace
+    environment:
+      CARGO_TARGET_DIR: /target
+    volumes:
+      - .:/workspace:ro
+      - cargo-registry:/usr/local/cargo/registry
+      - target-cache:/target
+    depends_on:
+      - online-server
+    entrypoint: ["cargo", "run", "--", "probe", "online-auth", "--host", "online-server:25565"]
+
 volumes:
   cargo-registry:
   target-cache:
+  server-data:
   survival-server-data:
   survival-vitals-server-data:
   smp-server-data:
+  online-server-data:

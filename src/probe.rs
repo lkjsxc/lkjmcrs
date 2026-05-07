@@ -8,6 +8,8 @@ mod item_entities;
 mod item_pickup;
 mod live_play;
 mod multiplayer_mutation;
+#[path = "probe/online_auth.rs"]
+mod online_auth_probe;
 mod persistence;
 mod play_client;
 mod profile_reconnect;
@@ -127,6 +129,12 @@ pub async fn item_pickup(host: &str) -> Result<(), Box<dyn std::error::Error>> {
 pub async fn smp_commands(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     smp_commands::run(host).await?;
     println!("smp-commands probe ok");
+    Ok(())
+}
+
+pub async fn online_auth(host: &str) -> Result<(), Box<dyn std::error::Error>> {
+    online_auth_probe::run(host).await?;
+    println!("online-auth probe ok");
     Ok(())
 }
 

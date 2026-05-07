@@ -8,10 +8,9 @@
 
 ## Authentication
 
-- `online_mode=false` is implemented first.
-- `online_mode=true` is a documented future mode.
-- If `online_mode=true` is configured before implementation, startup must fail
-  with a clear unsupported-mode error.
+- `online_mode=false` supports deterministic offline UUIDs for private use.
+- `online_mode=true` supports encrypted login and session verification.
+- Public deployment requires `online_mode=true`.
 - Offline-mode deployment is private-only unless an external access boundary
   makes all reachable players trusted.
 

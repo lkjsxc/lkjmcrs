@@ -12,6 +12,8 @@ Use this subtree for required compose verification contracts.
 
 - [compose-pipeline.md](compose-pipeline.md): required compose commands.
 - [current-results.md](current-results.md): latest compose verification result.
+- [online-auth-smoke.md](online-auth-smoke.md): encrypted online login and
+  fixture verifier contract.
 - [results/README.md](results/README.md): historical compose verification
   summaries.
 - [smoke-probe.md](smoke-probe.md): wire smoke behavior.

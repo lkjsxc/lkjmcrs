@@ -7,13 +7,12 @@ gameplay systems.
 
 ## First Slice
 
-- Offline-mode identities remain authoritative.
+- Player UUIDs are authoritative.
 - Plain unsigned chat is accepted and broadcast as server-authored system chat.
 - Slash commands use the serverbound command packets, not chat text with a
   leading slash.
 - The server sends a small command tree during play bootstrap.
-- `ops` config grants operator permission by player name.
-- Operator names are matched case-insensitively.
+- `operator_uuids` config grants operator permission by UUID.
 
 ## Commands
 
@@ -45,4 +44,4 @@ teleport behavior.
 3. Homes and warps persist through player storage.
 4. Kick sends a play disconnect packet with a text reason.
 5. Unknown or unauthorized commands return system chat only to the caller.
-6. Chat signing, secure profiles, and online-mode identity are out of scope.
+6. Chat signing and secure profiles are out of scope.

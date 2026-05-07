@@ -2,6 +2,7 @@ use crate::probe::ProbeError;
 use crate::protocol::configuration::{self, KnownPack};
 use crate::protocol::{codec, play};
 use std::io::Cursor;
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Copy)]
 pub(super) struct PositionPacket {
@@ -40,6 +41,12 @@ pub(super) fn validate_login_success(
         return Err(Box::new(ProbeError::Phase("login success trailing bytes")));
     }
     Ok(())
+}
+
+pub(super) fn decode_login_success_uuid(data: Vec<u8>) -> Result<Uuid, Box<dyn std::error::Error>> {
+    let mut cursor = Cursor::new(data);
+    let uuid = codec::read_uuid(&mut cursor)?;
+    Ok(uuid)
 }
 
 pub(super) fn decode_position_packet(

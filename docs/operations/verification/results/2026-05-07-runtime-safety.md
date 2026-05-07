@@ -18,7 +18,7 @@
   `persist-check`, `survival-item`, `inventory-sync`, `item-pickup`, and
   `smp-commands` passed.
 - Disposable SMP operator checks used a verification-only config overlay.
-- Shared runtime config kept `ops: []`.
+- Shared runtime config kept `operator_uuids: []`.
 - Focused log checks after persistence probes found no `WARN`, `ERROR`,
   `database is locked`, or `chunk save failed` lines in the checked log tail.
 

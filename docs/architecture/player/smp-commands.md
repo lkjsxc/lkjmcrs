@@ -6,10 +6,9 @@ Keep the first multiplayer control surface explicit, small, and testable.
 
 ## Permission Model
 
-- Offline player names are the permission identity in this slice.
-- `ops` is a JSON array of operator names.
-- Name comparison is ASCII case-insensitive.
-- Empty `ops` means no operator-only commands are available.
+- Player UUIDs are the permission identity.
+- `operator_uuids` is a JSON array of operator UUIDs.
+- Empty `operator_uuids` means no operator-only commands are available.
 
 ## Runtime Model
 

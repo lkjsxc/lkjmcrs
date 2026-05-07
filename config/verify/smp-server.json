@@ -7,5 +7,7 @@
   "default_game_mode": "survival",
   "view_distance": 2,
   "simulation_distance": 2,
-  "ops": ["Admin"]
+  "session_server_url": "https://sessionserver.mojang.com",
+  "allow_insecure_session_server": false,
+  "operator_uuids": ["40c73079-eb42-3445-9f3c-c31a5964a44a"]
 }

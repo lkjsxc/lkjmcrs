@@ -9,8 +9,9 @@ the next work batch.
 
 - The server target constants are owned by
   [../architecture/protocol/minecraft-1-21-11.md](../architecture/protocol/minecraft-1-21-11.md).
-- Offline-mode login, configuration, play entry, chunks, light, position, time,
-  keepalive, and command declaration are implemented.
+- Offline-mode login, online-mode encrypted login, configuration, play entry,
+  chunks, light, position, time, keepalive, and command declaration are
+  implemented.
 - The playable world is a deterministic flat overworld with sparse persisted
   block overrides stored in `redb`.
 - Survival placement, breaking, simple drops, pickup, inventory projection, and
@@ -21,12 +22,12 @@ the next work batch.
   compose-verified.
 - Chunk batches send embedded light through `level_chunk_with_light` without
   per-chunk `update_light` packets.
-- Runtime deployment is private-only while identity is name-based offline mode.
+- Play keepalive timeout is implemented and compose-verified.
+- Public runtime exposure requires `online_mode=true` with session
+  verification.
 
 ## Active Blockers
 
-- Public internet exposure is blocked until online identity proof exists or an
-  external private-access boundary is documented.
 - Manual stock-client evidence still needs a fresh raw client log or explicit
   success artifact after the latest packet-shape fixes.
 - Normal survival is incomplete: hunger drain and regeneration are absent,
@@ -35,12 +36,11 @@ the next work batch.
 
 ## Next Implementation Target
 
-Close stale play sessions deterministically before deeper survival or larger
-distance work:
+Online identity is the active foundation for public-safe deployment:
 
-- document a keepalive timeout owner contract,
-- disconnect clients that do not answer the latest keepalive in time,
-- keep mismatched keepalive responses observable without clearing timeout state.
+- keep the encrypted login and verifier boundary documented,
+- keep public exposure tied to authenticated UUID identity,
+- broaden live acceptance around online-mode joins before larger exposure work.
 
 ## Rules
 

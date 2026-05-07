@@ -12,10 +12,17 @@ path = "src/main.rs"
 
 [dependencies]
 clap = { version = "4", features = ["derive"] }
+aes = "0.8"
+cfb8 = "0.8"
+cipher = "0.4"
 md-5 = "0.10"
+rand = "0.8"
 redb = "4"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+rsa = "0.9"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+sha1 = "0.10"
 thiserror = "2"
 tokio = { version = "1", features = ["full"] }
 tracing = "0.1"
