@@ -124,13 +124,6 @@ where
             &chunk::encode_level_chunk_with_light(&WireChunk(chunk_snapshot)),
         )
         .await?;
-        write_packet(
-            stream,
-            phase,
-            ids::play::UPDATE_LIGHT,
-            &chunk::encode_update_light(&WireChunk(chunk_snapshot)),
-        )
-        .await?;
     }
     write_packet(
         stream,

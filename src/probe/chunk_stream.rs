@@ -77,11 +77,6 @@ async fn expect_column_batch(
         }
         positions.insert(chunk::level_chunk_pos(&chunk_packet.data)?);
         chunk::validate_level_chunk_with_light(chunk_packet.data)?;
-        let light = block_mutation::read_next_non_time(stream, "stream light").await?;
-        if light.id != ids::play::UPDATE_LIGHT {
-            return Err(Box::new(ProbeError::Phase("stream light id")));
-        }
-        chunk::validate_update_light(light.data)?;
     }
     validate_new_column(positions, expected_x)?;
     let finished = block_mutation::read_next_non_time(stream, "stream batch finished").await?;

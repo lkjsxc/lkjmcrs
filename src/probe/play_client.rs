@@ -151,8 +151,6 @@ async fn expect_chunks(
             chunk::validate_level_chunk_with_light(chunk_packet.data)?;
         }
         observed = observed.or(persisted);
-        let light = super::expect(stream, ids::play::UPDATE_LIGHT, "update light").await?;
-        chunk::validate_update_light(light.data)?;
     }
     if let Some(expected) = expected_block
         && observed != Some(expected)

@@ -47,6 +47,9 @@ impl RegionActor {
                     radius,
                     reply,
                 } => self.spawn_chunks(center, radius, reply),
+                RegionCommand::LoadChunks { positions, reply } => {
+                    self.load_chunks(positions, reply)
+                }
                 RegionCommand::ChunkSnapshot { pos, reply } => {
                     let _ = reply.send(self.chunks.get(&pos).cloned());
                 }

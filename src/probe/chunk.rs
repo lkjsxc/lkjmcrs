@@ -28,17 +28,6 @@ pub(super) fn validate_level_chunk_with_light(
     Ok(())
 }
 
-pub(super) fn validate_update_light(data: Vec<u8>) -> Result<(), Box<dyn std::error::Error>> {
-    let mut cursor = Cursor::new(data);
-    let _chunk_x = codec::read_var_i32(&mut cursor)?;
-    let _chunk_z = codec::read_var_i32(&mut cursor)?;
-    validate_light_data(&mut cursor)?;
-    if cursor.position() != cursor.get_ref().len() as u64 {
-        return Err(Box::new(ProbeError::Phase("update light trailing bytes")));
-    }
-    Ok(())
-}
-
 pub(super) fn level_chunk_pos(data: &[u8]) -> Result<(i32, i32), Box<dyn std::error::Error>> {
     if data.len() < 8 {
         return Err(Box::new(ProbeError::Phase("chunk position")));

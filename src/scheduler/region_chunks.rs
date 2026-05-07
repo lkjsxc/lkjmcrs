@@ -59,6 +59,14 @@ impl RegionActor {
         reply: oneshot::Sender<Result<Vec<ChunkSnapshot>, RegionActorError>>,
     ) {
         let positions = self.world.chunk_positions(center, radius);
+        self.load_chunks(positions, reply);
+    }
+
+    pub(super) fn load_chunks(
+        &mut self,
+        positions: Vec<ChunkPos>,
+        reply: oneshot::Sender<Result<Vec<ChunkSnapshot>, RegionActorError>>,
+    ) {
         let missing = positions
             .iter()
             .copied()

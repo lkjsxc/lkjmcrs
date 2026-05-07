@@ -57,6 +57,18 @@ impl RegionHandle {
         receive.await.map_err(|_| RegionActorError::Closed)?
     }
 
+    pub async fn load_chunks(
+        &self,
+        positions: Vec<ChunkPos>,
+    ) -> Result<Vec<ChunkSnapshot>, RegionActorError> {
+        let (reply, receive) = oneshot::channel();
+        self.outbox
+            .send(RegionCommand::LoadChunks { positions, reply })
+            .await
+            .map_err(|_| RegionActorError::Closed)?;
+        receive.await.map_err(|_| RegionActorError::Closed)?
+    }
+
     pub async fn chunk_snapshot(
         &self,
         pos: ChunkPos,

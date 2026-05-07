@@ -62,14 +62,7 @@ impl ChunkStream {
             .sessions
             .unsubscribe(context.session_id, diff.leaving.iter().copied())
             .await;
-        let chunks = load_newly_visible(
-            context.region,
-            phase,
-            next_center,
-            self.radius,
-            &diff.entering,
-        )
-        .await?;
+        let chunks = load_newly_visible(context.region, phase, &diff.entering).await?;
         if !chunks.is_empty() {
             send_chunk_batch(writer, &chunks).await?;
             item_visibility::send_items_in_chunks(
@@ -140,21 +133,12 @@ pub fn visible_chunks(center: ChunkPos, radius: i32) -> Vec<ChunkPos> {
 async fn load_newly_visible(
     region: &RegionHandle,
     phase: SessionState,
-    center: ChunkPos,
-    radius: i32,
     newly_visible: &[ChunkPos],
 ) -> Result<Vec<ChunkSnapshot>, ConnectionError> {
-    let newly_visible: HashSet<_> = newly_visible.iter().copied().collect();
     region
-        .spawn_chunks_around(center, radius)
+        .load_chunks(newly_visible.to_vec())
         .await
         .map_err(|source| ConnectionError::Region { phase, source })
-        .map(|chunks| {
-            chunks
-                .into_iter()
-                .filter(|chunk| newly_visible.contains(&chunk.pos))
-                .collect()
-        })
 }
 
 fn block_coord(value: f64) -> i32 {

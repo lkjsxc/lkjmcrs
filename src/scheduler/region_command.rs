@@ -13,6 +13,10 @@ pub(super) enum RegionCommand {
         radius: i32,
         reply: oneshot::Sender<Result<Vec<ChunkSnapshot>, RegionActorError>>,
     },
+    LoadChunks {
+        positions: Vec<ChunkPos>,
+        reply: oneshot::Sender<Result<Vec<ChunkSnapshot>, RegionActorError>>,
+    },
     ChunkSnapshot {
         pos: ChunkPos,
         reply: oneshot::Sender<Option<ChunkSnapshot>>,

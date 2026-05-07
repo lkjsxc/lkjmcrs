@@ -32,6 +32,25 @@ async fn owns_spawn_chunks_and_mutations() {
 }
 
 #[tokio::test]
+async fn loads_exact_chunk_positions() {
+    let handle = RegionActor::spawn(RegionId(9));
+    let chunks = handle
+        .load_chunks(vec![ChunkPos::new(3, -2), ChunkPos::new(3, 2)])
+        .await
+        .unwrap();
+    assert_eq!(chunks.len(), 2);
+    assert_eq!(chunks[0].pos, ChunkPos::new(3, -2));
+    assert_eq!(chunks[1].pos, ChunkPos::new(3, 2));
+    assert!(
+        handle
+            .chunk_snapshot(ChunkPos::new(0, 0))
+            .await
+            .unwrap()
+            .is_none()
+    );
+}
+
+#[tokio::test]
 async fn does_not_create_unloaded_chunks_on_mutation() {
     let handle = RegionActor::spawn(RegionId(1));
     let mutation = handle
