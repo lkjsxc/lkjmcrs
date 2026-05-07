@@ -32,12 +32,12 @@ the next work batch.
 
 ## Next Implementation Target
 
-Replace SQLite persistence with `redb` JSON storage:
+Reduce chunk streaming waste before increasing any distance target:
 
-- world overrides move to `world.redb`,
-- player profiles, inventories, homes, and warps move to `players.redb`,
-- earlier SQLite files are ignored,
-- Docker Compose persistence and reconnect probes remain the acceptance proof.
+- stop sending explicit `update_light` after every chunk batch entry,
+- keep light data inside `level_chunk_with_light`,
+- load only newly visible movement chunks through the region actor,
+- document progressive budgets before raising the distance ceiling.
 
 ## Rules
 

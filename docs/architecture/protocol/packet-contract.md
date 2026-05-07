@@ -38,8 +38,8 @@ owned by [dynamic-registries.md](dynamic-registries.md).
 - `0x0c chunk_batch_start`: empty payload.
 - `0x2c level_chunk_with_light`: flat chunks for the configured view distance,
   with chunk data and light arrays.
-- `0x2f update_light`: explicit light data for the same chunk, retained for the
-  current join boundary.
+- `0x2f update_light`: reserved for later changed-light events; not sent after
+  normal flat chunk batch entries.
 - `0x0b chunk_batch_finished`: batch size.
 - `0x46 position`: spawn teleport with teleport ID `1`.
 - `0x2b keep_alive`: signed 64-bit keepalive ID.

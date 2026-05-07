@@ -16,16 +16,16 @@ The play bootstrap sends:
 1. `chunk_batch_start`
 2. one `level_chunk_with_light` packet for every chunk in the advertised
    chunk-cache radius
-3. one `update_light` packet after each chunk
-4. `chunk_batch_finished`
+3. `chunk_batch_finished`
 
 The advertised radius is authoritative. A radius of `2` means the initial
 terrain batch is a `5x5` square centered on chunk `0,0`, for `25` chunks total.
 Do not advertise a larger radius than the bootstrap sends.
 
-The explicit `update_light` packet is intentionally retained during the current
-join boundary even though `level_chunk_with_light` already carries light data.
-Removing it is a separate evidence-backed simplification.
+`level_chunk_with_light` carries the complete light payload for the current flat
+chunk. Do not send a separate `update_light` packet during bootstrap or normal
+movement chunk batches. Reserve explicit `update_light` for later changed-light
+events after the server has mutable lighting.
 
 ## Level Chunk With Light Payload
 

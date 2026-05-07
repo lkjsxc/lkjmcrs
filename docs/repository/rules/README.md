@@ -13,3 +13,4 @@ Use this subtree for repository-wide authoring rules.
 - [docs-first-policy.md](docs-first-policy.md): docs before code.
 - [line-limits.md](line-limits.md): hard line limits.
 - [dependency-policy.md](dependency-policy.md): dependency selection rules.
+- [wording-policy.md](wording-policy.md): wording rules for agent-readable docs.

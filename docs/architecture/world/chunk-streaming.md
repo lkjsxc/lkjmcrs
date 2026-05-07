@@ -22,8 +22,8 @@ chunk-center boundaries.
 3. If the center changes, the session computes the next visible set from the
    configured view distance.
 4. Chunks leaving the previous visible set are sent as `unload_chunk`.
-5. Chunks entering the next visible set are loaded through the region actor
-   with `spawn_chunks_around`.
+5. Chunks entering the next visible set are loaded through the region actor by
+   exact chunk position.
 6. The server sends `chunk_cache_center` for the new center.
 7. If there are newly visible chunks, the server sends a chunk batch containing
    only those chunks.
@@ -36,6 +36,16 @@ chunk-center boundaries.
 from center `0,0` to `1,0` with view distance `2` unloads column `x=-2` and
 loads column `x=3`. Dynamic region split and merge, entity streaming, and using
 simulation distance for ticking are out of scope.
+
+## Distance Budget Boundary
+
+The current configured view-distance range stays `2..=8`. Larger targets require
+progressive loading before the cap changes:
+
+- near chunks stream first,
+- far chunks use explicit chunk and byte budgets,
+- reusable encoded chunk payloads are cached for unchanged generated chunks,
+- full square bootstrap is not used for large-distance targets.
 
 ## Mutation Boundary
 
