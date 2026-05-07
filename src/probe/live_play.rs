@@ -48,7 +48,22 @@ pub(super) async fn expect_keepalive_after_time(
             ids::play::SET_TIME => {
                 saw_time = true;
             }
+            id if ignorable_live_packet(id) => {}
             _ => return Err(Box::new(ProbeError::Phase("periodic play packet"))),
         }
     }
+}
+
+fn ignorable_live_packet(id: i32) -> bool {
+    matches!(
+        id,
+        ids::play::SPAWN_ENTITY
+            | ids::play::ENTITY_DESTROY
+            | ids::play::ENTITY_METADATA
+            | ids::play::UPDATE_HEALTH
+            | ids::play::HELD_ITEM_SLOT
+            | ids::play::SET_PLAYER_INVENTORY
+            | ids::play::SYSTEM_CHAT
+            | ids::play::COLLECT
+    )
 }
