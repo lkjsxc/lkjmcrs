@@ -67,6 +67,10 @@ enum ProbeCommand {
         #[arg(long, default_value = "127.0.0.1:25565")]
         host: String,
     },
+    ScaleChunkStream {
+        #[arg(long, default_value = "127.0.0.1:25565")]
+        host: String,
+    },
     SurvivalItem {
         #[arg(long, default_value = "127.0.0.1:25565")]
         host: String,
@@ -127,6 +131,9 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
                 crate::probe::profile_reconnect(&host).await?
             }
             ProbeCommand::ChunkStream { host } => crate::probe::chunk_stream(&host).await?,
+            ProbeCommand::ScaleChunkStream { host } => {
+                crate::probe::scale_chunk_stream(&host).await?
+            }
             ProbeCommand::SurvivalItem { host } => crate::probe::survival_item(&host).await?,
             ProbeCommand::SurvivalVitals { host } => crate::probe::survival_vitals(&host).await?,
             ProbeCommand::InventorySync { host } => crate::probe::inventory_sync(&host).await?,

@@ -28,6 +28,12 @@ pub fn encode_level_chunk_with_light(chunk: &impl ChunkColumn) -> Vec<u8> {
     let pos = chunk.position();
     codec::write_i32(&mut out, pos.x);
     codec::write_i32(&mut out, pos.z);
+    out.extend_from_slice(&encode_level_chunk_body_with_light(chunk));
+    out
+}
+
+pub fn encode_level_chunk_body_with_light(chunk: &impl ChunkColumn) -> Vec<u8> {
+    let mut out = Vec::new();
     write_heightmaps(&mut out);
     let data = encode_chunk_data(chunk);
     codec::write_var_i32(&mut out, data.len() as i32);

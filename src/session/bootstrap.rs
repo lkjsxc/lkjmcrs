@@ -1,15 +1,16 @@
 use crate::player::{Inventory, Vitals};
-use crate::protocol::chunk;
 use crate::protocol::commands;
 use crate::protocol::ids;
 use crate::protocol::play;
 use crate::protocol::vitals::{self, HealthUpdate};
 use crate::scheduler::RegionHandle;
 use crate::session::SessionState;
+use crate::session::chunk_payload_cache::ChunkPayloadCache;
+use crate::session::chunk_stream_send::{EncodedChunk, send_encoded_chunk_batch};
 use crate::session::error::ConnectionError;
 use crate::session::inventory_sync;
 use crate::session::io::write_packet;
-use crate::world::{BlockState, ChunkPos, ChunkSnapshot};
+use crate::world::ChunkPos;
 use tokio::io::AsyncWrite;
 
 pub async fn send_play_bootstrap<W>(
@@ -18,6 +19,8 @@ pub async fn send_play_bootstrap<W>(
     inventory: &Inventory,
     player_vitals: &Vitals,
     region: &RegionHandle,
+    initial_chunks: &[ChunkPos],
+    cache: &mut ChunkPayloadCache,
 ) -> Result<Vec<ChunkPos>, ConnectionError>
 where
     W: AsyncWrite + Unpin,
@@ -86,14 +89,10 @@ where
     )
     .await?;
     let chunks = region
-        .spawn_chunks_around(
-            ChunkPos::new(bootstrap.chunk_x, bootstrap.chunk_z),
-            bootstrap.view_distance,
-        )
+        .load_chunks(initial_chunks.to_vec())
         .await
         .map_err(|source| ConnectionError::Region { phase, source })?;
-    debug_assert_eq!(chunks.len(), bootstrap.chunk_count());
-    send_chunk_batch(stream, &chunks).await?;
+    send_chunk_batch(stream, &chunks, cache).await?;
     write_packet(
         stream,
         phase,
@@ -113,60 +112,23 @@ where
 
 pub async fn send_chunk_batch<W>(
     stream: &mut W,
-    chunks: &[ChunkSnapshot],
+    chunks: &[crate::world::ChunkSnapshot],
+    cache: &mut ChunkPayloadCache,
 ) -> Result<(), ConnectionError>
 where
     W: AsyncWrite + Unpin,
 {
-    let phase = SessionState::Play;
-    write_packet(stream, phase, ids::play::CHUNK_BATCH_START, &[]).await?;
-    for chunk_snapshot in chunks {
-        write_packet(
-            stream,
-            phase,
-            ids::play::LEVEL_CHUNK_WITH_LIGHT,
-            &chunk::encode_level_chunk_with_light(&WireChunk(chunk_snapshot)),
-        )
-        .await?;
-    }
-    write_packet(
-        stream,
-        phase,
-        ids::play::CHUNK_BATCH_FINISHED,
-        &chunk::encode_chunk_batch_finished(chunks.len()),
-    )
-    .await
-}
-
-struct WireChunk<'a>(&'a ChunkSnapshot);
-
-impl chunk::ChunkColumn for WireChunk<'_> {
-    fn position(&self) -> chunk::ChunkPosition {
-        chunk::ChunkPosition {
-            x: self.0.pos.x,
-            z: self.0.pos.z,
-        }
-    }
-
-    fn block_state_id_at_local(&self, x: usize, y: i32, z: usize) -> i32 {
-        block_state_id(self.0.block_at_local(x, y, z))
-    }
-}
-
-pub(crate) fn block_state_id(state: BlockState) -> i32 {
-    match state {
-        BlockState::Air => chunk::AIR_ID,
-        BlockState::Bedrock => chunk::BEDROCK_ID,
-        BlockState::Stone => chunk::STONE_ID,
-        BlockState::Dirt => chunk::DIRT_ID,
-        BlockState::GrassBlock => chunk::GRASS_BLOCK_ID,
-    }
+    let chunks = chunks
+        .iter()
+        .map(|chunk| EncodedChunk::from_snapshot(chunk, cache))
+        .collect::<Vec<_>>();
+    send_encoded_chunk_batch(stream, &chunks).await
 }
 
 #[cfg(test)]
 mod tests {
-    use super::WireChunk;
     use crate::protocol::{chunk, codec};
+    use crate::session::chunk_wire::WireChunk;
     use crate::world::{ChunkPos, ChunkSnapshot};
     use std::io::Cursor;
 

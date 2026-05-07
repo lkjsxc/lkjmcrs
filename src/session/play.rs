@@ -4,36 +4,27 @@ use crate::protocol::play;
 use crate::scheduler::RegionHandle;
 use crate::session::SessionState;
 use crate::session::bootstrap::send_play_bootstrap;
+use crate::session::chunk_payload_cache::ChunkPayloadCache;
 use crate::session::chunk_stream::ChunkStream;
 use crate::session::error::ConnectionError;
 use crate::session::io::{read_packet, write_packet};
 use crate::session::item_visibility;
-use crate::session::outbound::PlayOutbound;
+pub use crate::session::play_model::PlaySettings;
+use crate::session::play_model::RegisteredSession;
 use crate::session::play_outbound::{OutboundStep, handle_outbound};
-use crate::session::play_packets::{PlayPacketContext, handle_play_packet};
+use crate::session::play_packet_context::PlayPacketContext;
+use crate::session::play_packets::handle_play_packet;
 use crate::session::play_state::PlaySession;
-use crate::session::registry::{SessionId, SessionRegistry};
+use crate::session::play_timers::delayed_interval;
+use crate::session::registry::SessionRegistry;
 use tokio::io::{AsyncRead, AsyncWrite};
-use tokio::time::{self, Duration, Instant, MissedTickBehavior};
+use tokio::time::{Duration, Instant};
 
 const KEEPALIVE_INTERVAL: Duration = Duration::from_secs(10);
 const TIME_INTERVAL: Duration = Duration::from_secs(1);
 const HUNGER_INTERVAL: Duration = Duration::from_secs(4);
+const CHUNK_DRAIN_INTERVAL: Duration = Duration::from_millis(100);
 const TIME_STEP_TICKS: i64 = 20;
-
-#[derive(Debug, Clone, Copy)]
-pub struct PlaySettings {
-    pub max_players: usize,
-    pub view_distance: i32,
-    pub simulation_distance: i32,
-}
-
-struct RegisteredSession {
-    id: SessionId,
-    outbound: tokio::sync::mpsc::Receiver<PlayOutbound>,
-    is_op: bool,
-}
-
 pub async fn handle_play<S>(
     stream: &mut S,
     settings: PlaySettings,
@@ -94,24 +85,26 @@ where
         crate::world::ChunkPos::new(bootstrap.chunk_x, bootstrap.chunk_z),
         bootstrap.view_distance,
     );
+    let mut chunk_cache = ChunkPayloadCache::default();
     let (mut reader, mut writer) = tokio::io::split(stream);
+    let initial_chunks = chunk_stream.initial_chunks();
     let chunks = send_play_bootstrap(
         &mut writer,
         bootstrap,
         &profile.inventory,
         &profile.vitals,
         &region,
+        &initial_chunks,
+        &mut chunk_cache,
     )
     .await?;
     item_visibility::send_items_in_chunks(&mut writer, phase, &region, chunks.clone()).await?;
     sessions.subscribe(session.id, chunks).await;
     session.record_keepalive_sent(1, Instant::now());
-    let mut keepalives = time::interval_at(Instant::now() + KEEPALIVE_INTERVAL, KEEPALIVE_INTERVAL);
-    keepalives.set_missed_tick_behavior(MissedTickBehavior::Delay);
-    let mut times = time::interval_at(Instant::now() + TIME_INTERVAL, TIME_INTERVAL);
-    times.set_missed_tick_behavior(MissedTickBehavior::Delay);
-    let mut hunger_ticks = time::interval_at(Instant::now() + HUNGER_INTERVAL, HUNGER_INTERVAL);
-    hunger_ticks.set_missed_tick_behavior(MissedTickBehavior::Delay);
+    let mut keepalives = delayed_interval(KEEPALIVE_INTERVAL);
+    let mut times = delayed_interval(TIME_INTERVAL);
+    let mut hunger_ticks = delayed_interval(HUNGER_INTERVAL);
+    let mut chunk_drains = delayed_interval(CHUNK_DRAIN_INTERVAL);
     let mut next_keepalive_id = 2_i64;
 
     let result = loop {
@@ -130,6 +123,7 @@ where
                             max_players: settings.max_players,
                             player_store: &player_store,
                             writer: &mut writer,
+                            chunk_cache: &mut chunk_cache,
                         },
                     ).await,
                     Err(error) => Err(error),
@@ -187,6 +181,15 @@ where
                     &mut session,
                 ).await
             }
+            _ = chunk_drains.tick() => crate::session::play_chunk_drain::flush_pending(
+                &mut writer,
+                phase,
+                &region,
+                &sessions,
+                session.id,
+                &mut chunk_stream,
+                &mut chunk_cache,
+            ).await
         };
         if let Err(error) = step {
             break Err(error);

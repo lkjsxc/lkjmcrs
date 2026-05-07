@@ -1,5 +1,23 @@
 # Current Results
 
+## 2026-05-08 Progressive Chunk Streaming
+
+Implementation tested: pending local implementation, with radius `4`
+progressive chunk streaming, near-radius bootstrap, budgeted follow-up chunk
+batches, flat chunk payload caching, and a dedicated scale stream probe.
+
+Command owner:
+
+- [compose-pipeline.md](compose-pipeline.md)
+
+Result:
+
+- `verify`: pass with compact output:
+  `verify fmt ... ok`, `verify clippy ... ok`, `verify test ... ok`,
+  `verify docs-topology ... ok`, `verify line-limits ... ok`, `verify pass`.
+- clean `chunk-stream`: pass, `chunk-stream probe ok`.
+- `scale-chunk-stream`: pass, `scale-chunk-stream probe ok`.
+
 ## 2026-05-07 Survival Vitals And Smoke
 
 Implementation tested: `4b7ebbd`, with docs canon refresh, hunger-loop vitals,

@@ -1,7 +1,7 @@
 use crate::protocol::block_interaction;
 use crate::protocol::ids;
 use crate::session::SessionState;
-use crate::session::bootstrap::block_state_id;
+use crate::session::chunk_wire::block_state_id;
 use crate::session::error::ConnectionError;
 use crate::session::io::write_packet;
 use crate::world::{BlockPos, BlockState};

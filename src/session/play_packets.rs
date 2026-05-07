@@ -1,11 +1,10 @@
-use crate::player::{PlayerProfile, PlayerStore};
+use crate::player::PlayerProfile;
 use crate::protocol::block_interaction::BlockInteraction;
 use crate::protocol::chat::{self, PlayChat};
 use crate::protocol::client_command;
 use crate::protocol::codec::{self, Packet};
 use crate::protocol::ids;
 use crate::protocol::movement::Movement;
-use crate::scheduler::RegionHandle;
 use crate::session::SessionState;
 use crate::session::block_actions::handle_block_interaction;
 use crate::session::chat::send_system_chat;
@@ -14,20 +13,9 @@ use crate::session::command_dispatch::{self, CommandDispatchContext};
 use crate::session::error::ConnectionError;
 use crate::session::inventory_sync;
 use crate::session::io::codec_error;
+use crate::session::play_packet_context::PlayPacketContext;
 use crate::session::play_state::PlaySession;
-use crate::session::registry::SessionRegistry;
 use crate::session::vitals;
-
-pub struct PlayPacketContext<'a, W>
-where
-    W: tokio::io::AsyncWrite + Unpin,
-{
-    pub region: &'a RegionHandle,
-    pub sessions: &'a SessionRegistry,
-    pub max_players: usize,
-    pub player_store: &'a PlayerStore,
-    pub writer: &'a mut W,
-}
 
 pub async fn handle_play_packet<W>(
     packet: Packet,
@@ -50,7 +38,14 @@ where
             session_id: session.id,
         };
         chunk_stream
-            .stream_after_movement(session.x, session.z, phase, stream_context, context.writer)
+            .stream_after_movement(
+                session.x,
+                session.z,
+                phase,
+                stream_context,
+                context.writer,
+                context.chunk_cache,
+            )
             .await?;
         crate::session::item_pickup::attempt_pickup(
             context.writer,
@@ -153,6 +148,7 @@ where
                     max_players: context.max_players,
                     region: context.region,
                     chunk_stream,
+                    chunk_cache: context.chunk_cache,
                     player_store: context.player_store,
                     sessions: context.sessions,
                     writer: context.writer,

@@ -42,6 +42,7 @@ where
                 session_id: session.id,
             },
             context.writer,
+            context.chunk_cache,
         )
         .await
 }

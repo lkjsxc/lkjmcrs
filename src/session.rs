@@ -6,9 +6,13 @@ mod block_rules;
 mod block_rules_tests;
 pub mod bootstrap;
 pub mod chat;
+mod chunk_payload_cache;
 pub mod chunk_stream;
+mod chunk_stream_send;
 #[cfg(test)]
 mod chunk_stream_tests;
+mod chunk_stream_window;
+mod chunk_wire;
 pub mod command_dispatch;
 pub mod commands;
 #[cfg(test)]
@@ -27,7 +31,10 @@ mod online_login;
 pub mod outbound;
 pub mod play;
 mod play_bootstrap_state;
+mod play_chunk_drain;
+mod play_model;
 mod play_outbound;
+mod play_packet_context;
 pub mod play_packets;
 #[cfg(test)]
 mod play_packets_tests;
@@ -35,6 +42,7 @@ pub mod play_state;
 #[cfg(test)]
 mod play_state_tests;
 mod play_ticks;
+mod play_timers;
 pub mod profile;
 pub mod reach;
 pub mod registry;

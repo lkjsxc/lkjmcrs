@@ -16,6 +16,7 @@ pub(super) struct PositionPacket {
 #[derive(Debug, Clone, Copy)]
 pub(super) struct LoginPacket {
     pub game_mode: i8,
+    pub view_distance: i32,
 }
 
 pub(super) fn validate_known_packs(data: Vec<u8>) -> Result<(), Box<dyn std::error::Error>> {
@@ -84,9 +85,9 @@ pub(super) fn decode_login_packet(
     for _ in 0..dimension_count {
         let _dimension = codec::read_string(&mut cursor)?;
     }
-    for _ in 0..3 {
-        let _ = codec::read_var_i32(&mut cursor)?;
-    }
+    let _max_players = codec::read_var_i32(&mut cursor)?;
+    let view_distance = codec::read_var_i32(&mut cursor)?;
+    let _simulation_distance = codec::read_var_i32(&mut cursor)?;
     for _ in 0..3 {
         let _ = codec::read_bool(&mut cursor)?;
     }
@@ -94,7 +95,10 @@ pub(super) fn decode_login_packet(
     let _dimension = codec::read_string(&mut cursor)?;
     let _seed = codec::read_i64(&mut cursor)?;
     let game_mode = codec::read_u8(&mut cursor)? as i8;
-    Ok(LoginPacket { game_mode })
+    Ok(LoginPacket {
+        game_mode,
+        view_distance,
+    })
 }
 
 pub(super) fn validate_chunk_radius(data: Vec<u8>) -> Result<usize, Box<dyn std::error::Error>> {

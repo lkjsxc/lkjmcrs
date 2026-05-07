@@ -1,6 +1,7 @@
 use crate::protocol::codec;
 use crate::protocol::ids;
 use crate::session::bootstrap::send_chunk_batch;
+use crate::session::chunk_payload_cache::ChunkPayloadCache;
 use crate::session::play_packets::decode_keepalive;
 use crate::world::{ChunkPos, ChunkSnapshot};
 use tokio::io::AsyncWriteExt;
@@ -17,7 +18,10 @@ fn keepalive_decode_rejects_trailing_bytes() {
 async fn chunk_batch_sends_embedded_light_without_update_light() {
     let (mut reader, mut writer) = tokio::io::duplex(128 * 1024);
     let chunks = vec![ChunkSnapshot::flat(ChunkPos::new(0, 0))];
-    send_chunk_batch(&mut writer, &chunks).await.unwrap();
+    let mut cache = ChunkPayloadCache::default();
+    send_chunk_batch(&mut writer, &chunks, &mut cache)
+        .await
+        .unwrap();
     writer.shutdown().await.unwrap();
 
     assert_eq!(
