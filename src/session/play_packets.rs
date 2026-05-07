@@ -104,7 +104,7 @@ where
                 tracing::warn!(
                     phase = %phase,
                     id,
-                    expected = session.last_keepalive_id,
+                    expected = session.keepalive_id().unwrap_or(0),
                     "keepalive response id mismatch"
                 );
             }

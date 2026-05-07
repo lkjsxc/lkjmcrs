@@ -98,7 +98,7 @@ async fn run_play(
     .await?;
     item_visibility::send_items_in_chunks(&mut writer, phase, &region, chunks.clone()).await?;
     sessions.subscribe(session.id, chunks).await;
-    session.record_keepalive_sent(1);
+    session.record_keepalive_sent(1, Instant::now());
     let mut keepalives = time::interval_at(Instant::now() + KEEPALIVE_INTERVAL, KEEPALIVE_INTERVAL);
     keepalives.set_missed_tick_behavior(MissedTickBehavior::Delay);
     let mut times = time::interval_at(Instant::now() + TIME_INTERVAL, TIME_INTERVAL);
@@ -141,7 +141,8 @@ async fn run_play(
                 }
             }
             _ = keepalives.tick() => {
-                session.record_keepalive_sent(next_keepalive_id);
+                let now = Instant::now();
+                session.record_keepalive_sent(next_keepalive_id, now);
                 let written = write_packet(
                     &mut writer,
                     phase,
@@ -153,14 +154,21 @@ async fn run_play(
                 written
             }
             _ = times.tick() => {
-                session.advance_time(TIME_STEP_TICKS);
-                write_packet(
-                    &mut writer,
-                    phase,
-                    ids::play::SET_TIME,
-                    &play::encode_time(session.age, session.day_time),
-                )
-                .await
+                if session.keepalive_timed_out(Instant::now()) {
+                    Err(ConnectionError::Protocol {
+                        phase,
+                        message: "keepalive timeout",
+                    })
+                } else {
+                    session.advance_time(TIME_STEP_TICKS);
+                    write_packet(
+                        &mut writer,
+                        phase,
+                        ids::play::SET_TIME,
+                        &play::encode_time(session.age, session.day_time),
+                    )
+                    .await
+                }
             }
         };
         if let Err(error) = step {

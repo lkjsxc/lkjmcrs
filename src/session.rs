@@ -28,6 +28,8 @@ pub mod play_packets;
 #[cfg(test)]
 mod play_packets_tests;
 pub mod play_state;
+#[cfg(test)]
+mod play_state_tests;
 pub mod profile;
 pub mod reach;
 pub mod registry;
