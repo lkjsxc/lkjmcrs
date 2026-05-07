@@ -1,6 +1,6 @@
 use crate::player::PlayerProfile;
 use crate::session::SessionState;
-use crate::session::block_actions::send_block_update;
+use crate::session::block_packets::send_block_update;
 use crate::session::chat::{send_kick, send_system_chat};
 use crate::session::entity_packets::{send_collect, send_destroy, send_item_spawn};
 use crate::session::error::ConnectionError;

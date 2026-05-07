@@ -1,13 +1,11 @@
 use crate::player::PlayerProfile;
 use crate::protocol::block_interaction::{self, BlockInteraction};
-use crate::protocol::ids;
 use crate::scheduler::RegionHandle;
 use crate::session::SessionState;
+use crate::session::block_packets::{send_block_update, send_prediction_ack};
 use crate::session::block_rules;
-use crate::session::bootstrap::block_state_id;
 use crate::session::error::ConnectionError;
 use crate::session::inventory_sync;
-use crate::session::io::write_packet;
 use crate::session::play_state::PlaySession;
 use crate::session::reach::can_reach_block;
 use crate::session::registry::SessionRegistry;
@@ -141,51 +139,8 @@ async fn publish_observers(
     }
 }
 
-async fn send_prediction_ack<W>(
-    writer: &mut W,
-    phase: SessionState,
-    sequence: i32,
-) -> Result<(), ConnectionError>
-where
-    W: AsyncWrite + Unpin,
-{
-    write_packet(
-        writer,
-        phase,
-        ids::play::BLOCK_CHANGED_ACK,
-        &block_interaction::encode_block_changed_ack(sequence),
-    )
-    .await
-}
-
-pub async fn send_block_update<W>(
-    writer: &mut W,
-    phase: SessionState,
-    pos: BlockPos,
-    state: BlockState,
-) -> Result<(), ConnectionError>
-where
-    W: AsyncWrite + Unpin,
-{
-    write_packet(
-        writer,
-        phase,
-        ids::play::BLOCK_UPDATE,
-        &block_interaction::encode_block_update(to_wire_pos(pos), block_state_id(state)),
-    )
-    .await
-}
-
 fn to_world_pos(pos: block_interaction::BlockPos) -> BlockPos {
     BlockPos::new(pos.x, pos.y, pos.z)
-}
-
-fn to_wire_pos(pos: BlockPos) -> block_interaction::BlockPos {
-    block_interaction::BlockPos {
-        x: pos.x,
-        y: pos.y,
-        z: pos.z,
-    }
 }
 
 fn to_world_face(face: block_interaction::BlockFace) -> crate::world::BlockFace {

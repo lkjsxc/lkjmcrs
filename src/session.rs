@@ -1,4 +1,5 @@
 pub mod block_actions;
+mod block_packets;
 mod block_rules;
 #[cfg(test)]
 mod block_rules_tests;
