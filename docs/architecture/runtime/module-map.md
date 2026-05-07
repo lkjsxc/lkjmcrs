@@ -6,7 +6,7 @@
 - `config`: JSON configuration and defaults.
 - `net`: TCP listener and connection loop.
 - `protocol`: packet framing, types, encoding, decoding, and wire DTOs.
-- `player`: persistent player model, inventory, named locations, and SQLite
+- `player`: persistent player model, inventory, named locations, and `redb`
   storage.
 - `session`: login, configuration, play state, keepalive, commands, and travel
   command dispatch.
@@ -26,9 +26,8 @@
 
 ## Notable Submodules
 
-- `player::store_rows`: profile and inventory row mapping.
-- `player::location_rows`: home and warp row mapping.
-- `player::schema`: current player database schema.
+- `player::store_json`: profile and inventory JSON mapping.
+- `player::location_json`: home and warp JSON mapping.
 - `session::command_dispatch`: command permission and routing entrypoint.
 - `session::travel_commands`: `/spawn`, homes, and warps.
 

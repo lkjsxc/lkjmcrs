@@ -2,7 +2,7 @@
 
 ## Project Shape
 
-`lkjmcrs` starts as a small Rust server skeleton and grows through documented
+`lkjmcrs` starts as a small Rust server and grows through documented
 contracts. The repo is intentionally new and has no compatibility burden.
 
 ## Start Paths

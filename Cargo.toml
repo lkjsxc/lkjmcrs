@@ -3,7 +3,7 @@ name = "lkjmcrs"
 version = "0.1.0"
 edition = "2024"
 authors = ["lkjmcrs contributors"]
-description = "Rust Minecraft Java Edition server skeleton targeting 1.21.11"
+description = "Rust Minecraft Java Edition server targeting 1.21.11"
 license = "Apache-2.0"
 
 [[bin]]

@@ -20,7 +20,7 @@ lifecycle, and play-session visibility contracts.
   and vitals.
 - [vitals.md](vitals.md): health, hunger, saturation, damage, death, and
   respawn rules.
-- [player-storage.md](player-storage.md): SQLite profile storage contract.
+- [player-storage.md](player-storage.md): `redb` profile storage contract.
 - [session-lifecycle.md](session-lifecycle.md): player session states.
 - [play-loop.md](play-loop.md): movement, keepalive, and time behavior in play.
 - [chunk-observers.md](chunk-observers.md): chunk subscriptions and block

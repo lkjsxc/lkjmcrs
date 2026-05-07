@@ -8,28 +8,27 @@ quests, parties, and cross-player queries.
 ## Storage Root
 
 - Runtime storage root comes from JSON config field `data_dir`.
-- Player database path is `players.sqlite3` inside the storage root.
+- Player database path is `players.redb` inside the storage root.
 - Docker Compose stores it in the configured named volume.
 
-## Schema Contract
+## Database Contract
 
-- SQLite `PRAGMA user_version` is `3`.
-- `player_profiles` owns one row per UUID.
-- `player_profiles.selected_hotbar_slot` stores the selected hotbar slot.
-- `player_inventory_slots` owns zero or more rows per UUID.
-- Inventory slot rows are replaced as part of profile save.
-- `player_homes` owns zero or more normalized home locations per UUID.
-- `warps` owns normalized global warp locations.
-- Unsupported nonzero schema versions fail startup or profile access.
-- Existing version `1` and `2` databases are intentionally unsupported.
+- Database path: `players.redb`.
+- Table `profiles` maps UUID strings to JSON profile values.
+- Table `homes` maps `{uuid}/{name}` to JSON location values.
+- Table `warps` maps warp names to JSON warp values.
+- Profile values contain name, game mode, position, selected hotbar slot,
+  vitals, and inventory slots.
+- Saving a profile replaces the whole profile value, including inventory.
+- Existing `players.sqlite3` files are intentionally ignored.
 
-## Location Tables
+## Location Values
 
-- `player_homes` primary key is `(uuid, name)`.
-- `warps` primary key is `name`.
-- Coordinates use SQLite `REAL` values.
+- Home keys are scoped by UUID and name.
+- Warp keys are global names.
+- Coordinates use JSON numbers.
 - `world` is stored as text and must be `minecraft:overworld` today.
-- Warp rows include `created_by_uuid` for future audit behavior.
+- Warp values include `created_by_uuid` for audit behavior.
 
 ## I/O Rules
 
@@ -38,20 +37,15 @@ quests, parties, and cross-player queries.
 3. Profile saves happen when a play session disconnects.
 4. Home and warp writes happen synchronously during command dispatch.
 5. Storage failures disconnect the affected login or play session.
-6. SQLite access must not run from region actor tick paths.
-7. Startup is the only path that creates or updates the player schema.
-8. Startup enables SQLite WAL mode before schema initialization.
-9. PlayerStore serializes profile, home, and warp writes inside the process.
-10. Per-session operations open short-lived checked connections.
-11. Checked connections validate `user_version` but do not rewrite schema or
-    connection-level pragmas that require writer coordination.
-12. Checked connections use a busy timeout so overlapping saves wait briefly
-    instead of failing immediately with `database is locked`.
-13. Profile saves use an immediate transaction so writer contention is resolved
-    before profile or inventory rows are changed.
+6. Blocking database work must not run from region actor tick paths.
+7. PlayerStore serializes profile, home, and warp writes inside the process.
+8. Reads and writes use short blocking tasks.
+9. Invalid stored game modes, locations, hotbar slots, or inventory slots fail
+   the affected operation.
+10. Home names and warp names are returned in sorted order.
 
 ## Out of Scope
 
 - Online-mode identity verification.
-- Player-data migrations beyond rejecting unsupported schema versions.
+- Migration from earlier SQLite files.
 - Economy, quests, parties, achievements, and stored permissions.

@@ -36,7 +36,7 @@ Config is read once at process startup from `config/server.json`.
 
 - Runtime state lives in the `server-data` named volume.
 - The container mounts that volume at `/app/data`.
-- `world.sqlite3` and `players.sqlite3` live under the configured `data_dir`.
+- `world.redb` and `players.redb` live under the configured `data_dir`.
 - `docker compose down` preserves named volumes.
 - `docker compose down -v` removes named volumes.
 

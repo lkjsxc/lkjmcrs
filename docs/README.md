@@ -26,7 +26,8 @@ operations, and repository rules.
 
 ## Top-Level Sections
 
-- [vision/README.md](vision/README.md): project purpose, principles, roadmap.
+- [vision/README.md](vision/README.md): project purpose, principles, and
+  capability order.
 - [getting-started/README.md](getting-started/README.md): orientation and first run.
 - [product/README.md](product/README.md): user-visible behavior and compatibility.
 - [architecture/README.md](architecture/README.md): protocol, runtime, scheduler, world, player.
@@ -42,6 +43,6 @@ operations, and repository rules.
 5. [architecture/runtime/process-model.md](architecture/runtime/process-model.md)
 6. [architecture/scheduler/region-ownership.md](architecture/scheduler/region-ownership.md)
 7. [architecture/world/region-index.md](architecture/world/region-index.md)
-8. [product/gameplay-skeleton.md](product/gameplay-skeleton.md)
+8. [product/playable-server.md](product/playable-server.md)
 9. [operations/verification/compose-pipeline.md](operations/verification/compose-pipeline.md)
 10. [repository/workflow/change-sequence.md](repository/workflow/change-sequence.md)

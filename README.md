@@ -10,7 +10,7 @@ change implementation only after the relevant contract is clear.
 
 - Rust-only server core.
 - First-party minimal `1.21.11` protocol layer.
-- Offline-mode playable skeleton first.
+- Offline-mode playable server first.
 - Folia-inspired region ownership and asynchronous task handoff.
 - Docker Compose verification as the required acceptance path.
 

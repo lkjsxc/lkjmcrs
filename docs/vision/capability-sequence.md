@@ -1,6 +1,6 @@
-# Roadmap
+# Capability Sequence
 
-## Playable Skeleton
+## Playable Server
 
 - Minimal first-party `1.21.11` wire protocol.
 - Offline-mode login and play-state entry.
@@ -12,7 +12,7 @@
 
 - Region-owned block mutation.
 - Creative placement, breaking, and multiplayer observer smoke coverage.
-- SQLite-backed sparse chunk override storage.
+- `redb` JSON storage for sparse chunk overrides and player data.
 - Basic block interaction and player movement validation.
 - Persistent player profiles, gamemode, inventory shell, and vitals shell.
 - Inventory and item stack model.
@@ -20,7 +20,15 @@
 - Client-visible dropped item entities and pickup.
 - More complete registry and data-pack handling.
 
-## Basic Normal Survival
+## Storage And Identity Foundation
+
+- Storage abstraction centered on `redb` tables and JSON values.
+- No compatibility with earlier SQLite files.
+- Online-mode login, encryption, and session verification outside tick paths.
+- UUID-owned permission model after online identity is implemented.
+- Progressive chunk streaming budgets before large distance targets.
+
+## Normal Survival
 
 - Health, hunger, damage, death, and respawn effects.
 - Minimal crafting, recipes, tools, durability, and mining speed.

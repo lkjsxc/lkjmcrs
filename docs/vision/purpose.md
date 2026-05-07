@@ -22,7 +22,7 @@ PaperMC/Folia-class platform while staying readable to LLM agents.
 
 ## First Useful State
 
-The first useful state is a playable skeleton:
+The first useful state is a playable server:
 
 - vanilla client can see the server in the server list,
 - first-party wire probe reaches offline login and play state,

@@ -1,8 +1,8 @@
-# Gameplay Skeleton
+# Playable Server
 
 ## Goal
 
-Document the first playable skeleton: a stock offline-mode `1.21.11` client can
+Document the first playable server state: a stock offline-mode `1.21.11` client can
 pass `login_finished`, complete configuration, enter play, and receive a
 minimal flat spawn area.
 
@@ -36,7 +36,7 @@ minimal flat spawn area.
 
 ## Current Gameplay Extension
 
-The skeleton has moved beyond its first join-only boundary. The current
+The server has moved beyond its first join-only boundary. The current
 gameplay contract is owned by [survival-core.md](survival-core.md):
 
 - creative-style block placement and breaking are implemented for loaded spawn

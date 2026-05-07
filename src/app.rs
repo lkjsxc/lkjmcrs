@@ -4,7 +4,7 @@ use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
 #[command(name = "lkjmcrs")]
-#[command(about = "Rust Minecraft server skeleton")]
+#[command(about = "Rust Minecraft server")]
 struct Cli {
     #[command(subcommand)]
     command: Command,

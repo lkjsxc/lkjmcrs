@@ -32,12 +32,12 @@ the next work batch.
 
 ## Next Implementation Target
 
-Implement the next normal-survival slice:
+Replace SQLite persistence with `redb` JSON storage:
 
-- tool-aware mining for the first supported block set,
-- durability changes for supported tools,
-- deterministic drops that still preserve region-owned mutation,
-- Docker Compose coverage for mining speed and durability.
+- world overrides move to `world.redb`,
+- player profiles, inventories, homes, and warps move to `players.redb`,
+- earlier SQLite files are ignored,
+- Docker Compose persistence and reconnect probes remain the acceptance proof.
 
 ## Rules
 

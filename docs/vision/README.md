@@ -1,7 +1,7 @@
 # Vision
 
 Use this subtree for project intent, build principles, LLM authoring rules, and
-the long-term roadmap.
+capability order.
 
 ## Read This Section When
 
@@ -17,4 +17,5 @@ the long-term roadmap.
 - [purpose.md](purpose.md): goal, target audience, and non-goals.
 - [principles.md](principles.md): design and build principles.
 - [llm-authoring.md](llm-authoring.md): LLM-first documentation rules.
-- [roadmap.md](roadmap.md): capability order from skeleton to custom gameplay.
+- [capability-sequence.md](capability-sequence.md): capability order from
+  playable server to custom gameplay.
