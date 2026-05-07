@@ -1,10 +1,10 @@
 # Current Results
 
-## 2026-05-07 Online Identity Foundation
+## 2026-05-07 Auth Hardening
 
-Implementation tested: working tree with `online_mode=true`, encrypted login,
-fixture-backed session verification, UUID-based operators, and the
-`online-auth` compose probe.
+Implementation tested: `32006f4`, with process-local online login key reuse,
+partial-write-safe encrypted streams, localhost Compose publishing, and an
+`online-auth` probe that reaches encrypted play bootstrap.
 
 Command owner:
 
