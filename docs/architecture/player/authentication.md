@@ -1,6 +1,6 @@
 # Authentication
 
-## Offline Mode
+## Implemented Offline Mode
 
 - Implemented in the current slice.
 - Player name is validated for basic length and allowed characters.
@@ -10,11 +10,13 @@
 - Exposure rules live in
   [../../operations/deployment/exposure-policy.md](../../operations/deployment/exposure-policy.md).
 
-## Online Mode
+## Planned Online Mode
 
-- Documented but not implemented in the current slice.
+- Not implemented in the current slice.
 - Setting `online_mode=true` must fail startup.
 - Future online mode must run session verification off tick workers.
+- Future online mode owns Mojang session verification, encryption setup, and
+  authenticated UUID identity before play state.
 
 ## Rules
 

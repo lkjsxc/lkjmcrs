@@ -11,7 +11,11 @@
 
 ## Source Policy
 
-These constants were checked against Mojang version metadata and `version.json`
+This file owns the Minecraft target constants for docs and code. Other docs
+should link here instead of repeating this table unless the exact value is part
+of a packet, probe, or config contract.
+
+These constants were checked against Mojang release metadata and `version.json`
 from the official `1.21.11` server jar on `2026-05-05`.
 
 ## Rules

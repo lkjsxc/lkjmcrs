@@ -7,17 +7,20 @@ the next work batch.
 
 ## Current Capability
 
-- The server targets Minecraft Java Edition `1.21.11` and protocol `774`.
+- The server target constants are owned by
+  [../architecture/protocol/minecraft-1-21-11.md](../architecture/protocol/minecraft-1-21-11.md).
 - Offline-mode login, configuration, play entry, chunks, light, position, time,
   keepalive, and command declaration are implemented.
 - The playable world is a deterministic flat overworld with sparse persisted
-  block overrides.
+  block overrides stored in `redb`.
 - Survival placement, breaking, simple drops, pickup, inventory projection, and
   reconnect persistence are compose-verified.
 - Health, operator damage, death state, and respawn restoration are
   compose-verified.
 - Offline chat, homes, warps, operator commands, gamemode changes, and kick are
   compose-verified.
+- Chunk batches send embedded light through `level_chunk_with_light` without
+  per-chunk `update_light` packets.
 - Runtime deployment is private-only while identity is name-based offline mode.
 
 ## Active Blockers
@@ -32,12 +35,12 @@ the next work batch.
 
 ## Next Implementation Target
 
-Reduce chunk streaming waste before increasing any distance target:
+Close stale play sessions deterministically before deeper survival or larger
+distance work:
 
-- stop sending explicit `update_light` after every chunk batch entry,
-- keep light data inside `level_chunk_with_light`,
-- load only newly visible movement chunks through the region actor,
-- document progressive budgets before raising the distance ceiling.
+- document a keepalive timeout owner contract,
+- disconnect clients that do not answer the latest keepalive in time,
+- keep mismatched keepalive responses observable without clearing timeout state.
 
 ## Rules
 

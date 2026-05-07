@@ -15,6 +15,7 @@ Each play session starts from the loaded player profile and tracks:
 - on-ground flag,
 - horizontal-collision flag,
 - last clientbound keepalive ID,
+- pending keepalive deadline,
 - current world age and day time.
 
 New profiles start at position `0.5, 80.0, 0.5`, yaw `0.0`, pitch `0.0`,
@@ -56,8 +57,11 @@ updates the registry subscriptions. The streaming contract is documented in
 - The server sends keepalive ID `1` during play bootstrap.
 - Periodic keepalives continue every `10` seconds while the session is open.
 - Serverbound keepalive responses are decoded as signed 64-bit IDs.
-- A mismatched keepalive response is logged but does not disconnect the client
-  until timeout policy is documented.
+- The latest keepalive must receive a matching response within `30` seconds.
+- A matching response clears the pending keepalive state.
+- A mismatched response is logged and does not clear pending keepalive state.
+- If the pending keepalive deadline passes, the play loop closes through the
+  normal connection error path with message `keepalive timeout`.
 
 ## Time
 
