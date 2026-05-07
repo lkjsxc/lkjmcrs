@@ -6,6 +6,8 @@ use crate::session::entity_packets::{send_collect, send_destroy, send_item_spawn
 use crate::session::error::ConnectionError;
 use crate::session::game_mode::apply_game_mode;
 use crate::session::outbound::PlayOutbound;
+use crate::session::play_state::PlaySession;
+use crate::session::vitals;
 use tokio::io::AsyncWrite;
 
 pub enum OutboundStep {
@@ -18,6 +20,7 @@ pub async fn handle_outbound<W>(
     phase: SessionState,
     max_players: usize,
     profile: &mut PlayerProfile,
+    session: &mut PlaySession,
     message: Option<PlayOutbound>,
 ) -> Result<OutboundStep, ConnectionError>
 where
@@ -32,6 +35,9 @@ where
         }
         Some(PlayOutbound::ApplyGameMode { game_mode }) => {
             apply_game_mode(writer, phase, max_players, profile, game_mode).await?;
+        }
+        Some(PlayOutbound::Damage { amount }) => {
+            vitals::apply_damage(writer, phase, profile, session, amount).await?;
         }
         Some(PlayOutbound::Kick { reason }) => {
             send_kick(writer, phase, &reason).await?;

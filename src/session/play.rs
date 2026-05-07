@@ -88,7 +88,14 @@ async fn run_play(
         bootstrap.view_distance,
     );
     let (mut reader, mut writer) = stream.split();
-    let chunks = send_play_bootstrap(&mut writer, bootstrap, &profile.inventory, &region).await?;
+    let chunks = send_play_bootstrap(
+        &mut writer,
+        bootstrap,
+        &profile.inventory,
+        &profile.vitals,
+        &region,
+    )
+    .await?;
     item_visibility::send_items_in_chunks(&mut writer, phase, &region, chunks.clone()).await?;
     sessions.subscribe(session.id, chunks).await;
     session.record_keepalive_sent(1);
@@ -125,6 +132,7 @@ async fn run_play(
                     phase,
                     settings.max_players,
                     profile,
+                    &mut session,
                     message,
                 ).await {
                     Ok(OutboundStep::Continue) => Ok(()),

@@ -136,6 +136,11 @@ impl SessionRegistry {
             .await
     }
 
+    pub async fn damage(&self, name: &str, amount: f32) -> bool {
+        self.send_to_name(name, PlayOutbound::Damage { amount })
+            .await
+    }
+
     pub async fn kick(&self, name: &str, reason: String) -> bool {
         self.send_to_name(name, PlayOutbound::Kick { reason }).await
     }

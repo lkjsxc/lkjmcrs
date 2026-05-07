@@ -1,6 +1,6 @@
 use crate::player::GameMode;
 
-#[derive(Debug, Clone, PartialEq, Eq)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum ServerCommand {
     Help,
     Spawn,
@@ -14,6 +14,10 @@ pub enum ServerCommand {
     Gamemode {
         mode: GameMode,
         target: Option<String>,
+    },
+    Damage {
+        target: String,
+        amount: f32,
     },
     Kick {
         target: String,
@@ -39,6 +43,7 @@ pub fn parse(input: &str) -> Result<ServerCommand, &'static str> {
         "warps" => parse_no_args(parts, ServerCommand::Warps, "Usage: /warps"),
         "say" => parse_say(trimmed),
         "gamemode" => parse_gamemode(parts),
+        "damage" => parse_damage(parts),
         "kick" => parse_kick(trimmed),
         _ => Err("Unknown command"),
     }
@@ -48,7 +53,11 @@ impl ServerCommand {
     pub const fn requires_op(&self) -> bool {
         matches!(
             self,
-            Self::SetWarp(_) | Self::Say(_) | Self::Gamemode { .. } | Self::Kick { .. }
+            Self::SetWarp(_)
+                | Self::Say(_)
+                | Self::Gamemode { .. }
+                | Self::Damage { .. }
+                | Self::Kick { .. }
         )
     }
 }
@@ -124,6 +133,26 @@ fn parse_gamemode<'a>(
     Ok(ServerCommand::Gamemode { mode, target })
 }
 
+fn parse_damage<'a>(
+    mut parts: impl Iterator<Item = &'a str>,
+) -> Result<ServerCommand, &'static str> {
+    let target = parts.next().ok_or("Usage: /damage <player> <amount>")?;
+    let amount_text = parts.next().ok_or("Usage: /damage <player> <amount>")?;
+    if parts.next().is_some() {
+        return Err("Usage: /damage <player> <amount>");
+    }
+    let amount = amount_text
+        .parse::<f32>()
+        .map_err(|_| "Invalid damage amount")?;
+    if !amount.is_finite() || amount <= 0.0 || amount > 1000.0 {
+        return Err("Damage amount must be positive and at most 1000");
+    }
+    Ok(ServerCommand::Damage {
+        target: target.to_string(),
+        amount,
+    })
+}
+
 fn parse_kick(input: &str) -> Result<ServerCommand, &'static str> {
     let rest = input.strip_prefix("kick").unwrap_or("").trim();
     let mut split = rest.splitn(2, char::is_whitespace);
@@ -140,41 +169,4 @@ fn parse_kick(input: &str) -> Result<ServerCommand, &'static str> {
             reason.to_string()
         },
     })
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{ServerCommand, parse};
-    use crate::player::GameMode;
-
-    #[test]
-    fn parses_gamemode_target() {
-        assert_eq!(
-            parse("gamemode survival Guest").unwrap(),
-            ServerCommand::Gamemode {
-                mode: GameMode::Survival,
-                target: Some("Guest".to_string())
-            }
-        );
-    }
-
-    #[test]
-    fn identifies_operator_commands() {
-        assert!(!parse("help").unwrap().requires_op());
-        assert!(parse("say hello").unwrap().requires_op());
-        assert!(parse("setwarp base").unwrap().requires_op());
-    }
-
-    #[test]
-    fn parses_location_names() {
-        assert_eq!(
-            parse("sethome Base_1").unwrap(),
-            ServerCommand::SetHome("base_1".to_string())
-        );
-        assert_eq!(
-            parse("home").unwrap(),
-            ServerCommand::Home("home".to_string())
-        );
-        assert!(parse("warp bad/name").is_err());
-    }
 }

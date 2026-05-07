@@ -10,6 +10,8 @@ pub mod chunk_stream;
 mod chunk_stream_tests;
 pub mod command_dispatch;
 pub mod commands;
+#[cfg(test)]
+mod commands_tests;
 pub mod configuration;
 mod entity_packets;
 pub mod error;
@@ -34,6 +36,7 @@ mod registry_tests;
 pub mod state;
 mod travel_commands;
 mod travel_teleport;
+mod vitals;
 
 pub use error::ConnectionLogLevel;
 pub use handler::{ServerContext, handle_connection};

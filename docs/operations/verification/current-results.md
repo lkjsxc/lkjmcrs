@@ -1,9 +1,9 @@
 # Current Results
 
-## Latest Accepted Run
+## 2026-05-07 Survival Vitals
 
-Implementation tested: `d781be7`, serialized world storage writes and runtime
-safety baseline.
+Implementation tested: working tree after `caa93a7`, survival vitals,
+operator damage, death, respawn, and compose vitals probe.
 
 Command owner:
 
@@ -11,12 +11,26 @@ Command owner:
 
 Result:
 
-- static `verify`: pass with compact output:
+- initial `down -v`: pass.
+- `verify`: pass with compact output:
   `verify fmt ... ok`, `verify clippy ... ok`, `verify test ... ok`,
   `verify docs-topology ... ok`, `verify line-limits ... ok`, `verify pass`.
-- full compose acceptance through `smp-commands`: last recorded pass.
-- focused persistence log check: no checked `WARN`, `ERROR`,
-  `database is locked`, or `chunk save failed` lines.
+- `server` startup: pass.
+- `smoke`: pass, `multiplayer-mutation probe ok`.
+- `profile-reconnect`: pass, `profile-reconnect probe ok`.
+- `chunk-stream`: pass, `chunk-stream probe ok`.
+- `persist-place`: pass, `persist-place probe ok`.
+- server restart: pass.
+- `persist-check`: pass, `persist-check probe ok`.
+- `survival-server` startup: pass.
+- `survival-item`: pass, `survival-item probe ok`.
+- `inventory-sync`: pass, `inventory-sync probe ok`.
+- `item-pickup`: pass, `item-pickup probe ok`.
+- `survival-vitals-server` startup: pass.
+- `survival-vitals`: pass, `survival-vitals probe ok`.
+- `smp-server` startup: pass.
+- `smp-commands`: pass, `smp-commands probe ok`.
+- final `down -v`: pass.
 
 ## Manual Boundary
 

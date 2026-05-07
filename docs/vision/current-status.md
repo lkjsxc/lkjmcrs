@@ -14,6 +14,8 @@ the next work batch.
   block overrides.
 - Survival placement, breaking, simple drops, pickup, inventory projection, and
   reconnect persistence are compose-verified.
+- Health, operator damage, death state, and respawn restoration are
+  compose-verified.
 - Offline chat, homes, warps, operator commands, gamemode changes, and kick are
   compose-verified.
 - Runtime deployment is private-only while identity is name-based offline mode.
@@ -24,18 +26,18 @@ the next work batch.
   external private-access boundary is documented.
 - Manual stock-client evidence still needs a fresh raw client log or explicit
   success artifact after the latest packet-shape fixes.
-- Normal survival is incomplete: vitals affect storage only, tools and crafting
-  are absent, terrain is flat, and mobs/weather are not gameplay systems yet.
+- Normal survival is incomplete: hunger drain and regeneration are absent,
+  tools and crafting are absent, terrain is flat, and mobs/weather are not
+  gameplay systems yet.
 
 ## Next Implementation Target
 
-Implement the first normal-survival vitals slice:
+Implement the next normal-survival slice:
 
-- send current health, hunger, and saturation to the client,
-- add a deterministic operator damage command for smoke testing,
-- make lethal damage enter a death state,
-- handle client respawn request by restoring baseline vitals at spawn,
-- verify the flow through Docker Compose.
+- tool-aware mining for the first supported block set,
+- durability changes for supported tools,
+- deterministic drops that still preserve region-owned mutation,
+- Docker Compose coverage for mining speed and durability.
 
 ## Rules
 

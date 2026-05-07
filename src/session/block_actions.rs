@@ -41,7 +41,7 @@ where
         } => {
             let before = profile.inventory.clone();
             let target = to_world_pos(pos).offset(to_world_face(face));
-            let result = if hand == 0 && can_reach_block(session, target) {
+            let result = if !session.dead && hand == 0 && can_reach_block(session, target) {
                 block_rules::place_block(
                     region,
                     target,
@@ -66,7 +66,7 @@ where
         } => {
             let before = profile.inventory.clone();
             let pos = to_world_pos(pos);
-            let result = if can_reach_block(session, pos) {
+            let result = if !session.dead && can_reach_block(session, pos) {
                 block_rules::apply_player_action(
                     region,
                     action,

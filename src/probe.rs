@@ -15,7 +15,9 @@ mod registry_assert;
 mod smp_commands;
 mod survival_expect;
 mod survival_item;
+mod survival_vitals;
 mod validation;
+mod vitals_packets;
 
 use crate::probe::play_client::PlayClient;
 use crate::protocol::PROTOCOL_VERSION;
@@ -101,6 +103,12 @@ pub async fn chunk_stream(host: &str) -> Result<(), Box<dyn std::error::Error>> 
 pub async fn survival_item(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     survival_item::run(host).await?;
     println!("survival-item probe ok");
+    Ok(())
+}
+
+pub async fn survival_vitals(host: &str) -> Result<(), Box<dyn std::error::Error>> {
+    survival_vitals::run(host).await?;
+    println!("survival-vitals probe ok");
     Ok(())
 }
 

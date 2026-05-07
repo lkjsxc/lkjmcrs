@@ -16,6 +16,7 @@ docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-com
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T survival-item
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T inventory-sync
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T item-pickup
+docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml up -d --build --quiet-build --quiet-pull survival-vitals-server
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T survival-vitals
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml up -d --build --quiet-build --quiet-pull smp-server
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T smp-commands
@@ -41,15 +42,17 @@ docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-com
 12. `inventory-sync` verifies client-visible hotbar and player inventory sync.
 13. `item-pickup` verifies dropped item entity spawn, pickup, and inventory
     delta sync.
-14. `survival-vitals` verifies visible health, lethal damage, death, and
+14. `survival-vitals-server` mounts `config/verify/smp-server.json` so the
+    vitals probe can use disposable operator damage.
+15. `survival-vitals` verifies visible health, lethal damage, death, and
     respawn.
-15. `smp-commands` verifies offline chat, permissions, travel commands, and
+16. `smp-commands` verifies offline chat, permissions, travel commands, and
     kick.
-16. Non-zero from any step blocks acceptance.
-17. Initial `down -v` removes stale named volumes before stateful probes.
-18. Final `down -v` removes disposable compose state.
-19. Quiet flags are part of the contract for routine acceptance runs.
-20. `smp-server` mounts `config/verify/smp-server.json` so disposable operator
+17. Non-zero from any step blocks acceptance.
+18. Initial `down -v` removes stale named volumes before stateful probes.
+19. Final `down -v` removes disposable compose state.
+20. Quiet flags are part of the contract for routine acceptance runs.
+21. `smp-server` mounts `config/verify/smp-server.json` so disposable operator
     checks do not require operator names in normal runtime config.
 
 ## Readiness

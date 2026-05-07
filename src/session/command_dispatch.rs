@@ -60,6 +60,7 @@ where
             Ok(())
         }
         ServerCommand::Gamemode { mode, target } => gamemode(mode, target, profile, context).await,
+        ServerCommand::Damage { target, amount } => damage(target, amount, context).await,
         ServerCommand::Kick { target, reason } => kick(target, reason, context).await,
     }
 }
@@ -99,6 +100,21 @@ where
     }
     if context.sessions.apply_gamemode(&target_name, mode).await {
         send_system_chat(context.writer, context.phase, "Gamemode updated").await
+    } else {
+        send_system_chat(context.writer, context.phase, "Player not found").await
+    }
+}
+
+async fn damage<W>(
+    target: String,
+    amount: f32,
+    context: CommandDispatchContext<'_, W>,
+) -> Result<(), ConnectionError>
+where
+    W: AsyncWrite + Unpin,
+{
+    if context.sessions.damage(&target, amount).await {
+        send_system_chat(context.writer, context.phase, "Damage applied").await
     } else {
         send_system_chat(context.writer, context.phase, "Player not found").await
     }

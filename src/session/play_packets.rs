@@ -1,6 +1,7 @@
 use crate::player::{PlayerProfile, PlayerStore};
 use crate::protocol::block_interaction::BlockInteraction;
 use crate::protocol::chat::{self, PlayChat};
+use crate::protocol::client_command;
 use crate::protocol::codec::{self, Packet};
 use crate::protocol::ids;
 use crate::protocol::movement::Movement;
@@ -15,7 +16,7 @@ use crate::session::inventory_sync;
 use crate::session::io::codec_error;
 use crate::session::play_state::PlaySession;
 use crate::session::registry::SessionRegistry;
-use std::io::Cursor;
+use crate::session::vitals;
 
 pub struct PlayPacketContext<'a, W>
 where
@@ -108,6 +109,14 @@ where
                 );
             }
         }
+        ids::play::SERVERBOUND_CLIENT_COMMAND => {
+            let action = client_command::decode_action(packet.data)
+                .map_err(|error| codec_error(phase, error))?;
+            if action == 0 {
+                vitals::respawn(context.writer, phase, context.max_players, profile, session)
+                    .await?;
+            }
+        }
         _ => {
             tracing::debug!(phase = %phase, packet_id = packet.id, "play packet ignored");
         }
@@ -174,6 +183,7 @@ where
 }
 
 pub(super) fn decode_keepalive(data: Vec<u8>) -> Result<i64, codec::CodecError> {
+    use std::io::Cursor;
     let mut cursor = Cursor::new(data);
     let id = codec::read_i64(&mut cursor)?;
     if cursor.position() != cursor.get_ref().len() as u64 {

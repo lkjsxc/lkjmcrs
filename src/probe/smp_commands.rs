@@ -11,9 +11,6 @@ use tokio::time::{Duration, sleep};
 pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut admin = PlayClient::connect(host, "Admin").await?;
     let mut guest = PlayClient::connect(host, "Guest").await?;
-    if !admin.declared_commands || !guest.declared_commands {
-        return Err(Box::new(ProbeError::Phase("declare commands")));
-    }
     send_chat(&mut guest.stream, "hello").await?;
     expect_system_chat(&mut admin.stream, "Guest").await?;
     send_command(&mut guest.stream, "say denied").await?;
@@ -67,7 +64,7 @@ async fn send_chat(
     Ok(())
 }
 
-async fn send_command(
+pub(super) async fn send_command(
     stream: &mut TcpStream,
     command: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {
@@ -77,7 +74,7 @@ async fn send_command(
     Ok(())
 }
 
-async fn expect_system_chat(
+pub(super) async fn expect_system_chat(
     stream: &mut TcpStream,
     text: &str,
 ) -> Result<(), Box<dyn std::error::Error>> {

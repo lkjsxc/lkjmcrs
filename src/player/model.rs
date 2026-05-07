@@ -117,6 +117,20 @@ impl Default for Vitals {
     }
 }
 
+impl Vitals {
+    pub fn reset(&mut self) {
+        *self = Self::default();
+    }
+
+    pub fn apply_damage(&mut self, amount: f32) {
+        self.health = (self.health - amount).clamp(0.0, 20.0);
+    }
+
+    pub fn is_dead(&self) -> bool {
+        self.health <= 0.0
+    }
+}
+
 impl PlayerProfile {
     pub fn new(uuid: Uuid, name: impl Into<String>) -> Self {
         Self::new_with_defaults(uuid, name, PlayerDefaults::default())

@@ -91,6 +91,13 @@ pub fn encode_initial_position(bootstrap: Bootstrap) -> Vec<u8> {
     out
 }
 
+pub fn encode_respawn(bootstrap: Bootstrap) -> Vec<u8> {
+    let mut out = Vec::new();
+    encode_spawn_info(&mut out, bootstrap);
+    codec::write_u8(&mut out, 0);
+    out
+}
+
 pub fn encode_keepalive(id: i64) -> Vec<u8> {
     let mut out = Vec::new();
     codec::write_i64(&mut out, id);

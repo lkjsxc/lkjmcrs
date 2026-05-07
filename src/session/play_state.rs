@@ -17,6 +17,7 @@ pub struct PlaySession {
     pub last_keepalive_id: i64,
     pub age: i64,
     pub day_time: i64,
+    pub dead: bool,
 }
 
 impl PlaySession {
@@ -34,6 +35,7 @@ impl PlaySession {
             last_keepalive_id: 0,
             age: 0,
             day_time: 0,
+            dead: false,
         }
     }
 
@@ -85,6 +87,10 @@ impl PlaySession {
     }
 
     pub fn write_profile(self, profile: &mut PlayerProfile) {
+        self.copy_position_to_profile(profile);
+    }
+
+    pub fn copy_position_to_profile(&self, profile: &mut PlayerProfile) {
         profile.position = PlayerPosition {
             x: self.x,
             y: self.y,

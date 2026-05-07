@@ -18,7 +18,7 @@ struct Node<'a> {
 
 pub fn encode_declare_commands() -> Vec<u8> {
     let nodes = [
-        node(ROOT, &[1, 2, 3, 5, 7, 8, 10, 12, 13, 15, 18], None),
+        node(ROOT, &[1, 2, 3, 5, 7, 8, 10, 12, 13, 15, 18, 21], None),
         node(LITERAL | EXECUTABLE, &[], Some("help")),
         node(LITERAL | EXECUTABLE, &[], Some("spawn")),
         node(LITERAL | EXECUTABLE, &[4], Some("sethome")),
@@ -39,6 +39,9 @@ pub fn encode_declare_commands() -> Vec<u8> {
         node(LITERAL, &[19], Some("kick")),
         string_arg("player", SINGLE_WORD, &[20]),
         string_arg("reason", GREEDY_PHRASE, &[]),
+        node(LITERAL, &[22], Some("damage")),
+        string_arg("player", SINGLE_WORD, &[23]),
+        string_arg("amount", SINGLE_WORD, &[]),
     ];
     let mut out = Vec::new();
     codec::write_var_i32(&mut out, nodes.len() as i32);
@@ -91,8 +94,9 @@ mod tests {
     #[test]
     fn command_tree_declares_nodes() {
         let payload = encode_declare_commands();
-        assert_eq!(payload[0], 21);
+        assert_eq!(payload[0], 24);
         assert!(String::from_utf8_lossy(&payload).contains("sethome"));
         assert!(String::from_utf8_lossy(&payload).contains("gamemode"));
+        assert!(String::from_utf8_lossy(&payload).contains("damage"));
     }
 }

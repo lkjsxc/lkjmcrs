@@ -10,6 +10,7 @@ pub mod chunk;
 mod chunk_palette;
 #[cfg(test)]
 mod chunk_tests;
+pub mod client_command;
 pub mod codec;
 #[cfg(test)]
 mod codec_tests;
@@ -38,3 +39,4 @@ pub mod registry_variants;
 mod registry_world;
 pub mod status;
 pub mod types;
+pub mod vitals;

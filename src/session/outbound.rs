@@ -13,6 +13,9 @@ pub enum PlayOutbound {
     ApplyGameMode {
         game_mode: GameMode,
     },
+    Damage {
+        amount: f32,
+    },
     Kick {
         reason: String,
     },

@@ -1,8 +1,9 @@
-use crate::player::Inventory;
+use crate::player::{Inventory, Vitals};
 use crate::protocol::chunk;
 use crate::protocol::commands;
 use crate::protocol::ids;
 use crate::protocol::play;
+use crate::protocol::vitals;
 use crate::scheduler::RegionHandle;
 use crate::session::SessionState;
 use crate::session::error::ConnectionError;
@@ -15,6 +16,7 @@ pub async fn send_play_bootstrap<W>(
     stream: &mut W,
     bootstrap: play::Bootstrap,
     inventory: &Inventory,
+    player_vitals: &Vitals,
     region: &RegionHandle,
 ) -> Result<Vec<ChunkPos>, ConnectionError>
 where
@@ -41,6 +43,13 @@ where
         phase,
         ids::play::PLAYER_ABILITIES,
         &play::encode_player_abilities_for(bootstrap),
+    )
+    .await?;
+    write_packet(
+        stream,
+        phase,
+        ids::play::UPDATE_HEALTH,
+        &vitals::encode_update_health(player_vitals),
     )
     .await?;
     write_packet(
