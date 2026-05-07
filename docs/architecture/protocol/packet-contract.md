@@ -28,6 +28,7 @@ owned by [dynamic-registries.md](dynamic-registries.md).
 - `0x5f spawn_position`: global position in `minecraft:overworld`.
 - `0x6f update_time`: age `0`, time `0`, ticking enabled.
 - `0x3e abilities`: permissive initial ability flags.
+- `0x66 update_health`: stored health, hunger, and saturation.
 - `0x26 game_state_change`: event `13`, `start_waiting_for_level_chunks`, value
   `0.0`.
 - `0x5c update_view_position`: spawn chunk `0,0`.
@@ -127,3 +128,15 @@ The dropped item slice uses these protocol `774` clientbound packets:
 
 Item entity packet facts are pinned from the same `minecraft-data` `1.21.11`
 source as packet IDs. The item entity type ID is `71`.
+
+## Vitals, Death, And Respawn
+
+The first normal-survival vitals slice uses these protocol `774` packets:
+
+- `0x66 update_health`: `f32 health`, VarInt food, `f32 foodSaturation`.
+- `0x42 death_combat_event`: player entity ID VarInt and anonymous NBT message.
+- `0x50 respawn`: spawn info plus `u8 copyMetadata`.
+- `0x0b serverbound client_command`: action ID VarInt.
+
+Serverbound client command action `0` is treated as perform respawn. Respawn
+restores baseline vitals and sends a fresh position packet.

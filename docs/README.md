@@ -35,12 +35,13 @@ operations, and repository rules.
 
 ## Recommended Reading Order
 
-1. [vision/purpose.md](vision/purpose.md)
-2. [vision/principles.md](vision/principles.md)
-3. [architecture/protocol/minecraft-1-21-11.md](architecture/protocol/minecraft-1-21-11.md)
-4. [architecture/runtime/process-model.md](architecture/runtime/process-model.md)
-5. [architecture/scheduler/region-ownership.md](architecture/scheduler/region-ownership.md)
-6. [architecture/world/region-index.md](architecture/world/region-index.md)
-7. [product/gameplay-skeleton.md](product/gameplay-skeleton.md)
-8. [operations/verification/compose-pipeline.md](operations/verification/compose-pipeline.md)
-9. [repository/workflow/change-sequence.md](repository/workflow/change-sequence.md)
+1. [vision/current-status.md](vision/current-status.md)
+2. [vision/purpose.md](vision/purpose.md)
+3. [vision/principles.md](vision/principles.md)
+4. [architecture/protocol/minecraft-1-21-11.md](architecture/protocol/minecraft-1-21-11.md)
+5. [architecture/runtime/process-model.md](architecture/runtime/process-model.md)
+6. [architecture/scheduler/region-ownership.md](architecture/scheduler/region-ownership.md)
+7. [architecture/world/region-index.md](architecture/world/region-index.md)
+8. [product/gameplay-skeleton.md](product/gameplay-skeleton.md)
+9. [operations/verification/compose-pipeline.md](operations/verification/compose-pipeline.md)
+10. [repository/workflow/change-sequence.md](repository/workflow/change-sequence.md)

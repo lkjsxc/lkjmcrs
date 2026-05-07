@@ -15,6 +15,14 @@ Define the next vanilla-survival target after the current survival sandbox.
 - Durability decreases when supported tools are used.
 - Minimal recipes transform inventory inputs into outputs.
 
+## First Vitals Slice
+
+- The server sends health, hunger, and saturation during play bootstrap.
+- Operator `/damage <player> <amount>` is the deterministic first damage source.
+- Lethal damage sends death state and waits for client respawn request.
+- Respawn restores baseline vitals at spawn.
+- Hunger, regeneration, and starvation remain stored values only in this slice.
+
 ## Deferred Behavior
 
 - Full vanilla recipe book.

@@ -34,6 +34,7 @@ Keep the first multiplayer control surface explicit, small, and testable.
 - `/say` broadcasts one system chat message.
 - `/gamemode` changes profile mode, sends abilities and game-event mode update,
   and confirms with system chat.
+- `/damage` reduces a connected target player's health and may trigger death.
 - `/kick` sends a play disconnect packet to the target session.
 
 ## Out of Scope

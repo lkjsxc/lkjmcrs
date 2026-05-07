@@ -12,6 +12,8 @@ Use this subtree for required compose verification contracts.
 
 - [compose-pipeline.md](compose-pipeline.md): required compose commands.
 - [current-results.md](current-results.md): latest compose verification result.
+- [results/README.md](results/README.md): historical compose verification
+  summaries.
 - [smoke-probe.md](smoke-probe.md): wire smoke behavior.
 - [block-mutation-smoke.md](block-mutation-smoke.md): live block mutation probe
   behavior.
@@ -27,6 +29,8 @@ Use this subtree for required compose verification contracts.
   inventory projection smoke.
 - [item-pickup-smoke.md](item-pickup-smoke.md): dropped item entity pickup
   smoke.
+- [survival-vitals-smoke.md](survival-vitals-smoke.md): damage, death, and
+  respawn smoke.
 - [persistence-smoke.md](persistence-smoke.md): restart behavior for persisted
   block overrides.
 - [join-boundary.md](join-boundary.md): latest known manual client boundary.

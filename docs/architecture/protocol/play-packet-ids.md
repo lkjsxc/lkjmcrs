@@ -20,12 +20,15 @@ the `1.21.11` protocol table and must be updated as one batch with
 - `0x2f update_light`
 - `0x30 login`
 - `0x3e abilities`
+- `0x42 death_combat_event`
 - `0x46 position`
+- `0x50 respawn`
 - `0x5c update_view_position`
 - `0x5d update_view_distance`
 - `0x5e set_cursor_item` deferred
 - `0x5f spawn_position`
 - `0x61 entity_metadata`
+- `0x66 update_health`
 - `0x67 held_item_slot`
 - `0x6a set_player_inventory`
 - `0x6f update_time`
@@ -37,6 +40,7 @@ the `1.21.11` protocol table and must be updated as one batch with
 
 - `0x00 teleport_confirm`
 - `0x0a chunk_batch_received`
+- `0x0b client_command`
 - `0x0d settings`
 - `0x1b keep_alive`
 - `0x1d position`

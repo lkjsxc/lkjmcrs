@@ -31,6 +31,7 @@ Operators may use:
 
 - `/say <message>`: broadcast a server-authored message.
 - `/gamemode <survival|creative> [player]`: change the caller or target mode.
+- `/damage <player> <amount>`: reduce a connected target player's health.
 - `/kick <player> [reason]`: disconnect a connected player.
 - `/setwarp <name>`: save or replace a global warp.
 

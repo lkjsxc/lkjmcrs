@@ -32,11 +32,13 @@
 - Movement-driven `chunk_cache_center` updates, unload packets for chunks
   leaving the view window, and chunk batches for newly visible chunks.
 - Stored player position, look, and game mode used during play bootstrap.
+- Health, hunger, and saturation sent during play bootstrap.
 - Creative and first survival item-loop placement and breaking in loaded
   chunks.
 - Block prediction acknowledgements and single-block updates.
 - Single-block updates fanned out to subscribed play sessions.
 - Unsigned offline-mode chat and first slash commands.
+- Operator-driven damage, death state, and respawn request handling.
 
 ## Deferred
 

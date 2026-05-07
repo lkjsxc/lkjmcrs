@@ -12,6 +12,8 @@ the long-term roadmap.
 
 ## Child Index
 
+- [current-status.md](current-status.md): current capability, blockers, and
+  next implementation target.
 - [purpose.md](purpose.md): goal, target audience, and non-goals.
 - [principles.md](principles.md): design and build principles.
 - [llm-authoring.md](llm-authoring.md): LLM-first documentation rules.

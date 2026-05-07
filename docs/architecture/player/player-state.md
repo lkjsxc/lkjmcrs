@@ -50,4 +50,5 @@ New offline profiles use:
 6. The selected hotbar slot and inventory are persisted with the profile.
 7. Creative mode ignores inventory for block placement and breaking.
 8. Survival placement and simple drops use the selected slot and inventory.
-9. Vitals are persisted but do not affect gameplay yet.
+9. Vitals are persisted and first gameplay effects are owned by
+   [vitals.md](vitals.md).
