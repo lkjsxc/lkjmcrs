@@ -26,7 +26,8 @@ Block mutation replies are based on authoritative in-memory state, not on the
 storage write finishing. Save failure is logged and retried by the storage job;
 the in-memory state remains authoritative for connected sessions.
 
-Future compression and online-mode auth follow the same handoff rule.
+Compression and online-mode session verification follow the same handoff rule:
+expensive work stays outside region actors and tick-owned mutation paths.
 
 ## Verification
 

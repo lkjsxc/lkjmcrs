@@ -3,8 +3,9 @@
 ## Client Target
 
 - Minecraft Java Edition `1.21.11`.
-- Protocol version `774`.
-- Only exact `1.21.11` compatibility is expected in the current slice.
+- Protocol number `774`.
+- Only exact `1.21.11` release-target behavior is expected in the current
+  slice.
 
 ## Authentication
 

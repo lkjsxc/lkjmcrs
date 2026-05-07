@@ -13,7 +13,7 @@ lifecycle, and play-session visibility contracts.
 
 ## Child Index
 
-- [authentication.md](authentication.md): offline and future online auth.
+- [authentication.md](authentication.md): offline and online identity.
 - [inventory.md](inventory.md): selected hotbar and first item-loop rules.
 - [player-locations.md](player-locations.md): persisted homes and global warps.
 - [player-state.md](player-state.md): persistent profile, gamemode, inventory,

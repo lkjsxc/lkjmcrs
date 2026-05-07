@@ -12,15 +12,17 @@
 
 1. Read handshake.
 2. Route to status or login.
-3. Validate protocol version for login.
-4. Complete offline login.
-5. Send configuration data.
-6. Enter play state.
-7. Run keepalive and tick-visible updates.
+3. Validate protocol number for login.
+4. Complete offline identity or online encrypted identity.
+5. Load or create the UUID-owned player profile.
+6. Send configuration data.
+7. Enter play state.
+8. Run keepalive, time, vitals, and chunk-visible updates.
 
 ## Shutdown
 
 - Stop accepting new connections.
 - Disconnect active sessions.
 - Stop scheduler workers.
-- Flush accepted persistent world overrides before acknowledging mutations.
+- Accepted mutations update memory before disk flush; storage catches up through
+  the documented region-owned persistence path.

@@ -35,7 +35,8 @@ docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-com
 4. Failed `verify` output prints `verify <stage> ... failed`, then dumps only
    the captured stdout and stderr for that failed stage.
 5. `server` runs the product binary.
-6. `smoke` connects to the live server over the compose network.
+6. `smoke` connects to the live server over the compose network and runs the
+   full status, ping, play bootstrap, mutation, observer, and keepalive path.
 7. `profile-reconnect` verifies player profile persistence.
 8. `chunk-stream` verifies bounded movement-driven chunk streaming.
 9. `persist-place` writes a mutation through the public wire path.
@@ -46,8 +47,8 @@ docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-com
     delta sync.
 14. `survival-vitals-server` mounts `config/verify/smp-server.json` so the
     vitals probe can use disposable operator damage.
-15. `survival-vitals` verifies visible health, lethal damage, death, and
-    respawn.
+15. `survival-vitals` verifies visible health, lethal damage, death, respawn,
+    regeneration, and starvation.
 16. `smp-commands` verifies offline chat, permissions, travel commands, and
     kick.
 17. `online-auth` verifies encrypted login and fixture-authenticated UUIDs.

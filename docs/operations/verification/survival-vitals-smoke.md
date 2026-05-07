@@ -17,10 +17,14 @@ Minecraft protocol path.
    combat event.
 7. Send serverbound client command action `0` from the target.
 8. Expect respawn, position, and `update_health` with restored baseline vitals.
+9. Send `/vitals <target> 19 20 1` and expect regeneration to restore health
+   while spending saturation.
+10. Send `/vitals <target> 20 0 0` and expect starvation to reduce health.
 
 ## Acceptance
 
 - The probe uses compose service `survival-vitals`.
 - Damage must go through the command and live session registry path.
-- Respawn must update the persisted profile state before disconnect.
+- Respawn and later hunger-loop changes must update the persisted profile state
+  before disconnect.
 - Failure blocks normal-survival vitals changes.

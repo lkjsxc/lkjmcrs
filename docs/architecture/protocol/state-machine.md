@@ -12,17 +12,19 @@
 ## Login Flow
 
 1. Client sends handshake with next state `login`.
-2. Server validates protocol version.
+2. Server validates protocol number.
 3. Client sends login hello.
-4. Server sends login success for offline mode.
-5. Client sends login acknowledged.
-6. Connection enters configuration.
-7. Server sends known-pack selection.
-8. Client selects `minecraft:core`.
-9. Server sends minimal registry data and tags.
-10. Server sends feature flags and finish configuration.
-11. Client acknowledges finish configuration.
-12. Connection enters play.
+4. Offline mode creates a deterministic offline UUID.
+5. Online mode performs encryption and session verification.
+6. Server sends login success with the authoritative UUID.
+7. Client sends login acknowledged.
+8. Connection enters configuration.
+9. Server sends known-pack selection.
+10. Client selects `minecraft:core`.
+11. Server sends minimal registry data and tags.
+12. Server sends feature flags and finish configuration.
+13. Client acknowledges finish configuration.
+14. Connection enters play.
 
 ## Play Flow
 

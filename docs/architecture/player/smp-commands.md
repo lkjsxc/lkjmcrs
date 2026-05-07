@@ -34,6 +34,8 @@ Keep the first multiplayer control surface explicit, small, and testable.
 - `/gamemode` changes profile mode, sends abilities and game-event mode update,
   and confirms with system chat.
 - `/damage` reduces a connected target player's health and may trigger death.
+- `/vitals` sets a connected target player's health, hunger, and saturation and
+  may trigger or clear death state.
 - `/kick` sends a play disconnect packet to the target session.
 
 ## Out of Scope

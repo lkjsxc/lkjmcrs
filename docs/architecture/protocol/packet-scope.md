@@ -28,6 +28,7 @@
 - Player abilities.
 - Initial player position sync.
 - Keepalive serverbound and clientbound in play.
+- Online-mode encryption request and response for authenticated login.
 - Basic movement packets decoded from client and stored on the session.
 - Movement-driven `chunk_cache_center` updates, unload packets for chunks
   leaving the view window, and chunk batches for newly visible chunks.
@@ -43,11 +44,8 @@
 ## Deferred
 
 - Compression.
-- Encryption.
-- Online-mode session verification.
 - Chat signing.
-- Full vanilla registry coverage beyond evidence-driven current entries
-  entries.
+- Full vanilla registry coverage beyond evidence-driven current entries.
 - Full mutable chunk resend packets.
 - Full client inventory windows and item synchronization.
 - Resource pack negotiation.
@@ -56,11 +54,12 @@
 ## Current Vanilla Boundary
 
 The server-list status path is vanilla-shaped for `1.21.11`.
-The login path reaches configuration, negotiates the vanilla core pack,
-loads the required non-empty registries, enters play, sends game event `13`,
-and sends a deterministic flat spawn chunk batch for the advertised view
-distance. A player join was reported on `2026-05-05` after the `0x26` fix. Treat
-that as manual success evidence without raw logs attached.
+Offline login and online encrypted login both reach configuration, negotiate the
+vanilla core pack, load the required non-empty registries, enter play, send game
+event `13`, and send a deterministic flat spawn chunk batch for the advertised
+view distance. Online login verifies the session profile before login success.
+A player join was reported on `2026-05-05` after the `0x26` fix. Treat that as
+manual success evidence without raw logs attached.
 
 Dynamic registries are intentionally minimal and evidence-driven. They are not
 full vanilla coverage. `minecraft:damage_type` is required before play login can
@@ -76,16 +75,18 @@ The active manual boundary is owned by
 
 1. Client sends handshake with protocol `774` and next state `login`.
 2. Client sends login start.
-3. Server sends login success.
-4. Client sends login acknowledged.
-5. Client may send configuration settings.
-6. Server sends known packs with `minecraft:core` version `1.21.11`.
-7. Client replies with selected known packs.
-8. Server sends registry data and tags.
-9. Server sends enabled features with `minecraft:vanilla`.
-10. Server sends finish configuration.
-11. Client acknowledges finish configuration.
-12. Server sends play login, game event `13`, the full advertised flat chunk
+3. Online mode sends encryption request, validates encryption response, enables
+   AES/CFB8, and verifies the session profile.
+4. Server sends login success.
+5. Client sends login acknowledged.
+6. Client may send configuration settings.
+7. Server sends known packs with `minecraft:core` release `1.21.11`.
+8. Client replies with selected known packs.
+9. Server sends registry data and tags.
+10. Server sends enabled features with `minecraft:vanilla`.
+11. Server sends finish configuration.
+12. Client acknowledges finish configuration.
+13. Server sends play login, game event `13`, the full advertised flat chunk
     radius, light, position, and keepalive.
 
 ## Rule

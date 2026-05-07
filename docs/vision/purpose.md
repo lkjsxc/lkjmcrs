@@ -8,10 +8,10 @@ PaperMC/Folia-class platform while staying readable to LLM agents.
 ## Target Release
 
 - Minecraft Java Edition `1.21.11`.
-- Protocol version `774`.
-- World data version `4671`.
-- Data pack version `94.1`.
-- Resource pack version `75.0`.
+- Protocol number `774`.
+- World data number `4671`.
+- Data pack number `94.1`.
+- Resource pack number `75.0`.
 - Java compatibility baseline `21` for client/server ecosystem context.
 
 ## Intended Users

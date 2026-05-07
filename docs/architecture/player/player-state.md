@@ -9,7 +9,7 @@ holder.
 
 Each player profile stores:
 
-- deterministic offline UUID,
+- authoritative UUID from offline derivation or online session verification,
 - latest accepted player name,
 - game mode,
 - position `x`, `y`, `z`,
@@ -20,7 +20,7 @@ Each player profile stores:
 
 ## Defaults
 
-New offline profiles use:
+New profiles use:
 
 - game mode: `survival`,
 - position: `0.5, 80.0, 0.5`,
@@ -42,7 +42,7 @@ New offline profiles use:
 
 ## Runtime Contract
 
-1. Login validates protocol and name before loading a profile.
+1. Login validates protocol number and name before loading a profile.
 2. Missing profiles are created with the documented defaults.
 3. Play bootstrap uses stored position, yaw, pitch, and game mode.
 4. Movement updates the connection-local play state.
@@ -52,3 +52,5 @@ New offline profiles use:
 8. Survival placement and simple drops use the selected slot and inventory.
 9. Vitals are persisted and first gameplay effects are owned by
    [vitals.md](vitals.md).
+10. Online-mode profiles use the verifier-returned UUID for storage and
+    operator checks.

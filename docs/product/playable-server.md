@@ -27,7 +27,7 @@ minimal flat spawn area.
 
 ## Player Behavior
 
-- Offline-mode name is accepted after protocol version validation.
+- Offline-mode name is accepted after protocol number validation.
 - Server creates a deterministic offline UUID from the player name.
 - Movement packets are accepted and update session-local position.
 - Keepalive is sent at play bootstrap and every `10` seconds while connected.

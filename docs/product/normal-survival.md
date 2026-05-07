@@ -21,7 +21,12 @@ Define the next vanilla-survival target after the current survival sandbox.
 - Operator `/damage <player> <amount>` is the deterministic first damage source.
 - Lethal damage sends death state and waits for client respawn request.
 - Respawn restores baseline vitals at spawn.
-- Hunger, regeneration, and starvation remain stored values only in this slice.
+- Survival hunger ticks drain saturation before hunger.
+- Natural regeneration runs while health is below `20.0` and hunger is at least
+  `18`.
+- Starvation damages players at hunger `0`.
+- Operator `/vitals <player> <health> <hunger> <saturation>` exists only for
+  deterministic administration and probes.
 
 ## Deferred Behavior
 
@@ -43,5 +48,5 @@ Define the next vanilla-survival target after the current survival sandbox.
 
 1. Add docs for each gameplay rule before implementation.
 2. Keep custom `lkjmcsmp`-style systems outside this path.
-3. Prefer small vanilla-compatible slices over broad incomplete systems.
+3. Prefer small target-aligned slices over broad incomplete systems.
 4. Every new survival behavior needs a compose-verifiable probe or unit test.

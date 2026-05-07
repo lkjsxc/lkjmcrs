@@ -8,7 +8,7 @@ Verify the real wire path without depending on an external Minecraft bot crate.
 
 1. Open TCP connection to `server:25565`.
 2. Send status handshake and request.
-3. Validate protocol `774` and version name `1.21.11`.
+3. Validate protocol `774` and release name `1.21.11`.
 4. Send ping and validate matching pong.
 5. Open a second TCP connection.
 6. Send login handshake and offline login hello.
