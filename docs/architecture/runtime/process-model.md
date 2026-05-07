@@ -19,5 +19,5 @@
 
 - Invalid packet frames disconnect the connection.
 - Unsupported protocol numbers receive a clear disconnect.
-- Unsupported `online_mode=true` aborts startup.
+- Online authentication failures disconnect during login before play state.
 - Internal task failures are logged and trigger graceful disconnect when tied to a player.

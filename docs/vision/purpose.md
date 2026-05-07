@@ -5,7 +5,7 @@
 Create a Rust Minecraft Java Edition server that can grow into a large-scale
 PaperMC/Folia-class platform while staying readable to LLM agents.
 
-## Target Version
+## Target Release
 
 - Minecraft Java Edition `1.21.11`.
 - Protocol version `774`.

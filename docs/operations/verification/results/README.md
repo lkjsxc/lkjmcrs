@@ -10,6 +10,8 @@ Use this subtree for historical compose verification summaries.
 
 ## Child Index
 
+- [2026-05-07-foundation-history.md](2026-05-07-foundation-history.md):
+  survival vitals, `redb` persistence, chunk stream, and keepalive history.
 - [2026-05-07-runtime-safety.md](2026-05-07-runtime-safety.md): runtime safety,
   protocol boundary, and storage lock fixes.
 - [2026-05-06-survival-sandbox.md](2026-05-06-survival-sandbox.md): compact

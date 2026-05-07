@@ -11,7 +11,7 @@ gameplay direction.
 
 ## Child Index
 
-- [compatibility.md](compatibility.md): Minecraft version and auth compatibility.
+- [compatibility.md](compatibility.md): Minecraft release target and auth compatibility.
 - [playable-server.md](playable-server.md): first in-world behavior.
 - [smp-core.md](smp-core.md): first multiplayer chat and command behavior.
 - [smp-travel.md](smp-travel.md): homes, warps, and teleport rules.

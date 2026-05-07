@@ -5,7 +5,7 @@ Use this subtree for runtime, protocol, scheduler, world, and player contracts.
 ## Read This Section When
 
 - You need implementation ownership boundaries.
-- You need packet and version scope.
+- You need packet and protocol target scope.
 - You need region scheduler invariants.
 - You need world data structures.
 

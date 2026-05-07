@@ -6,7 +6,7 @@
 - Keep one requirement per bullet when possible.
 - Use relative links only inside docs.
 - Prefer short declarative bullets over long narrative paragraphs.
-- Put exact defaults, command names, packet versions, and paths in code spans.
+- Put exact defaults, command names, protocol targets, and paths in code spans.
 
 ## Topology Rules
 
