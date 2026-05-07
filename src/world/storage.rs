@@ -15,6 +15,7 @@ const CHUNKS: TableDefinition<&str, &[u8]> = TableDefinition::new("chunks");
 #[derive(Debug, Clone)]
 pub struct WorldStorage {
     root: PathBuf,
+    database: Arc<Mutex<Option<Arc<Database>>>>,
     write_lock: Arc<Mutex<()>>,
     #[cfg(test)]
     test: TestStorage,
@@ -47,6 +48,7 @@ impl WorldStorage {
     pub fn new(root: impl Into<PathBuf>) -> Self {
         Self {
             root: root.into(),
+            database: Arc::new(Mutex::new(None)),
             write_lock: Arc::new(Mutex::new(())),
             #[cfg(test)]
             test: TestStorage::default(),
@@ -57,6 +59,7 @@ impl WorldStorage {
     pub fn with_delay_for_tests(root: impl Into<PathBuf>, delay: Duration) -> Self {
         Self {
             root: root.into(),
+            database: Arc::new(Mutex::new(None)),
             write_lock: Arc::new(Mutex::new(())),
             test: TestStorage {
                 delay: Some(delay),
@@ -69,6 +72,7 @@ impl WorldStorage {
     pub fn with_save_failure_for_tests(root: impl Into<PathBuf>) -> Self {
         Self {
             root: root.into(),
+            database: Arc::new(Mutex::new(None)),
             write_lock: Arc::new(Mutex::new(())),
             test: TestStorage {
                 delay: None,
@@ -119,7 +123,14 @@ impl WorldStorage {
         Ok(())
     }
 
-    fn database(&self) -> Result<Database, WorldStorageError> {
+    fn database(&self) -> Result<Arc<Database>, WorldStorageError> {
+        let mut cached = self
+            .database
+            .lock()
+            .map_err(|_| WorldStorageError::Redb("database lock poisoned".to_string()))?;
+        if let Some(database) = cached.as_ref() {
+            return Ok(database.clone());
+        }
         fs::create_dir_all(&self.root)?;
         let database = Database::create(self.root.join(WORLD_DB)).map_err(redb_error)?;
         let write = database.begin_write().map_err(redb_error)?;
@@ -128,6 +139,8 @@ impl WorldStorage {
             write.open_table(CHUNKS).map_err(redb_error)?;
         }
         write.commit().map_err(redb_error)?;
+        let database = Arc::new(database);
+        *cached = Some(database.clone());
         Ok(database)
     }
 

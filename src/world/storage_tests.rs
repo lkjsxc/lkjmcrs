@@ -98,13 +98,12 @@ fn cloned_storage_serializes_concurrent_saves() {
 #[test]
 fn rejects_invalid_stored_block_state() {
     let root = temp_root();
-    let storage = WorldStorage::new(&root);
-    storage.validate().unwrap();
     insert_raw_chunk(
         &root,
         "overworld/0/0",
         br#"{"chunk_x":0,"chunk_z":0,"overrides":[{"local_x":0,"y":80,"local_z":0,"state":"minecraft:void"}]}"#,
     );
+    let storage = WorldStorage::new(&root);
 
     let error = storage
         .load_chunk(ChunkPos::new(0, 0))
@@ -122,6 +121,7 @@ fn changed_chunk(pos: ChunkPos, block: BlockPos) -> ChunkSnapshot {
 
 fn insert_raw_chunk(root: &std::path::Path, key: &str, bytes: &[u8]) {
     const CHUNKS: TableDefinition<&str, &[u8]> = TableDefinition::new("chunks");
+    fs::create_dir_all(root).unwrap();
     let db = Database::create(root.join("world.redb")).unwrap();
     let write = db.begin_write().unwrap();
     {

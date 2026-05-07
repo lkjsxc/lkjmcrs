@@ -1,7 +1,8 @@
 use crate::player::storage_redb;
 use crate::player::{NamedLocation, PlayerDefaults, PlayerProfile};
+use redb::Database;
 use std::fs;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 use std::sync::{Arc, Mutex};
 use thiserror::Error;
 use uuid::Uuid;
@@ -11,7 +12,7 @@ const PLAYER_DB: &str = "players.redb";
 
 #[derive(Debug, Clone)]
 pub struct PlayerStore {
-    path: PathBuf,
+    database: Arc<Database>,
     write_lock: Arc<Mutex<()>>,
 }
 
@@ -40,11 +41,11 @@ pub enum PlayerStoreError {
 impl PlayerStore {
     pub fn open(root: impl AsRef<Path>) -> Result<Self, PlayerStoreError> {
         fs::create_dir_all(root.as_ref())?;
+        let path = root.as_ref().join(PLAYER_DB);
         let store = Self {
-            path: root.as_ref().join(PLAYER_DB),
+            database: Arc::new(storage_redb::open_database(&path)?),
             write_lock: Arc::new(Mutex::new(())),
         };
-        storage_redb::open_database(&store.path)?;
         Ok(store)
     }
 
@@ -54,10 +55,9 @@ impl PlayerStore {
         name: String,
         defaults: PlayerDefaults,
     ) -> Result<PlayerProfile, PlayerStoreError> {
-        let path = self.path.clone();
+        let database = self.database.clone();
         tokio::task::spawn_blocking(move || {
-            let database = storage_redb::open_database(&path)?;
-            let mut profile = storage_redb::load_profile(&database, uuid)?
+            let mut profile = storage_redb::load_profile(database.as_ref(), uuid)?
                 .unwrap_or_else(|| PlayerProfile::new_with_defaults(uuid, name.clone(), defaults));
             profile.name = name;
             Ok(profile)
@@ -66,12 +66,11 @@ impl PlayerStore {
     }
 
     pub async fn save(&self, profile: PlayerProfile) -> Result<(), PlayerStoreError> {
-        let path = self.path.clone();
+        let database = self.database.clone();
         let write_lock = self.write_lock.clone();
         tokio::task::spawn_blocking(move || {
             let _guard = write_lock.lock().map_err(|_| PlayerStoreError::WriteLock)?;
-            let database = storage_redb::open_database(&path)?;
-            storage_redb::save_profile(&database, &profile)
+            storage_redb::save_profile(database.as_ref(), &profile)
         })
         .await?
     }
@@ -81,16 +80,15 @@ impl PlayerStore {
         uuid: Uuid,
         location: NamedLocation,
     ) -> Result<(), PlayerStoreError> {
-        let path = self.path.clone();
+        let database = self.database.clone();
         let write_lock = self.write_lock.clone();
         tokio::task::spawn_blocking(move || {
             let _guard = write_lock.lock().map_err(|_| PlayerStoreError::WriteLock)?;
-            let database = storage_redb::open_database(&path)?;
-            let exists = storage_redb::home(&database, uuid, &location.name)?.is_some();
-            if !exists && storage_redb::home_names(&database, uuid)?.len() >= MAX_HOMES {
+            let exists = storage_redb::home(database.as_ref(), uuid, &location.name)?.is_some();
+            if !exists && storage_redb::home_names(database.as_ref(), uuid)?.len() >= MAX_HOMES {
                 return Err(PlayerStoreError::HomeLimitExceeded);
             }
-            storage_redb::set_home(&database, uuid, &location)
+            storage_redb::set_home(database.as_ref(), uuid, &location)
         })
         .await?
     }
@@ -100,21 +98,15 @@ impl PlayerStore {
         uuid: Uuid,
         name: String,
     ) -> Result<Option<NamedLocation>, PlayerStoreError> {
-        let path = self.path.clone();
-        tokio::task::spawn_blocking(move || {
-            let database = storage_redb::open_database(&path)?;
-            storage_redb::home(&database, uuid, &name)
-        })
-        .await?
+        let database = self.database.clone();
+        tokio::task::spawn_blocking(move || storage_redb::home(database.as_ref(), uuid, &name))
+            .await?
     }
 
     pub async fn home_names(&self, uuid: Uuid) -> Result<Vec<String>, PlayerStoreError> {
-        let path = self.path.clone();
-        tokio::task::spawn_blocking(move || {
-            let database = storage_redb::open_database(&path)?;
-            storage_redb::home_names(&database, uuid)
-        })
-        .await?
+        let database = self.database.clone();
+        tokio::task::spawn_blocking(move || storage_redb::home_names(database.as_ref(), uuid))
+            .await?
     }
 
     pub async fn set_warp(
@@ -122,31 +114,22 @@ impl PlayerStore {
         created_by_uuid: Uuid,
         location: NamedLocation,
     ) -> Result<(), PlayerStoreError> {
-        let path = self.path.clone();
+        let database = self.database.clone();
         let write_lock = self.write_lock.clone();
         tokio::task::spawn_blocking(move || {
             let _guard = write_lock.lock().map_err(|_| PlayerStoreError::WriteLock)?;
-            let database = storage_redb::open_database(&path)?;
-            storage_redb::set_warp(&database, created_by_uuid, &location)
+            storage_redb::set_warp(database.as_ref(), created_by_uuid, &location)
         })
         .await?
     }
 
     pub async fn warp(&self, name: String) -> Result<Option<NamedLocation>, PlayerStoreError> {
-        let path = self.path.clone();
-        tokio::task::spawn_blocking(move || {
-            let database = storage_redb::open_database(&path)?;
-            storage_redb::warp(&database, &name)
-        })
-        .await?
+        let database = self.database.clone();
+        tokio::task::spawn_blocking(move || storage_redb::warp(database.as_ref(), &name)).await?
     }
 
     pub async fn warp_names(&self) -> Result<Vec<String>, PlayerStoreError> {
-        let path = self.path.clone();
-        tokio::task::spawn_blocking(move || {
-            let database = storage_redb::open_database(&path)?;
-            storage_redb::warp_names(&database)
-        })
-        .await?
+        let database = self.database.clone();
+        tokio::task::spawn_blocking(move || storage_redb::warp_names(database.as_ref())).await?
     }
 }

@@ -32,7 +32,10 @@ async fn expect_observer_update(
         return Err(Box::new(ProbeError::Phase("observer unexpected ack")));
     }
     if packet.id != ids::play::BLOCK_UPDATE {
-        return Err(Box::new(ProbeError::Phase("observer update id")));
+        return Err(Box::new(std::io::Error::other(format!(
+            "observer update id: got {}",
+            packet.id
+        ))));
     }
     block_mutation::validate_update(packet.data, state)
 }
