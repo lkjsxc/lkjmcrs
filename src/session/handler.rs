@@ -24,6 +24,7 @@ use uuid::Uuid;
 #[derive(Debug)]
 pub struct ServerContext {
     pub config: Config,
+    pub login_key: online_login::LoginKey,
     pub region: crate::scheduler::RegionHandle,
     pub sessions: SessionRegistry,
     pub player_store: PlayerStore,
@@ -36,16 +37,21 @@ pub enum ServerStartupError {
     Player(#[from] crate::player::PlayerStoreError),
     #[error("world storage failed: {0}")]
     World(#[from] crate::world::WorldStorageError),
+    #[error("login key generation failed: {0}")]
+    LoginKey(String),
 }
 
 impl ServerContext {
     pub fn new(config: Config) -> Result<Arc<Self>, ServerStartupError> {
+        let login_key = online_login::LoginKey::generate()
+            .map_err(|source| ServerStartupError::LoginKey(source.to_string()))?;
         let player_store = PlayerStore::open(&config.data_dir)?;
         let world_storage = WorldStorage::new(&config.data_dir);
         world_storage.validate()?;
         let region = RegionActor::spawn_persistent(RegionId(0), world_storage);
         Ok(Arc::new(Self {
             config,
+            login_key,
             region,
             sessions: SessionRegistry::default(),
             player_store,

@@ -1,7 +1,7 @@
 use crate::probe::ProbeError;
 use crate::protocol::{codec, ids};
 use std::io::Cursor;
-use tokio::net::TcpStream;
+use tokio::io::AsyncRead;
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(super) struct PlayerInventorySlot {
@@ -10,16 +10,22 @@ pub(super) struct PlayerInventorySlot {
     pub item_id: Option<i32>,
 }
 
-pub(super) async fn expect_held_item_slot(
-    stream: &mut TcpStream,
-) -> Result<i32, Box<dyn std::error::Error>> {
+pub(super) async fn expect_held_item_slot<S>(
+    stream: &mut S,
+) -> Result<i32, Box<dyn std::error::Error>>
+where
+    S: AsyncRead + Unpin,
+{
     let packet = super::expect(stream, ids::play::HELD_ITEM_SLOT, "held item slot").await?;
     decode_held_item_slot(packet.data)
 }
 
-pub(super) async fn expect_player_inventory(
-    stream: &mut TcpStream,
-) -> Result<Vec<PlayerInventorySlot>, Box<dyn std::error::Error>> {
+pub(super) async fn expect_player_inventory<S>(
+    stream: &mut S,
+) -> Result<Vec<PlayerInventorySlot>, Box<dyn std::error::Error>>
+where
+    S: AsyncRead + Unpin,
+{
     let mut slots = Vec::new();
     for expected_slot in 0..36 {
         let packet = super::expect(

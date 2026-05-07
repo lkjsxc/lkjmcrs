@@ -51,13 +51,15 @@ impl<S: AsyncWrite + Unpin> AsyncWrite for EncryptedStream<S> {
         input: &[u8],
     ) -> Poll<Result<usize, std::io::Error>> {
         let mut encrypted = input.to_vec();
-        for byte in &mut encrypted {
-            let mut block = Block::<AesCfb8Encryptor>::default();
-            block[0] = *byte;
-            self.encryptor.encrypt_block_mut(&mut block);
-            *byte = block[0];
+        let mut preview = self.encryptor.clone();
+        encrypt_bytes(&mut preview, &mut encrypted);
+        match Pin::new(&mut self.inner).poll_write(cx, &encrypted) {
+            Poll::Ready(Ok(written)) => {
+                advance_encryptor(&mut self.encryptor, &input[..written]);
+                Poll::Ready(Ok(written))
+            }
+            other => other,
         }
-        Pin::new(&mut self.inner).poll_write(cx, &encrypted)
     }
 
     fn poll_flush(
@@ -72,5 +74,75 @@ impl<S: AsyncWrite + Unpin> AsyncWrite for EncryptedStream<S> {
         cx: &mut Context<'_>,
     ) -> Poll<Result<(), std::io::Error>> {
         Pin::new(&mut self.inner).poll_shutdown(cx)
+    }
+}
+
+fn encrypt_bytes(encryptor: &mut AesCfb8Encryptor, bytes: &mut [u8]) {
+    for byte in bytes {
+        let mut block = Block::<AesCfb8Encryptor>::default();
+        block[0] = *byte;
+        encryptor.encrypt_block_mut(&mut block);
+        *byte = block[0];
+    }
+}
+
+fn advance_encryptor(encryptor: &mut AesCfb8Encryptor, plain: &[u8]) {
+    let mut ignored = plain.to_vec();
+    encrypt_bytes(encryptor, &mut ignored);
+}
+
+#[cfg(test)]
+mod tests {
+    use super::EncryptedStream;
+    use std::io;
+    use std::pin::Pin;
+    use std::task::{Context, Poll};
+    use tokio::io::{AsyncWrite, AsyncWriteExt};
+
+    struct PartialSink {
+        max_write: usize,
+        bytes: Vec<u8>,
+    }
+
+    impl AsyncWrite for PartialSink {
+        fn poll_write(
+            mut self: Pin<&mut Self>,
+            _cx: &mut Context<'_>,
+            input: &[u8],
+        ) -> Poll<io::Result<usize>> {
+            let written = self.max_write.min(input.len());
+            self.bytes.extend_from_slice(&input[..written]);
+            Poll::Ready(Ok(written))
+        }
+
+        fn poll_flush(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<io::Result<()>> {
+            Poll::Ready(Ok(()))
+        }
+
+        fn poll_shutdown(self: Pin<&mut Self>, _cx: &mut Context<'_>) -> Poll<io::Result<()>> {
+            Poll::Ready(Ok(()))
+        }
+    }
+
+    #[tokio::test]
+    async fn partial_writes_advance_cipher_only_for_written_bytes() {
+        let secret = [7_u8; 16];
+        let sink = PartialSink {
+            max_write: 2,
+            bytes: Vec::new(),
+        };
+        let mut stream = EncryptedStream::new(sink, &secret);
+        assert_eq!(stream.write(b"abcd").await.unwrap(), 2);
+        assert_eq!(stream.write(b"cd").await.unwrap(), 2);
+
+        let mut expected = EncryptedStream::new(
+            PartialSink {
+                max_write: 4,
+                bytes: Vec::new(),
+            },
+            &secret,
+        );
+        assert_eq!(expected.write(b"abcd").await.unwrap(), 4);
+        assert_eq!(stream.inner.bytes, expected.inner.bytes);
     }
 }

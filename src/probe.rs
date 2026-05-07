@@ -11,6 +11,7 @@ mod multiplayer_mutation;
 #[path = "probe/online_auth.rs"]
 mod online_auth_probe;
 mod persistence;
+mod play_bootstrap;
 mod play_client;
 mod profile_reconnect;
 mod registry_assert;
@@ -27,6 +28,7 @@ use crate::protocol::ids;
 use crate::protocol::types::{Handshake, NextState};
 use std::future::Future;
 use thiserror::Error;
+use tokio::io::AsyncRead;
 use tokio::net::TcpStream;
 use tokio::time::{Duration, Instant, sleep};
 
@@ -152,11 +154,14 @@ pub(super) async fn send_handshake(
     codec::write_packet(stream, ids::HANDSHAKE, &handshake.encode()).await
 }
 
-pub(super) async fn expect(
-    stream: &mut TcpStream,
+pub(super) async fn expect<S>(
+    stream: &mut S,
     id: i32,
     phase: &'static str,
-) -> Result<codec::Packet, Box<dyn std::error::Error>> {
+) -> Result<codec::Packet, Box<dyn std::error::Error>>
+where
+    S: AsyncRead + Unpin,
+{
     let packet = codec::read_packet(stream).await?;
     if packet.id == id {
         Ok(packet)

@@ -1,21 +1,26 @@
 use crate::probe::ProbeError;
 use crate::protocol::{codec, ids};
+use tokio::io::AsyncWrite;
 use tokio::net::TcpStream;
 
-pub(super) async fn send_position_look(
-    stream: &mut TcpStream,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub(super) async fn send_position_look<S>(stream: &mut S) -> Result<(), Box<dyn std::error::Error>>
+where
+    S: AsyncWrite + Unpin,
+{
     send_position_look_at(stream, 0.5, 80.0, 0.5, 0.0, 0.0).await
 }
 
-pub(super) async fn send_position_look_at(
-    stream: &mut TcpStream,
+pub(super) async fn send_position_look_at<S>(
+    stream: &mut S,
     x: f64,
     y: f64,
     z: f64,
     yaw: f32,
     pitch: f32,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<(), Box<dyn std::error::Error>>
+where
+    S: AsyncWrite + Unpin,
+{
     let mut payload = Vec::new();
     codec::write_f64(&mut payload, x);
     codec::write_f64(&mut payload, y);

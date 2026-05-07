@@ -19,6 +19,27 @@ pub struct AuthenticatedStream {
     pub name: String,
 }
 
+#[derive(Debug)]
+pub struct LoginKey {
+    private_key: RsaPrivateKey,
+    public_der: Vec<u8>,
+}
+
+impl LoginKey {
+    pub fn generate() -> Result<Self, String> {
+        let mut rng = rand::rngs::OsRng;
+        let private_key = RsaPrivateKey::new(&mut rng, 1024).map_err(|error| error.to_string())?;
+        let public_der = private_key
+            .to_public_key()
+            .to_public_key_der()
+            .map_err(|error| error.to_string())?;
+        Ok(Self {
+            private_key,
+            public_der: public_der.as_ref().to_vec(),
+        })
+    }
+}
+
 pub async fn authenticate(
     mut stream: TcpStream,
     context: &ServerContext,
@@ -26,29 +47,25 @@ pub async fn authenticate(
 ) -> Result<AuthenticatedStream, ConnectionError> {
     let phase = SessionState::Login;
     let mut rng = rand::rngs::OsRng;
-    let private_key = RsaPrivateKey::new(&mut rng, 1024)
-        .map_err(|_| protocol_error(phase, "rsa key generation failed"))?;
-    let public_der = private_key
-        .to_public_key()
-        .to_public_key_der()
-        .map_err(|_| protocol_error(phase, "rsa public key encoding failed"))?;
     let mut verify_token = [0_u8; 16];
     rng.fill_bytes(&mut verify_token);
-    let request = login::encode_encryption_request(public_der.as_ref(), &verify_token);
+    let request = login::encode_encryption_request(&context.login_key.public_der, &verify_token);
     write_packet(&mut stream, phase, ids::login::ENCRYPTION_REQUEST, &request).await?;
 
     let response = expect_packet(&mut stream, phase, ids::login::ENCRYPTION_RESPONSE).await?;
     let response = login::decode_encryption_response(response.data)
         .map_err(|error| codec_error(phase, error))?;
-    let secret = decrypt_secret(&private_key, &response.shared_secret)?;
-    let token = private_key
+    let secret = decrypt_secret(&context.login_key.private_key, &response.shared_secret)?;
+    let token = context
+        .login_key
+        .private_key
         .decrypt(Pkcs1v15Encrypt, &response.verify_token)
         .map_err(|_| protocol_error(phase, "verify token decrypt failed"))?;
     if token != verify_token {
         send_auth_failed(&mut stream).await?;
         return Err(protocol_error(phase, "verify token mismatch"));
     }
-    let hash = auth::server_hash(&secret, public_der.as_ref());
+    let hash = auth::server_hash(&secret, &context.login_key.public_der);
     match auth::verify_has_joined(&context.config.session_server_url, name, &hash).await {
         Ok(profile) => Ok(AuthenticatedStream {
             stream: EncryptedStream::new(stream, &secret),

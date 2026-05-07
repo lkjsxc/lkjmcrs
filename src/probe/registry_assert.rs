@@ -5,11 +5,14 @@ use crate::protocol::registry_contract::{
 };
 use crate::protocol::registry_decode::{DecodedRegistry, DecodedTagGroup};
 use crate::protocol::{ids, registry_decode};
-use tokio::net::TcpStream;
+use tokio::io::AsyncRead;
 
-pub(super) async fn expect_configuration_registries(
-    stream: &mut TcpStream,
-) -> Result<(), Box<dyn std::error::Error>> {
+pub(super) async fn expect_configuration_registries<S>(
+    stream: &mut S,
+) -> Result<(), Box<dyn std::error::Error>>
+where
+    S: AsyncRead + Unpin,
+{
     let mut registries = Vec::new();
     for _ in 0..REQUIRED_REGISTRY_IDS.len() {
         let packet = super::expect(stream, ids::config::REGISTRY_DATA, "registry data").await?;

@@ -24,6 +24,7 @@ Keep public servers tied to authenticated UUID identity.
 - Treat offline-mode runtime as private-only.
 - Prefer localhost, LAN, VPN, or firewall-restricted access.
 - Do not expose TCP `25565` publicly unless `online_mode=true` is configured.
+- Default Compose publishing binds `127.0.0.1:${HOST_PORT:-25565}:25565`.
 - On shared hosts, choose a non-conflicting `HOST_PORT`.
 - `HOST_PORT=25575` is the recommended private test override when `25565` is
   already occupied.

@@ -1,6 +1,6 @@
 use crate::probe::ProbeError;
 use crate::protocol::{codec, ids};
-use tokio::net::TcpStream;
+use tokio::io::AsyncRead;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct HealthState {
@@ -9,9 +9,12 @@ pub struct HealthState {
     pub saturation: f32,
 }
 
-pub async fn expect_update_health(
-    stream: &mut TcpStream,
-) -> Result<HealthState, Box<dyn std::error::Error>> {
+pub async fn expect_update_health<S>(
+    stream: &mut S,
+) -> Result<HealthState, Box<dyn std::error::Error>>
+where
+    S: AsyncRead + Unpin,
+{
     let packet = super::expect(stream, ids::play::UPDATE_HEALTH, "update health").await?;
     decode_update_health(packet.data)
 }

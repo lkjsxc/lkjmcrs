@@ -10,6 +10,15 @@ use std::io::Cursor;
 use tokio::net::TcpStream;
 
 pub async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
+    let host = host.to_string();
+    super::retry_connect(|| {
+        let host = host.clone();
+        async move { run_once(&host).await }
+    })
+    .await
+}
+
+async fn run_once(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut stream = TcpStream::connect(host).await?;
     send_handshake(&mut stream, host, NextState::Login).await?;
     let login = crate::protocol::types::LoginStart::encode("OnlineProbe", uuid::Uuid::nil());
@@ -36,6 +45,9 @@ pub async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     if uuid != uuid::Uuid::parse_str("00112233-4455-6677-8899-aabbccddeeff")? {
         return Err(Box::new(ProbeError::Phase("online login uuid")));
     }
+    codec::write_packet(&mut stream, ids::login::ACKNOWLEDGED, &[]).await?;
+    super::play_bootstrap::complete_configuration(&mut stream).await?;
+    super::play_bootstrap::complete_play_bootstrap(&mut stream, Some(0)).await?;
     Ok(())
 }
 
