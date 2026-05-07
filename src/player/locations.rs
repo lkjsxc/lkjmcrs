@@ -1,8 +1,9 @@
 use crate::player::PlayerPosition;
+use serde::{Deserialize, Serialize};
 
 pub const OVERWORLD: &str = "minecraft:overworld";
 
-#[derive(Debug, Clone, PartialEq)]
+#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct NamedLocation {
     pub name: String,
     pub world: String,

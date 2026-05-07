@@ -1,17 +1,16 @@
 use crate::world::{BlockPos, BlockState, ChunkPos, ChunkSnapshot, WorldStorage};
-use rusqlite::Connection;
+use redb::{Database, TableDefinition};
 use std::fs;
-use std::path::Path;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 #[test]
-fn schema_initializes_with_version_one() {
+fn storage_initializes_redb_file() {
     let root = temp_root();
     let storage = WorldStorage::new(&root);
 
-    assert_eq!(storage.schema_version().unwrap(), 1);
-    assert!(root.join("world.sqlite3").exists());
+    storage.validate().unwrap();
+    assert!(root.join("world.redb").exists());
     cleanup(root);
 }
 
@@ -48,7 +47,7 @@ fn override_save_and_load_round_trips_multiple_blocks() {
 }
 
 #[test]
-fn reset_to_base_deletes_override_rows() {
+fn reset_to_base_deletes_override_value() {
     let root = temp_root();
     let storage = WorldStorage::new(&root);
     let pos = ChunkPos::new(0, 0);
@@ -60,7 +59,8 @@ fn reset_to_base_deletes_override_rows() {
     chunk.set_block(block, BlockState::Air);
     storage.save_chunk(&chunk).unwrap();
 
-    assert_eq!(override_count(&root), 0);
+    let loaded = storage.load_chunk(pos).unwrap();
+    assert_eq!(loaded.block_at_pos(block), BlockState::Air);
     cleanup(root);
 }
 
@@ -78,22 +78,39 @@ fn cloned_storage_serializes_concurrent_saves() {
 
     left.join().unwrap().unwrap();
     right.join().unwrap().unwrap();
-    assert_eq!(override_count(&root), 2);
+    assert_eq!(
+        storage
+            .load_chunk(ChunkPos::new(0, 0))
+            .unwrap()
+            .block_at_pos(BlockPos::new(0, 80, 0)),
+        BlockState::Stone
+    );
+    assert_eq!(
+        storage
+            .load_chunk(ChunkPos::new(1, 0))
+            .unwrap()
+            .block_at_pos(BlockPos::new(16, 80, 0)),
+        BlockState::Stone
+    );
     cleanup(root);
 }
 
 #[test]
-fn rejects_unsupported_schema() {
+fn rejects_invalid_stored_block_state() {
     let root = temp_root();
-    fs::create_dir_all(&root).unwrap();
-    let connection = Connection::open(root.join("world.sqlite3")).unwrap();
-    connection.pragma_update(None, "user_version", 2).unwrap();
+    let storage = WorldStorage::new(&root);
+    storage.validate().unwrap();
+    insert_raw_chunk(
+        &root,
+        "overworld/0/0",
+        br#"{"chunk_x":0,"chunk_z":0,"overrides":[{"local_x":0,"y":80,"local_z":0,"state":"minecraft:void"}]}"#,
+    );
 
-    let error = WorldStorage::new(&root)
+    let error = storage
         .load_chunk(ChunkPos::new(0, 0))
         .unwrap_err()
         .to_string();
-    assert!(error.contains("schema version 2"));
+    assert!(error.contains("invalid block state"));
     cleanup(root);
 }
 
@@ -103,11 +120,15 @@ fn changed_chunk(pos: ChunkPos, block: BlockPos) -> ChunkSnapshot {
     chunk
 }
 
-fn override_count(root: &Path) -> i64 {
-    Connection::open(root.join("world.sqlite3"))
-        .unwrap()
-        .query_row("SELECT COUNT(*) FROM chunk_overrides", [], |row| row.get(0))
-        .unwrap()
+fn insert_raw_chunk(root: &std::path::Path, key: &str, bytes: &[u8]) {
+    const CHUNKS: TableDefinition<&str, &[u8]> = TableDefinition::new("chunks");
+    let db = Database::create(root.join("world.redb")).unwrap();
+    let write = db.begin_write().unwrap();
+    {
+        let mut table = write.open_table(CHUNKS).unwrap();
+        table.insert(key, bytes).unwrap();
+    }
+    write.commit().unwrap();
 }
 
 fn temp_root() -> PathBuf {

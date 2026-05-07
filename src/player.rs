@@ -1,14 +1,14 @@
 mod inventory;
 #[cfg(test)]
 mod inventory_tests;
-mod location_rows;
+mod location_json;
 mod locations;
 pub mod model;
-mod schema;
 pub mod storage;
+mod storage_redb;
 #[cfg(test)]
 mod storage_tests;
-mod store_rows;
+mod store_json;
 
 pub use locations::{NamedLocation, OVERWORLD};
 pub use model::{

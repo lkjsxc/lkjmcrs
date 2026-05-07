@@ -25,7 +25,7 @@ async fn creates_default_profile_when_missing() {
 
     assert_eq!(profile.name, "Probe");
     assert_eq!(profile.game_mode, GameMode::Survival);
-    assert!(root.join("players.sqlite3").exists());
+    assert!(root.join("players.redb").exists());
     cleanup(root);
 }
 
@@ -82,7 +82,7 @@ async fn saves_and_reloads_profile_state() {
 }
 
 #[tokio::test]
-async fn concurrent_profile_saves_wait_for_sqlite_writer() {
+async fn concurrent_profile_saves_wait_for_redb_writer() {
     let root = temp_root();
     let store = PlayerStore::open(&root).unwrap();
     let mut tasks = Vec::new();
@@ -105,18 +105,6 @@ async fn concurrent_profile_saves_wait_for_sqlite_writer() {
     for task in tasks {
         task.await.unwrap().unwrap();
     }
-    cleanup(root);
-}
-
-#[test]
-fn rejects_unsupported_schema_version() {
-    let root = temp_root();
-    let path = root.join("players.sqlite3");
-    fs::create_dir_all(&root).unwrap();
-    let connection = rusqlite::Connection::open(&path).unwrap();
-    connection.pragma_update(None, "user_version", 1).unwrap();
-
-    assert!(PlayerStore::open(&root).is_err());
     cleanup(root);
 }
 
@@ -153,6 +141,21 @@ async fn saves_homes_and_warps() {
             .z,
         1.0
     );
+    cleanup(root);
+}
+
+#[tokio::test]
+async fn rejects_invalid_home_world() {
+    let root = temp_root();
+    let store = PlayerStore::open(&root).unwrap();
+    let uuid = Uuid::from_u128(5);
+    let location = NamedLocation {
+        name: "bad".to_string(),
+        world: "minecraft:the_nether".to_string(),
+        position: position(0.0, 80.0, 0.0),
+    };
+
+    assert!(store.set_home(uuid, location).await.is_err());
     cleanup(root);
 }
 

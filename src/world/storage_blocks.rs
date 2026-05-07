@@ -1,22 +1,4 @@
-use crate::world::{BlockPos, BlockState, ChunkPos, WorldStorageError};
-
-#[derive(Debug)]
-pub(super) struct StoredBlock {
-    pub local_x: i32,
-    pub y: i32,
-    pub local_z: i32,
-    pub state: String,
-}
-
-impl StoredBlock {
-    pub fn global_pos(&self, chunk: ChunkPos) -> BlockPos {
-        BlockPos::new(
-            chunk.x * 16 + self.local_x,
-            self.y,
-            chunk.z * 16 + self.local_z,
-        )
-    }
-}
+use crate::world::{BlockState, WorldStorageError};
 
 pub(super) fn state_name(state: BlockState) -> &'static str {
     match state {

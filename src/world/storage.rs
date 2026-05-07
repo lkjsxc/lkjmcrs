@@ -1,7 +1,6 @@
-use crate::world::storage_blocks::{StoredBlock, block_state, state_name};
-use crate::world::storage_schema::ensure_schema;
+use crate::world::storage_json::StoredChunk;
 use crate::world::{ChunkPos, ChunkSnapshot};
-use rusqlite::{Connection, params};
+use redb::{Database, ReadableDatabase, TableDefinition};
 use std::fs;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
@@ -9,7 +8,9 @@ use std::sync::{Arc, Mutex};
 use std::time::Duration;
 use thiserror::Error;
 
-const BUSY_TIMEOUT_MS: u64 = 5_000;
+const WORLD_DB: &str = "world.redb";
+const META: TableDefinition<&str, &[u8]> = TableDefinition::new("meta");
+const CHUNKS: TableDefinition<&str, &[u8]> = TableDefinition::new("chunks");
 
 #[derive(Debug, Clone)]
 pub struct WorldStorage {
@@ -30,10 +31,12 @@ struct TestStorage {
 pub enum WorldStorageError {
     #[error("storage I/O failed: {0}")]
     Io(#[from] std::io::Error),
-    #[error("storage SQLite failed: {0}")]
-    Sqlite(#[from] rusqlite::Error),
-    #[error("unsupported world schema version {0}")]
-    UnsupportedSchema(u32),
+    #[error("storage redb failed: {0}")]
+    Redb(String),
+    #[error("storage JSON failed: {0}")]
+    Json(#[from] serde_json::Error),
+    #[error("invalid stored chunk key")]
+    InvalidChunkKey,
     #[error("invalid block state {0}")]
     InvalidState(String),
     #[error("invalid stored block at {0},{1},{2}")]
@@ -74,45 +77,20 @@ impl WorldStorage {
         }
     }
 
-    pub fn schema_version(&self) -> Result<u32, WorldStorageError> {
-        let connection = self.connection()?;
-        Ok(connection.query_row("PRAGMA user_version", [], |row| row.get(0))?)
-    }
-
     pub fn validate(&self) -> Result<(), WorldStorageError> {
-        self.connection().map(|_| ())
+        self.database().map(|_| ())
     }
 
     pub fn load_chunk(&self, pos: ChunkPos) -> Result<ChunkSnapshot, WorldStorageError> {
         self.pause_for_test();
-        let connection = self.connection()?;
-        let mut chunk = ChunkSnapshot::flat(pos);
-        let mut rows = connection.prepare(
-            "SELECT local_x, y, local_z, state
-             FROM chunk_overrides
-             WHERE chunk_x = ?1 AND chunk_z = ?2",
-        )?;
-        let overrides = rows.query_map(params![pos.x, pos.z], |row| {
-            Ok(StoredBlock {
-                local_x: row.get(0)?,
-                y: row.get(1)?,
-                local_z: row.get(2)?,
-                state: row.get(3)?,
-            })
-        })?;
-        for row in overrides {
-            let block = row?;
-            let state = block_state(&block.state)?;
-            let global = block.global_pos(pos);
-            if chunk.set_block(global, state) != Some(state) {
-                return Err(WorldStorageError::InvalidBlock(
-                    block.local_x,
-                    block.y,
-                    block.local_z,
-                ));
-            }
-        }
-        Ok(chunk)
+        let database = self.database()?;
+        let read = database.begin_read().map_err(redb_error)?;
+        let table = read.open_table(CHUNKS).map_err(redb_error)?;
+        let Some(bytes) = table.get(chunk_key(pos).as_str()).map_err(redb_error)? else {
+            return Ok(ChunkSnapshot::flat(pos));
+        };
+        let stored: StoredChunk = serde_json::from_slice(bytes.value())?;
+        stored.into_snapshot(pos)
     }
 
     pub fn save_chunk(&self, chunk: &ChunkSnapshot) -> Result<(), WorldStorageError> {
@@ -122,38 +100,35 @@ impl WorldStorage {
             .write_lock
             .lock()
             .map_err(|_| std::io::Error::other("world storage write lock poisoned"))?;
-        let mut connection = self.connection()?;
-        let tx = connection.transaction()?;
-        tx.execute(
-            "DELETE FROM chunk_overrides WHERE chunk_x = ?1 AND chunk_z = ?2",
-            params![chunk.pos.x, chunk.pos.z],
-        )?;
-        for (pos, state) in chunk.override_entries() {
-            tx.execute(
-                "INSERT INTO chunk_overrides
-                 (chunk_x, chunk_z, local_x, y, local_z, state)
-                 VALUES (?1, ?2, ?3, ?4, ?5, ?6)",
-                params![
-                    chunk.pos.x,
-                    chunk.pos.z,
-                    pos.local_x() as i32,
-                    pos.y,
-                    pos.local_z() as i32,
-                    state_name(state),
-                ],
-            )?;
+        let database = self.database()?;
+        let key = chunk_key(chunk.pos);
+        let stored = StoredChunk::from_snapshot(chunk);
+        let write = database.begin_write().map_err(redb_error)?;
+        {
+            let mut table = write.open_table(CHUNKS).map_err(redb_error)?;
+            if stored.is_empty() {
+                table.remove(key.as_str()).map_err(redb_error)?;
+            } else {
+                let bytes = serde_json::to_vec(&stored)?;
+                table
+                    .insert(key.as_str(), bytes.as_slice())
+                    .map_err(redb_error)?;
+            }
         }
-        tx.commit()?;
+        write.commit().map_err(redb_error)?;
         Ok(())
     }
 
-    fn connection(&self) -> Result<Connection, WorldStorageError> {
+    fn database(&self) -> Result<Database, WorldStorageError> {
         fs::create_dir_all(&self.root)?;
-        let connection = Connection::open(self.root.join("world.sqlite3"))?;
-        connection.busy_timeout(std::time::Duration::from_millis(BUSY_TIMEOUT_MS))?;
-        connection.pragma_update(None, "journal_mode", "WAL")?;
-        ensure_schema(&connection)?;
-        Ok(connection)
+        let database = Database::create(self.root.join(WORLD_DB)).map_err(redb_error)?;
+        let write = database.begin_write().map_err(redb_error)?;
+        {
+            write.open_table(META).map_err(redb_error)?;
+            write.open_table(CHUNKS).map_err(redb_error)?;
+        }
+        write.commit().map_err(redb_error)?;
+        Ok(database)
     }
 
     fn pause_for_test(&self) {
@@ -170,4 +145,12 @@ impl WorldStorage {
         }
         Ok(())
     }
+}
+
+fn chunk_key(pos: ChunkPos) -> String {
+    format!("overworld/{}/{}", pos.x, pos.z)
+}
+
+fn redb_error(error: impl std::fmt::Display) -> WorldStorageError {
+    WorldStorageError::Redb(error.to_string())
 }
