@@ -2,9 +2,9 @@
 
 ## 2026-05-08 Progressive Chunk Streaming
 
-Implementation tested: pending local implementation, with radius `4`
-progressive chunk streaming, near-radius bootstrap, budgeted follow-up chunk
-batches, flat chunk payload caching, and a dedicated scale stream probe.
+Implementation tested: `f5fc629`, with radius `4` progressive chunk streaming,
+near-radius bootstrap, budgeted follow-up chunk batches, flat chunk payload
+caching, and a dedicated scale stream probe.
 
 Command owner:
 
@@ -15,8 +15,27 @@ Result:
 - `verify`: pass with compact output:
   `verify fmt ... ok`, `verify clippy ... ok`, `verify test ... ok`,
   `verify docs-topology ... ok`, `verify line-limits ... ok`, `verify pass`.
-- clean `chunk-stream`: pass, `chunk-stream probe ok`.
+- initial `down -v`: pass.
+- `server` startup: pass.
+- `smoke`: pass, `login-play probe ok`.
+- `profile-reconnect`: pass, `profile-reconnect probe ok`.
+- `chunk-stream`: pass, `chunk-stream probe ok`.
+- `scale-server` startup: pass.
 - `scale-chunk-stream`: pass, `scale-chunk-stream probe ok`.
+- `persist-place`: pass, `persist-place probe ok`.
+- server restart: pass.
+- `persist-check`: pass, `persist-check probe ok`.
+- `survival-server` startup: pass.
+- `survival-item`: pass, `survival-item probe ok`.
+- `inventory-sync`: pass, `inventory-sync probe ok`.
+- `item-pickup`: pass, `item-pickup probe ok`.
+- `survival-vitals-server` startup: pass.
+- `survival-vitals`: pass, `survival-vitals probe ok`.
+- `smp-server` startup: pass.
+- `smp-commands`: pass, `smp-commands probe ok`.
+- `online-server` startup with session fixture: pass.
+- `online-auth`: pass, `online-auth probe ok`.
+- final `down -v`: pass.
 
 ## 2026-05-07 Survival Vitals And Smoke
 
