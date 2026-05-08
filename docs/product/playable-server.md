@@ -4,7 +4,7 @@
 
 Document the first playable server state: a stock offline-mode `1.21.11` client can
 pass `login_finished`, complete configuration, enter play, and receive a
-minimal flat spawn area.
+minimal spawn area.
 
 ## Vanilla Client Boundary
 
@@ -17,10 +17,11 @@ minimal flat spawn area.
 ## World
 
 - One dimension: `minecraft:overworld`.
-- Flat deterministic terrain.
+- Deterministic generated terrain with a flat spawn plateau.
 - Spawn defaults to `0, 80, 0`.
 - World entry sends the vanilla level-chunk readiness game event.
-- The initial world-entry batch covers the full advertised radius `2`.
+- The initial world-entry batch covers the near radius `2`; larger advertised
+  radii stream progressively after play begins.
 - New player profiles default to survival unless `config/server.json` says
   otherwise.
 - Time starts at `0` and advances by server ticks.
@@ -51,7 +52,7 @@ gameplay contract is owned by [survival-core.md](survival-core.md):
 
 - Full vanilla registry synchronization.
 - Full variant registry contents beyond one valid entry per required registry.
-- Natural terrain generation beyond deterministic flat chunks.
+- Full biome, cave, ore, tree, structure, and weather generation.
 - Entity AI.
 - Full inventory behavior and recipes.
 - Chat signing.

@@ -10,8 +10,8 @@ chunk-center boundaries.
 - The session chunk center is derived from player `x` and `z` by flooring each
   coordinate to a block coordinate and applying Euclidean division by `16`.
 - Negative coordinates use the same mapping as block mutation lookup.
-- The configured view distance defaults to `2`, so the default center has a
-  `5x5` visible set.
+- The configured view distance defaults to `32`, but the near bootstrap still
+  sends the radius `2` `5x5` set first.
 - The configured simulation distance is advertised during login but does not
   drive streaming in this slice.
 
@@ -39,8 +39,9 @@ simulation distance for ticking are out of scope.
 
 ## Distance Budget Boundary
 
-The current configured view-distance range stays `2..=8`. Larger targets require
-scale evidence before the cap changes:
+The configured view-distance range is `2..=32`; simulation distance remains
+bounded to `2..=8`. Larger targets require scale evidence before the cap
+changes:
 
 - near chunks stream first,
 - far chunks use explicit chunk and byte budgets,

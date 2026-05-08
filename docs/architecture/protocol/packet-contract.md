@@ -23,8 +23,8 @@ owned by [dynamic-registries.md](dynamic-registries.md).
 
 ## Play Bootstrap
 
-- `0x30 login`: one world, `minecraft:overworld`; view distance defaults to
-  `2`, and simulation distance defaults to the same value.
+- `0x30 login`: one world, `minecraft:overworld`; product view distance
+  defaults to `32`, and simulation distance defaults to `8`.
 - `0x5f spawn_position`: global position in `minecraft:overworld`.
 - `0x6f update_time`: age `0`, time `0`, ticking enabled.
 - `0x3e abilities`: permissive initial ability flags.
@@ -46,7 +46,7 @@ owned by [dynamic-registries.md](dynamic-registries.md).
 - `0x46 position`: spawn teleport with teleport ID `1`.
 - `0x2b keep_alive`: signed 64-bit keepalive ID.
 
-For the default radius `2`, the `level_chunk_with_light` count is
+For the near bootstrap radius `2`, the `level_chunk_with_light` count is
 `(2 * 2 + 1) ^ 2`, so the bootstrap must send `25` chunks. Larger-radius
 bootstrap and follow-up behavior is owned by
 [../world/large-distance-streaming.md](../world/large-distance-streaming.md).

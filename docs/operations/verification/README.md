@@ -33,6 +33,8 @@ Use this subtree for required compose verification contracts.
   larger-radius chunk streaming smoke.
 - [terrain-generation-smoke.md](terrain-generation-smoke.md): natural terrain
   and spawn plateau smoke.
+- [render-distance-smoke.md](render-distance-smoke.md): radius `32`
+  natural-terrain render-distance smoke.
 - [load-and-metrics.md](load-and-metrics.md): scale verification and metric
   targets.
 - [smp-commands-smoke.md](smp-commands-smoke.md): chat and command smoke.

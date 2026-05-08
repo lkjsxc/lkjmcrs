@@ -26,9 +26,10 @@ the next work batch.
   per-chunk `update_light` packets.
 - Progressive chunk streaming is implemented: radius `2` bootstraps eagerly,
   configured radii through `8` stream farther chunks under chunk and byte
-  budgets.
-- Radius `8` automated load, moving-pending, scale-counter, and storage timing
-  evidence is landed.
+  budgets. Radius `32` natural-terrain streaming is the active acceptance
+  batch.
+- Radius `8` automated flat load, moving-pending, scale-counter, and storage
+  timing evidence is landed.
 - Play keepalive timeout is implemented and compose-verified.
 - Public runtime exposure requires `online_mode=true` with session
   verification.
@@ -39,17 +40,18 @@ the next work batch.
   success artifact after the latest packet-shape fixes.
 - Normal survival is incomplete: tools, crafting, mobs, weather, caves,
   structures, ores, and decorations are not gameplay systems yet.
-- Large distance targets above the current cap require a separate acceptance
-  batch.
+- Radius `32` still needs implementation and compose evidence before it is
+  considered landed.
 
 ## Next Implementation Target
 
-Terra-inspired simple natural terrain is the active target:
+Radius `32` natural-terrain streaming is the active target:
 
-- keep the spawn plateau behavior stable,
-- generate deterministic first-party height variation outside the plateau,
-- layer sparse storage overrides on the generated base,
-- keep flat mode for scale verification configs.
+- keep the radius `2` near bootstrap at `25` chunks,
+- converge progressively to `4225` unique chunks,
+- replace stale pending chunks after movement,
+- keep flat radius `4` and `8` probes as regression evidence,
+- defer compression and radius `128` exposure.
 
 ## Rules
 

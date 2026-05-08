@@ -20,9 +20,10 @@
 - `online_mode`: authentication mode, default `false`.
 - `data_dir`: world and player storage root, default `data`.
 - `default_game_mode`: new-profile game mode, default `survival`.
-- `view_distance`: advertised and streamed chunk radius, default `2`.
-- `simulation_distance`: advertised simulation radius, default equals
-  `view_distance`.
+- `view_distance`: advertised and streamed chunk radius, default `32`, valid
+  range `2..=32`.
+- `simulation_distance`: advertised simulation radius, default
+  `min(view_distance, 8)`, valid range `2..=8`.
 - `session_server_url`: online verifier base URL, default
   `https://sessionserver.mojang.com`.
 - `allow_insecure_session_server`: permits HTTP verifier URLs only for
@@ -39,12 +40,13 @@
 4. `online_mode: true` requires a valid verifier URL.
 5. `data_dir` must be writable by the server process before TCP bind.
 6. `default_game_mode` accepts only `creative` or `survival`.
-7. View and simulation distances must be between `2` and `8`.
-8. Operator checks match exact authenticated UUIDs.
-9. There is no starter-item config field.
-10. Checked-in shared config must not grant operator UUIDs.
-11. Verification-only config overlays may grant UUIDs for disposable probes.
-12. HTTP verifier URLs require `allow_insecure_session_server: true`.
+7. View distance must be between `2` and `32`.
+8. Simulation distance must be between `2` and `8`.
+9. Operator checks match exact authenticated UUIDs.
+10. There is no starter-item config field.
+11. Checked-in shared config must not grant operator UUIDs.
+12. Verification-only config overlays may grant UUIDs for disposable probes.
+13. HTTP verifier URLs require `allow_insecure_session_server: true`.
 
 ## Example
 
@@ -56,8 +58,8 @@
   "online_mode": false,
   "data_dir": "data",
   "default_game_mode": "survival",
-  "view_distance": 2,
-  "simulation_distance": 2,
+  "view_distance": 32,
+  "simulation_distance": 8,
   "session_server_url": "https://sessionserver.mojang.com",
   "allow_insecure_session_server": false,
   "operator_uuids": []

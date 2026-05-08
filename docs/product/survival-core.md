@@ -59,7 +59,8 @@ region-ownership architecture.
 ## Rules
 
 1. All block mutation requests go through the region scheduler.
-2. The deterministic flat world remains the base for chunks without overrides.
+2. The deterministic generated world remains the base for chunks without
+   overrides.
 3. Client prediction must be answered with an acknowledgement and a block update.
 4. Persistence stores only sparse overrides above the deterministic flat base.
 5. Survival placement inventory changes are committed only after an accepted

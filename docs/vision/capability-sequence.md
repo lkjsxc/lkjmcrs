@@ -26,7 +26,7 @@
 - No compatibility with earlier SQLite files.
 - Online-mode login, encryption, and session verification outside tick paths.
 - UUID-owned permission model backed by online identity when enabled.
-- Progressive chunk streaming budgets for configured radii through `8`.
+- Progressive chunk streaming budgets for configured radii through `32`.
 
 ## Normal Survival
 
@@ -37,7 +37,7 @@
 
 ## Scale Architecture
 
-- Radius `8` load evidence for initial `25` and eventual `289` chunks.
+- Radius `32` load evidence for initial `25` and eventual `4225` chunks.
 - Stale-pending movement evidence before raising distance caps.
 - Region splitting and merging.
 - Region-local task queues.

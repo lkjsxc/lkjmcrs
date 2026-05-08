@@ -16,6 +16,9 @@ docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-com
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml up -d --build --quiet-build --quiet-pull scale-load-server
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T scale-load-metrics
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T scale-moving-pending
+docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml up -d --build --quiet-build --quiet-pull render32-server
+docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T render-distance
+docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T render-moving-pending
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T persist-place
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml restart server
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T persist-check
@@ -53,26 +56,31 @@ docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-com
     sizes, payload bytes, and scale counter emission.
 12. `scale-moving-pending` verifies stale pending chunks are replaced when a
     player moves before radius `8` far streaming completes.
-13. `persist-place` writes a mutation through the public wire path.
-14. `persist-check` verifies that mutation after restart.
-15. `survival-item` verifies survival profile defaults and item persistence.
-16. `inventory-sync` verifies client-visible hotbar and player inventory sync.
-17. `item-pickup` verifies dropped item entity spawn, pickup, and inventory
+13. `render-distance` verifies natural terrain at radius `32`: advertised
+    radius `32`, `25` initial chunks, `4225` eventual chunks, no duplicates,
+    embedded light, non-flat outer terrain, and follow-up budgets.
+14. `render-moving-pending` verifies stale pending chunks are replaced when a
+    player moves before radius `32` far streaming completes.
+15. `persist-place` writes a mutation through the public wire path.
+16. `persist-check` verifies that mutation after restart.
+17. `survival-item` verifies survival profile defaults and item persistence.
+18. `inventory-sync` verifies client-visible hotbar and player inventory sync.
+19. `item-pickup` verifies dropped item entity spawn, pickup, and inventory
     delta sync.
-18. `survival-vitals-server` mounts `config/verify/smp-server.json` so the
+20. `survival-vitals-server` mounts `config/verify/smp-server.json` so the
     vitals probe can use disposable operator damage.
-19. `survival-vitals` verifies visible health, lethal damage, death, respawn,
+21. `survival-vitals` verifies visible health, lethal damage, death, respawn,
     regeneration, and starvation.
-20. `smp-commands` verifies offline chat, permissions, travel commands, and
+22. `smp-commands` verifies offline chat, permissions, travel commands, and
     kick.
-21. `online-auth` verifies encrypted login and fixture-authenticated UUIDs.
-22. Non-zero from any step blocks acceptance.
-23. Initial `down -v` removes stale named volumes before stateful probes.
-24. Final `down -v` removes disposable compose state.
-25. Quiet flags are part of the contract for routine acceptance runs.
-26. `smp-server` mounts `config/verify/smp-server.json` so disposable operator
+23. `online-auth` verifies encrypted login and fixture-authenticated UUIDs.
+24. Non-zero from any step blocks acceptance.
+25. Initial `down -v` removes stale named volumes before stateful probes.
+26. Final `down -v` removes disposable compose state.
+27. Quiet flags are part of the contract for routine acceptance runs.
+28. `smp-server` mounts `config/verify/smp-server.json` so disposable operator
     checks do not require operator UUIDs in normal runtime config.
-27. `online-server` mounts `config/verify/online-server.json` and may use the
+29. `online-server` mounts `config/verify/online-server.json` and may use the
     HTTP session fixture only with explicit insecure-fixture allowance.
 
 ## Readiness

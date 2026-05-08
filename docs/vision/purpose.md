@@ -26,7 +26,7 @@ The first useful state is a playable server:
 
 - vanilla client can see the server in the server list,
 - first-party wire probe reaches offline login and play state,
-- player enters a deterministic flat world,
+- player enters a deterministic generated world with a flat spawn plateau,
 - server ticks and keepalive behavior are observable,
 - Docker Compose smoke verification proves the wire path.
 

@@ -17,9 +17,9 @@ The play bootstrap sends:
 2. one `level_chunk_with_light` packet for every chunk in the bootstrap radius
 3. `chunk_batch_finished`
 
-The default radius is `2`, so the full initial terrain batch is a `5x5` square
-centered on chunk `0,0`, for `25` chunks total. Larger configured radii still
-advertise the configured cache radius, but
+The near bootstrap radius is `2`, so the initial terrain batch is a `5x5`
+square centered on chunk `0,0`, for `25` chunks total. Larger configured radii
+still advertise the configured cache radius, but
 [../world/large-distance-streaming.md](../world/large-distance-streaming.md)
 owns the progressive delivery behavior beyond the near bootstrap.
 

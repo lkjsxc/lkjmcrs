@@ -13,8 +13,9 @@ world generation exists.
 - Grass block at `y=79`.
 - Air above `y=79`.
 - Spawn at `0, 80, 0`.
-- Default full bootstrap radius is `2`, centered on spawn chunk `0,0`.
-- Default initial terrain batch contains `25` chunks in a `5x5` square.
+- Near bootstrap radius is `2`, centered on spawn chunk `0,0`.
+- Default initial terrain batch contains `25` chunks in a `5x5` square even
+  when the advertised view distance is larger.
 - Larger configured radii stream progressively after the near bootstrap.
 
 ## Rules
