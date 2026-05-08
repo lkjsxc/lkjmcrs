@@ -83,6 +83,14 @@ enum ProbeCommand {
         #[arg(long, default_value = "127.0.0.1:25565")]
         host: String,
     },
+    RenderDistance {
+        #[arg(long, default_value = "127.0.0.1:25565")]
+        host: String,
+    },
+    RenderMovingPending {
+        #[arg(long, default_value = "127.0.0.1:25565")]
+        host: String,
+    },
     SurvivalItem {
         #[arg(long, default_value = "127.0.0.1:25565")]
         host: String,
@@ -154,6 +162,10 @@ pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
             }
             ProbeCommand::ScaleMovingPending { host } => {
                 crate::probe::scale_moving_pending(&host).await?
+            }
+            ProbeCommand::RenderDistance { host } => crate::probe::render_distance(&host).await?,
+            ProbeCommand::RenderMovingPending { host } => {
+                crate::probe::render_moving_pending(&host).await?
             }
             ProbeCommand::SurvivalItem { host } => crate::probe::survival_item(&host).await?,
             ProbeCommand::SurvivalVitals { host } => crate::probe::survival_vitals(&host).await?,

@@ -1,5 +1,6 @@
 use crate::probe::ProbeError;
 use crate::probe::chunk;
+use crate::probe::terrain_chunk::DecodedChunk;
 use crate::probe::validation::validate_chunk_batch_finished;
 use crate::protocol::{codec, ids, play};
 use crate::session::stream_budget::{MAX_FOLLOWUP_CHUNKS, MAX_FOLLOWUP_PAYLOAD_BYTES};
@@ -13,6 +14,7 @@ pub const RADIUS: i32 = 4;
 pub struct ChunkBatch {
     pub positions: HashSet<(i32, i32)>,
     pub payload_bytes: usize,
+    pub has_non_flat_surface: bool,
 }
 
 pub async fn read_next_batch(
@@ -41,6 +43,7 @@ pub async fn expect_batch(
     Ok(ChunkBatch {
         positions: batch,
         payload_bytes: 0,
+        has_non_flat_surface: false,
     })
 }
 
@@ -49,6 +52,7 @@ async fn read_batch_after_start(
 ) -> Result<ChunkBatch, Box<dyn std::error::Error>> {
     let mut batch = HashSet::new();
     let mut payload_bytes = 0;
+    let mut has_non_flat_surface = false;
     loop {
         let packet = codec::read_packet(stream).await?;
         if packet.id == ids::play::CHUNK_BATCH_FINISHED {
@@ -62,6 +66,7 @@ async fn read_batch_after_start(
             return Ok(ChunkBatch {
                 positions: batch,
                 payload_bytes,
+                has_non_flat_surface,
             });
         }
         if packet.id != ids::play::LEVEL_CHUNK_WITH_LIGHT {
@@ -69,6 +74,8 @@ async fn read_batch_after_start(
         }
         payload_bytes += packet.data.len();
         batch.insert(chunk::level_chunk_pos(&packet.data)?);
+        let decoded = DecodedChunk::from_packet(packet.data.clone())?;
+        has_non_flat_surface |= decoded.has_non_flat_surface();
         chunk::validate_level_chunk_with_light(packet.data)?;
     }
 }

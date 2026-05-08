@@ -62,6 +62,15 @@ services:
       - ./config/verify/scale-load-server.json:/app/config/server.json:ro
       - scale-load-server-data:/app/data
 
+  render32-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["serve"]
+    volumes:
+      - ./config/verify/render32-server.json:/app/config/server.json:ro
+      - render32-server-data:/app/data
+
   session-fixture:
     build:
       context: .
@@ -196,6 +205,36 @@ services:
       - scale-load-server
     entrypoint: ["cargo", "run", "--", "probe", "scale-moving-pending", "--host", "scale-load-server:25565"]
 
+  render-distance:
+    build:
+      context: .
+      dockerfile: Dockerfile.verify
+    working_dir: /workspace
+    environment:
+      CARGO_TARGET_DIR: /target
+    volumes:
+      - .:/workspace:ro
+      - cargo-registry:/usr/local/cargo/registry
+      - target-cache:/target
+    depends_on:
+      - render32-server
+    entrypoint: ["cargo", "run", "--", "probe", "render-distance", "--host", "render32-server:25565"]
+
+  render-moving-pending:
+    build:
+      context: .
+      dockerfile: Dockerfile.verify
+    working_dir: /workspace
+    environment:
+      CARGO_TARGET_DIR: /target
+    volumes:
+      - .:/workspace:ro
+      - cargo-registry:/usr/local/cargo/registry
+      - target-cache:/target
+    depends_on:
+      - render32-server
+    entrypoint: ["cargo", "run", "--", "probe", "render-moving-pending", "--host", "render32-server:25565"]
+
   persist-place:
     build:
       context: .
@@ -325,5 +364,6 @@ volumes:
   scale-server-data:
   terrain-server-data:
   scale-load-server-data:
+  render32-server-data:
   smp-server-data:
   online-server-data:

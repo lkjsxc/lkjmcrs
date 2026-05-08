@@ -38,16 +38,16 @@ fn visible_chunks_are_square() {
 
 #[test]
 fn larger_radius_bootstraps_near_chunks_and_queues_far_chunks() {
-    let stream = ChunkStream::new(ChunkPos::new(0, 0), 4);
+    let stream = ChunkStream::new(ChunkPos::new(0, 0), 32);
     assert_eq!(stream.initial_chunks().len(), 25);
-    assert_eq!(stream.pending_len(), 56);
+    assert_eq!(stream.pending_len(), 4200);
 }
 
 #[test]
 fn movement_replaces_stale_pending_chunks() {
-    let mut stream = ChunkStream::new(ChunkPos::new(0, 0), 4);
+    let mut stream = ChunkStream::new(ChunkPos::new(0, 0), 32);
     assert!(stream.advance(ChunkPos::new(1, 0)).unwrap().is_empty());
-    assert_eq!(stream.pending_len(), 56);
+    assert_eq!(stream.pending_len(), 4200);
 }
 
 #[test]

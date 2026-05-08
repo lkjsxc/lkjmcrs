@@ -58,6 +58,18 @@ pub async fn scale_moving_pending(host: &str) -> Result<(), Box<dyn std::error::
     Ok(())
 }
 
+pub async fn render_distance(host: &str) -> Result<(), Box<dyn std::error::Error>> {
+    super::render_distance::run(host).await?;
+    println!("render-distance probe ok");
+    Ok(())
+}
+
+pub async fn render_moving_pending(host: &str) -> Result<(), Box<dyn std::error::Error>> {
+    super::render_moving_pending::run(host).await?;
+    println!("render-moving-pending probe ok");
+    Ok(())
+}
+
 pub async fn survival_item(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     super::survival_item::run(host).await?;
     println!("survival-item probe ok");

@@ -9,7 +9,7 @@ fn login_packet_has_stable_prefix() {
     let payload = encode_login(Bootstrap::new(100));
     assert_eq!(
         &payload[..29],
-        b"\0\0\0\x01\0\x01\x13minecraft:overworldd\x02\x02"
+        b"\0\0\0\x01\0\x01\x13minecraft:overworldd \x08"
     );
 }
 
@@ -17,8 +17,8 @@ fn login_packet_has_stable_prefix() {
 fn chunk_cache_packets_are_varints() {
     assert_eq!(encode_chunk_cache_center(0, 0), vec![0, 0]);
     let bootstrap = Bootstrap::new(100);
-    assert_eq!(encode_chunk_cache_radius(bootstrap.view_distance), vec![2]);
-    assert_eq!(bootstrap.chunk_count(), 25);
+    assert_eq!(encode_chunk_cache_radius(bootstrap.view_distance), vec![32]);
+    assert_eq!(bootstrap.chunk_count(), 4225);
 }
 
 #[test]

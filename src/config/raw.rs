@@ -19,7 +19,7 @@ struct RawConfig {
     data_dir: PathBuf,
     #[serde(default = "default_game_mode")]
     default_game_mode: String,
-    #[serde(default = "default_distance")]
+    #[serde(default = "default_view_distance")]
     view_distance: i32,
     simulation_distance: Option<i32>,
     #[serde(default = "terrain::default_terrain_generator")]
@@ -50,9 +50,11 @@ impl RawConfig {
         }
         let default_game_mode = GameMode::parse(&self.default_game_mode)
             .ok_or(ConfigError::DefaultGameMode(self.default_game_mode))?;
-        validate_distance("view_distance", self.view_distance)?;
-        let simulation_distance = self.simulation_distance.unwrap_or(self.view_distance);
-        validate_distance("simulation_distance", simulation_distance)?;
+        validate_view_distance(self.view_distance)?;
+        let simulation_distance = self
+            .simulation_distance
+            .unwrap_or_else(|| self.view_distance.min(8));
+        validate_simulation_distance(simulation_distance)?;
         let terrain_generator = TerrainGeneratorName::parse(&self.terrain_generator)?;
         Ok(Config {
             bind: self.bind.parse()?,
@@ -72,11 +74,19 @@ impl RawConfig {
     }
 }
 
-fn validate_distance(name: &'static str, value: i32) -> Result<(), ConfigError> {
+fn validate_view_distance(value: i32) -> Result<(), ConfigError> {
+    if (2..=32).contains(&value) {
+        Ok(())
+    } else {
+        Err(ConfigError::DistanceRange("view_distance"))
+    }
+}
+
+fn validate_simulation_distance(value: i32) -> Result<(), ConfigError> {
     if (2..=8).contains(&value) {
         Ok(())
     } else {
-        Err(ConfigError::DistanceRange(name))
+        Err(ConfigError::DistanceRange("simulation_distance"))
     }
 }
 
@@ -108,8 +118,8 @@ fn default_game_mode() -> String {
     "survival".to_string()
 }
 
-fn default_distance() -> i32 {
-    2
+fn default_view_distance() -> i32 {
+    32
 }
 
 fn default_session_server_url() -> String {

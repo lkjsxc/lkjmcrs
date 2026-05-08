@@ -21,6 +21,7 @@ pub struct ChunkPosition {
 pub trait ChunkColumn {
     fn position(&self) -> ChunkPosition;
     fn block_state_id_at_local(&self, x: usize, y: i32, z: usize) -> i32;
+    fn heightmap_at_local(&self, x: usize, z: usize) -> u16;
 }
 
 pub fn encode_level_chunk_with_light(chunk: &impl ChunkColumn) -> Vec<u8> {
@@ -34,7 +35,7 @@ pub fn encode_level_chunk_with_light(chunk: &impl ChunkColumn) -> Vec<u8> {
 
 pub fn encode_level_chunk_body_with_light(chunk: &impl ChunkColumn) -> Vec<u8> {
     let mut out = Vec::new();
-    write_heightmaps(&mut out);
+    write_heightmaps(&mut out, chunk);
     let data = encode_chunk_data(chunk);
     codec::write_var_i32(&mut out, data.len() as i32);
     out.extend_from_slice(&data);
@@ -94,15 +95,17 @@ fn section_states(chunk: &impl ChunkColumn, min_y: i32) -> Vec<i32> {
     states
 }
 
-fn write_heightmaps(out: &mut Vec<u8>) {
+fn write_heightmaps(out: &mut Vec<u8>, chunk: &impl ChunkColumn) {
     codec::write_var_i32(out, 2);
-    write_heightmap(out, 1);
-    write_heightmap(out, 4);
+    write_heightmap(out, 1, chunk);
+    write_heightmap(out, 4, chunk);
 }
 
-fn write_heightmap(out: &mut Vec<u8>, ty: i32) {
+fn write_heightmap(out: &mut Vec<u8>, ty: i32, chunk: &impl ChunkColumn) {
     codec::write_var_i32(out, ty);
-    let longs = chunk_palette::fixed_packed_longs(std::iter::repeat_n(80_u64, 256), 9, 256);
+    let values =
+        (0..16).flat_map(|z| (0..16).map(move |x| u64::from(chunk.heightmap_at_local(x, z))));
+    let longs = chunk_palette::fixed_packed_longs(values, 9, 256);
     codec::write_var_i32(out, longs.len() as i32);
     for value in longs {
         codec::write_i64(out, value as i64);
@@ -126,37 +129,4 @@ fn write_light_data(out: &mut Vec<u8>) {
 fn write_bitset(out: &mut Vec<u8>, mask: i64) {
     codec::write_var_i32(out, 1);
     codec::write_i64(out, mask);
-}
-
-#[cfg(test)]
-mod tests {
-    use super::{AIR_ID, ChunkColumn, ChunkPosition};
-    use crate::protocol::chunk::{encode_level_chunk_with_light, encode_update_light};
-
-    struct FlatChunk;
-
-    impl ChunkColumn for FlatChunk {
-        fn position(&self) -> ChunkPosition {
-            ChunkPosition { x: 0, z: 0 }
-        }
-
-        fn block_state_id_at_local(&self, _x: usize, y: i32, _z: usize) -> i32 {
-            if y < 80 { 1 } else { AIR_ID }
-        }
-    }
-
-    #[test]
-    fn exposes_minecraft_data_default_ids() {
-        assert_eq!(super::STONE_ID, 1);
-        assert_eq!(super::GRASS_BLOCK_ID, 9);
-        assert_eq!(super::DIRT_ID, 10);
-        assert_eq!(super::BEDROCK_ID, 85);
-    }
-
-    #[test]
-    fn chunk_and_light_packets_are_non_empty() {
-        let chunk = FlatChunk;
-        assert!(encode_level_chunk_with_light(&chunk).len() > 4096);
-        assert!(encode_update_light(&chunk).len() > 4096);
-    }
 }

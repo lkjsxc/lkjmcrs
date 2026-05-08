@@ -43,6 +43,9 @@ pub fn emit_chunk_stream_stats(
         region_mailbox_depth,
         flat_cache_hits = cache.flat_hits,
         flat_cache_misses = cache.flat_misses,
+        generated_cache_hits = cache.generated_hits,
+        generated_cache_misses = cache.generated_misses,
+        generated_cache_evictions = cache.generated_evictions,
         override_cache_bypasses = cache.override_bypasses,
         "chunk stream counters"
     );

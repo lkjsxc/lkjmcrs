@@ -7,6 +7,8 @@ pub const RESOURCE_PACK_VERSION: (i32, i32) = (75, 0);
 pub mod block_interaction;
 pub mod chat;
 pub mod chunk;
+#[cfg(test)]
+mod chunk_heightmap_tests;
 mod chunk_palette;
 #[cfg(test)]
 mod chunk_tests;

@@ -1,9 +1,12 @@
 use crate::protocol::chunk;
 use crate::session::chunk_wire::WireChunk;
-use crate::world::ChunkSnapshot;
-use std::sync::OnceLock;
+use crate::world::{ChunkSnapshot, GeneratedChunkKey};
+use std::collections::{HashMap, VecDeque};
+use std::sync::{Mutex, OnceLock};
 
 static FLAT_BODY: OnceLock<Vec<u8>> = OnceLock::new();
+static GENERATED_PAYLOADS: OnceLock<Mutex<GeneratedPayloadCache>> = OnceLock::new();
+const GENERATED_CACHE_CAP: usize = 8192;
 
 #[derive(Debug, Default)]
 pub struct ChunkPayloadCache {
@@ -14,6 +17,9 @@ pub struct ChunkPayloadCache {
 pub struct ChunkPayloadCacheStats {
     pub flat_hits: usize,
     pub flat_misses: usize,
+    pub generated_hits: usize,
+    pub generated_misses: usize,
+    pub generated_evictions: usize,
     pub override_bypasses: usize,
 }
 
@@ -21,6 +27,9 @@ impl ChunkPayloadCache {
     pub fn encode(&mut self, snapshot: &ChunkSnapshot) -> Vec<u8> {
         if snapshot.is_shared_flat_base() {
             return self.encode_flat(snapshot);
+        }
+        if let Some(key) = snapshot.generated_cache_key() {
+            return self.encode_generated(snapshot, key);
         }
         self.stats.override_bypasses += 1;
         chunk::encode_level_chunk_with_light(&WireChunk(snapshot))
@@ -40,6 +49,81 @@ impl ChunkPayloadCache {
             .get_or_init(|| chunk::encode_level_chunk_body_with_light(&WireChunk(snapshot)));
         with_position(snapshot, body)
     }
+
+    fn encode_generated(&mut self, snapshot: &ChunkSnapshot, key: GeneratedChunkKey) -> Vec<u8> {
+        let cache = GENERATED_PAYLOADS
+            .get_or_init(|| Mutex::new(GeneratedPayloadCache::new(GENERATED_CACHE_CAP)));
+        let mut cache = cache.lock().expect("generated payload cache poisoned");
+        match cache.get_or_insert_with(key, || {
+            chunk::encode_level_chunk_with_light(&WireChunk(snapshot))
+        }) {
+            GeneratedCacheResult::Hit(payload) => {
+                self.stats.generated_hits += 1;
+                payload
+            }
+            GeneratedCacheResult::Miss { payload, evicted } => {
+                self.stats.generated_misses += 1;
+                self.stats.generated_evictions += usize::from(evicted);
+                payload
+            }
+        }
+    }
+}
+
+#[derive(Debug)]
+pub(super) struct GeneratedPayloadCache {
+    cap: usize,
+    order: VecDeque<GeneratedChunkKey>,
+    payloads: HashMap<GeneratedChunkKey, Vec<u8>>,
+}
+
+enum GeneratedCacheResult {
+    Hit(Vec<u8>),
+    Miss { payload: Vec<u8>, evicted: bool },
+}
+
+impl GeneratedPayloadCache {
+    pub(super) fn new(cap: usize) -> Self {
+        Self {
+            cap,
+            order: VecDeque::new(),
+            payloads: HashMap::new(),
+        }
+    }
+
+    fn get_or_insert_with(
+        &mut self,
+        key: GeneratedChunkKey,
+        encode: impl FnOnce() -> Vec<u8>,
+    ) -> GeneratedCacheResult {
+        if let Some(payload) = self.payloads.get(&key) {
+            return GeneratedCacheResult::Hit(payload.clone());
+        }
+        let payload = encode();
+        let evicted = self.insert(key, payload.clone());
+        GeneratedCacheResult::Miss { payload, evicted }
+    }
+
+    pub(super) fn insert(&mut self, key: GeneratedChunkKey, payload: Vec<u8>) -> bool {
+        if self.cap == 0 {
+            return false;
+        }
+        let mut evicted = false;
+        while self.payloads.len() >= self.cap {
+            let Some(oldest) = self.order.pop_front() else {
+                break;
+            };
+            evicted |= self.payloads.remove(&oldest).is_some();
+        }
+        self.order.push_back(key);
+        self.payloads.insert(key, payload);
+        evicted
+    }
+
+    #[cfg(test)]
+    pub(super) fn contains(&self, key: GeneratedChunkKey) -> bool {
+        self.payloads.contains_key(&key)
+    }
 }
 
 fn with_position(snapshot: &ChunkSnapshot, body: &[u8]) -> Vec<u8> {
@@ -48,73 +132,4 @@ fn with_position(snapshot: &ChunkSnapshot, body: &[u8]) -> Vec<u8> {
     out.extend_from_slice(&snapshot.pos.z.to_be_bytes());
     out.extend_from_slice(body);
     out
-}
-
-#[cfg(test)]
-mod tests {
-    use super::ChunkPayloadCache;
-    use crate::protocol::chunk;
-    use crate::session::chunk_wire::WireChunk;
-    use crate::world::{BlockPos, BlockState, ChunkPos, ChunkSnapshot};
-
-    #[test]
-    fn cached_flat_payload_matches_direct_encoding() {
-        let mut cache = ChunkPayloadCache::default();
-        for pos in [ChunkPos::new(0, 0), ChunkPos::new(3, -2)] {
-            let chunk = ChunkSnapshot::flat(pos);
-            assert_eq!(
-                cache.encode(&chunk),
-                chunk::encode_level_chunk_with_light(&WireChunk(&chunk))
-            );
-        }
-    }
-
-    #[test]
-    fn cache_stats_distinguish_flat_hits_from_override_bypasses() {
-        let mut cache = ChunkPayloadCache::default();
-        cache.encode(&ChunkSnapshot::flat(ChunkPos::new(0, 0)));
-        cache.encode(&ChunkSnapshot::flat(ChunkPos::new(1, 0)));
-        let mut overridden = ChunkSnapshot::flat(ChunkPos::new(2, 0));
-        overridden.set_block(BlockPos::new(32, 80, 0), BlockState::Stone);
-        cache.encode(&overridden);
-        assert_eq!(cache.stats().flat_misses + cache.stats().flat_hits, 2);
-        assert_eq!(cache.stats().override_bypasses, 1);
-    }
-
-    #[test]
-    fn flat_payload_body_is_shared_across_cache_instances() {
-        let mut first = ChunkPayloadCache::default();
-        let mut second = ChunkPayloadCache::default();
-
-        first.encode(&ChunkSnapshot::flat(ChunkPos::new(10, 0)));
-        second.encode(&ChunkSnapshot::flat(ChunkPos::new(11, 0)));
-
-        assert_eq!(second.stats().flat_hits, 1);
-        assert_eq!(second.stats().flat_misses, 0);
-    }
-
-    #[test]
-    fn override_chunks_bypass_shared_flat_cache() {
-        let mut cache = ChunkPayloadCache::default();
-        let mut overridden = ChunkSnapshot::flat(ChunkPos::new(12, 0));
-        overridden.set_block(BlockPos::new(192, 80, 0), BlockState::Stone);
-
-        cache.encode(&overridden);
-
-        assert_eq!(cache.stats().flat_hits, 0);
-        assert_eq!(cache.stats().flat_misses, 0);
-        assert_eq!(cache.stats().override_bypasses, 1);
-    }
-
-    #[test]
-    fn natural_chunks_bypass_shared_flat_cache() {
-        let mut cache = ChunkPayloadCache::default();
-        let chunk = crate::world::TerrainGenerator::natural(9).chunk_snapshot(ChunkPos::new(2, 0));
-
-        cache.encode(&chunk);
-
-        assert_eq!(cache.stats().flat_hits, 0);
-        assert_eq!(cache.stats().flat_misses, 0);
-        assert_eq!(cache.stats().override_bypasses, 1);
-    }
 }

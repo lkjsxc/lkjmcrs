@@ -11,8 +11,8 @@ fn json_defaults_match_canon() {
     assert!(!config.online_mode);
     assert_eq!(config.data_dir, PathBuf::from("data"));
     assert_eq!(config.default_game_mode, GameMode::Survival);
-    assert_eq!(config.view_distance, 2);
-    assert_eq!(config.simulation_distance, 2);
+    assert_eq!(config.view_distance, 32);
+    assert_eq!(config.simulation_distance, 8);
     assert_eq!(config.terrain_generator, TerrainGeneratorName::Natural);
     assert_eq!(config.world_seed, 0);
     assert_eq!(
@@ -89,8 +89,18 @@ fn rejects_invalid_session_server_urls() {
 #[test]
 fn rejects_range_failures() {
     assert!(Config::from_json(r#"{"starter_items":[]}"#).is_err());
+    assert!(Config::from_json(r#"{"view_distance":32}"#).is_ok());
     assert!(matches!(
         Config::from_json(r#"{"view_distance":1}"#),
         Err(ConfigError::DistanceRange("view_distance"))
+    ));
+    assert!(matches!(
+        Config::from_json(r#"{"view_distance":33}"#),
+        Err(ConfigError::DistanceRange("view_distance"))
+    ));
+    assert!(Config::from_json(r#"{"simulation_distance":8}"#).is_ok());
+    assert!(matches!(
+        Config::from_json(r#"{"simulation_distance":9}"#),
+        Err(ConfigError::DistanceRange("simulation_distance"))
     ));
 }

@@ -7,6 +7,8 @@ mod block_rules_tests;
 pub mod bootstrap;
 pub mod chat;
 mod chunk_payload_cache;
+#[cfg(test)]
+mod chunk_payload_cache_tests;
 pub mod chunk_stream;
 mod chunk_stream_context;
 mod chunk_stream_load;

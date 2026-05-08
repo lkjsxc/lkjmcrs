@@ -47,7 +47,7 @@ pub enum ConfigError {
     DefaultGameMode(String),
     #[error(transparent)]
     TerrainGenerator(#[from] terrain::TerrainGeneratorError),
-    #[error("{0} must be between 2 and 8")]
+    #[error("{0} is outside its supported distance range")]
     DistanceRange(&'static str),
 }
 

@@ -1,6 +1,7 @@
 use crate::probe::ProbeError;
 use crate::protocol::configuration::{self, KnownPack};
 use crate::protocol::{codec, play};
+use crate::session::chunk_stream::EAGER_RADIUS;
 use std::io::Cursor;
 use uuid::Uuid;
 
@@ -107,7 +108,7 @@ pub(super) fn validate_chunk_radius(data: Vec<u8>) -> Result<usize, Box<dyn std:
     if radius != play::Bootstrap::new(100).view_distance {
         return Err(Box::new(ProbeError::Phase("chunk radius payload")));
     }
-    Ok(play::chunk_count_for_radius(radius))
+    Ok(play::chunk_count_for_radius(radius.min(EAGER_RADIUS)))
 }
 
 pub(super) fn validate_game_state_change(data: Vec<u8>) -> Result<(), Box<dyn std::error::Error>> {

@@ -11,7 +11,7 @@ mod storage_json;
 #[cfg(test)]
 mod storage_tests;
 
-pub use blocks::{BlockState, ChunkSnapshot, MIN_Y};
+pub use blocks::{BlockState, ChunkSnapshot, GeneratedChunkKey, MIN_Y, TerrainKind};
 pub use flat::FlatWorld;
 pub use generator::TerrainGenerator;
 pub use item_entity::{DroppedItemEntity, PICKUP_RADIUS};

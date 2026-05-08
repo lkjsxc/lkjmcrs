@@ -16,6 +16,18 @@ pub enum BlockState {
     GrassBlock,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub enum TerrainKind {
+    Natural,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+pub struct GeneratedChunkKey {
+    pub kind: TerrainKind,
+    pub world_seed: i64,
+    pub pos: ChunkPos,
+}
+
 #[derive(Debug, Clone)]
 pub struct ChunkSnapshot {
     pub pos: ChunkPos,
@@ -23,6 +35,7 @@ pub struct ChunkSnapshot {
     layers: Vec<u8>,
     overrides: HashMap<u16, BlockState>,
     shared_flat_base: bool,
+    generated_key: Option<GeneratedChunkKey>,
 }
 
 impl ChunkSnapshot {
@@ -33,16 +46,22 @@ impl ChunkSnapshot {
             layers: chunk_layers::flat_layers(),
             overrides: HashMap::new(),
             shared_flat_base: true,
+            generated_key: None,
         }
     }
 
-    pub fn natural(pos: ChunkPos, heights: [i32; 256]) -> Self {
+    pub fn natural(pos: ChunkPos, world_seed: i64, heights: [i32; 256]) -> Self {
         Self {
             pos,
             palette: chunk_layers::palette(),
             layers: chunk_layers::terrain_layers(&heights),
             overrides: HashMap::new(),
             shared_flat_base: false,
+            generated_key: Some(GeneratedChunkKey {
+                kind: TerrainKind::Natural,
+                world_seed,
+                pos,
+            }),
         }
     }
 
@@ -70,6 +89,15 @@ impl ChunkSnapshot {
         self.block_at_local(pos.local_x(), pos.y, pos.local_z())
     }
 
+    pub fn heightmap_at_local(&self, x: usize, z: usize) -> u16 {
+        for y in (MIN_Y..=MAX_Y).rev() {
+            if self.block_at_local(x, y, z) != BlockState::Air {
+                return (y + 1) as u16;
+            }
+        }
+        0
+    }
+
     pub fn set_block(&mut self, pos: BlockPos, state: BlockState) -> Option<BlockState> {
         if pos.chunk() != self.pos || !in_world(pos.y) {
             return None;
@@ -89,6 +117,13 @@ impl ChunkSnapshot {
 
     pub fn is_shared_flat_base(&self) -> bool {
         self.shared_flat_base && self.overrides.is_empty()
+    }
+
+    pub fn generated_cache_key(&self) -> Option<GeneratedChunkKey> {
+        self.overrides
+            .is_empty()
+            .then_some(self.generated_key)
+            .flatten()
     }
 
     pub fn override_entries(&self) -> Vec<(BlockPos, BlockState)> {

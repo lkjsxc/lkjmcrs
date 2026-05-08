@@ -17,6 +17,8 @@ mod play_client;
 mod position;
 mod profile_reconnect;
 mod registry_assert;
+mod render_distance;
+mod render_moving_pending;
 mod scale_chunk_stream;
 mod scale_chunk_stream_packets;
 mod scale_load_metrics;
@@ -33,8 +35,9 @@ mod vitals_packets;
 
 pub use commands::{
     chunk_stream, inventory_sync, item_pickup, login_play, multiplayer_mutation, online_auth,
-    persist_check, persist_place, profile_reconnect, scale_chunk_stream, scale_load_metrics,
-    scale_moving_pending, smp_commands, survival_item, survival_vitals, terrain_generation,
+    persist_check, persist_place, profile_reconnect, render_distance, render_moving_pending,
+    scale_chunk_stream, scale_load_metrics, scale_moving_pending, smp_commands, survival_item,
+    survival_vitals, terrain_generation,
 };
 
 use crate::protocol::PROTOCOL_VERSION;

@@ -1,5 +1,6 @@
 const TELEPORT_ID: i32 = 1;
-const DEFAULT_CHUNK_RADIUS: i32 = 2;
+const DEFAULT_VIEW_DISTANCE: i32 = 32;
+const DEFAULT_SIMULATION_DISTANCE: i32 = 8;
 
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Bootstrap {
@@ -26,8 +27,8 @@ impl Bootstrap {
         Self {
             entity_id: 1,
             max_players: max_players as i32,
-            view_distance: DEFAULT_CHUNK_RADIUS,
-            simulation_distance: DEFAULT_CHUNK_RADIUS,
+            view_distance: DEFAULT_VIEW_DISTANCE,
+            simulation_distance: DEFAULT_SIMULATION_DISTANCE,
             spawn_x: 0,
             spawn_y: 80,
             spawn_z: 0,

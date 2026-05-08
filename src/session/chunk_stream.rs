@@ -5,7 +5,7 @@ use crate::session::chunk_payload_cache::ChunkPayloadCache;
 use crate::session::chunk_stream_load::encode_loaded_with_budget;
 use crate::session::chunk_stream_metrics::{ChunkStreamStats, emit_chunk_stream_stats};
 use crate::session::chunk_stream_send::{ChunkSendBudget, EncodedChunk, send_encoded_chunk_batch};
-use crate::session::chunk_stream_window::{EAGER_RADIUS, eager_chunks, ordered_pending};
+use crate::session::chunk_stream_window::{eager_chunks, ordered_pending};
 use crate::session::error::ConnectionError;
 use crate::session::io::write_packet;
 use crate::session::item_visibility;
@@ -14,7 +14,7 @@ use std::collections::{HashSet, VecDeque};
 use tokio::io::AsyncWrite;
 
 pub use crate::session::chunk_stream_context::StreamContext;
-pub use crate::session::chunk_stream_window::{chunk_center, visible_chunks};
+pub use crate::session::chunk_stream_window::{EAGER_RADIUS, chunk_center, visible_chunks};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ChunkStream {

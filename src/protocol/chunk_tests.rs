@@ -34,6 +34,10 @@ impl ChunkColumn for FlatChunk {
             _ => AIR_ID,
         }
     }
+
+    fn heightmap_at_local(&self, _x: usize, _z: usize) -> u16 {
+        80
+    }
 }
 
 #[test]

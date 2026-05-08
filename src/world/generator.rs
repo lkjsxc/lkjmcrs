@@ -53,7 +53,7 @@ impl NaturalWorld {
                 heights[z * 16 + x] = self.height_at(gx, gz);
             }
         }
-        ChunkSnapshot::natural(pos, heights)
+        ChunkSnapshot::natural(pos, self.seed, heights)
     }
 
     fn height_at(&self, x: i32, z: i32) -> i32 {
