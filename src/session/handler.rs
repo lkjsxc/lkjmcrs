@@ -13,7 +13,7 @@ use crate::session::online_login;
 use crate::session::play::{PlaySettings, handle_play};
 use crate::session::profile::{offline_uuid, validate_name};
 use crate::session::registry::SessionRegistry;
-use crate::world::{RegionId, WorldStorage};
+use crate::world::{RegionId, TerrainGenerator, WorldStorage};
 use std::sync::Arc;
 use std::sync::atomic::{AtomicUsize, Ordering};
 use thiserror::Error;
@@ -46,9 +46,15 @@ impl ServerContext {
         let login_key = online_login::LoginKey::generate()
             .map_err(|source| ServerStartupError::LoginKey(source.to_string()))?;
         let player_store = PlayerStore::open(&config.data_dir)?;
-        let world_storage = WorldStorage::new(&config.data_dir);
+        let generator = match config.terrain_generator {
+            crate::config::TerrainGeneratorName::Flat => TerrainGenerator::flat(),
+            crate::config::TerrainGeneratorName::Natural => {
+                TerrainGenerator::natural(config.world_seed)
+            }
+        };
+        let world_storage = WorldStorage::with_generator(&config.data_dir, generator.clone());
         world_storage.validate()?;
-        let region = RegionActor::spawn_persistent(RegionId(0), world_storage);
+        let region = RegionActor::spawn_with_generator(RegionId(0), world_storage, generator);
         Ok(Arc::new(Self {
             config,
             login_key,

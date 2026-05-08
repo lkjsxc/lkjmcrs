@@ -6,7 +6,6 @@ const HEIGHTMAP_COUNT: i32 = 2;
 const HEIGHTMAP_LONG_COUNT: i32 = 37;
 const BLOCK_ENTRY_COUNT: usize = 4096;
 const BIOME_ENTRY_COUNT: usize = 64;
-const FLAT_CHUNK_DATA_BYTES: i32 = 6294;
 const LIGHT_SECTION_COUNT: usize = chunk::SECTION_COUNT + 2;
 const LIGHT_ARRAY_BYTES: usize = 2048;
 
@@ -55,9 +54,6 @@ fn validate_chunk_data(cursor: &mut Cursor<Vec<u8>>) -> Result<(), Box<dyn std::
     let chunk_data_len = codec::read_var_i32(cursor)?;
     if chunk_data_len < 0 {
         return Err(Box::new(ProbeError::Phase("negative chunk data length")));
-    }
-    if chunk_data_len != FLAT_CHUNK_DATA_BYTES {
-        return Err(Box::new(ProbeError::Phase("flat chunk data length")));
     }
     let chunk_data_end = cursor.position() + chunk_data_len as u64;
     for _ in 0..chunk::SECTION_COUNT {

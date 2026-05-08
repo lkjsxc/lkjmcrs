@@ -16,6 +16,8 @@ Use this subtree for historical compose verification summaries.
   older current-result entries moved out of the active result file.
 - [2026-05-07-runtime-safety.md](2026-05-07-runtime-safety.md): runtime safety,
   protocol boundary, and storage lock fixes.
+- [2026-05-08-scale-load-history.md](2026-05-08-scale-load-history.md):
+  radius `8` load metrics before moving-pending hardening.
 - [2026-05-06-survival-sandbox.md](2026-05-06-survival-sandbox.md): compact
   verify output, runtime config, survival item loop, and SMP command evidence.
 

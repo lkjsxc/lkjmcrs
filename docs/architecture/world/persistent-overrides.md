@@ -3,7 +3,7 @@
 ## Goal
 
 Keep early block mutations across restarts without replacing the deterministic
-flat-world base or introducing Anvil compatibility.
+generated base or introducing Anvil compatibility.
 
 ## Storage Root
 
@@ -20,8 +20,8 @@ flat-world base or introducing Anvil compatibility.
 - Each chunk value is a JSON object with coordinates and sparse block
   overrides.
 - Each override stores local `x`, absolute `y`, local `z`, and block state.
-- Only states supported by the current flat-world palette may be stored.
-- Missing chunk keys are valid and mean no stored overrides for that chunk.
+- Only states supported by the current terrain palette may be stored.
+- Missing chunk keys are valid and load the configured generator base.
 - Existing `world.sqlite3` and `chunks/*.json` files are ignored.
 
 ## Write Rules

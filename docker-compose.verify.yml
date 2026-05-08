@@ -44,6 +44,15 @@ services:
       - ./config/verify/scale-server.json:/app/config/server.json:ro
       - scale-server-data:/app/data
 
+  terrain-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["serve"]
+    volumes:
+      - ./config/verify/terrain-server.json:/app/config/server.json:ro
+      - terrain-server-data:/app/data
+
   scale-load-server:
     build:
       context: .
@@ -141,6 +150,21 @@ services:
     depends_on:
       - scale-server
     entrypoint: ["cargo", "run", "--", "probe", "scale-chunk-stream", "--host", "scale-server:25565"]
+
+  terrain-generation:
+    build:
+      context: .
+      dockerfile: Dockerfile.verify
+    working_dir: /workspace
+    environment:
+      CARGO_TARGET_DIR: /target
+    volumes:
+      - .:/workspace:ro
+      - cargo-registry:/usr/local/cargo/registry
+      - target-cache:/target
+    depends_on:
+      - terrain-server
+    entrypoint: ["cargo", "run", "--", "probe", "terrain-generation", "--host", "terrain-server:25565"]
 
   scale-load-metrics:
     build:
@@ -299,6 +323,7 @@ volumes:
   survival-server-data:
   survival-vitals-server-data:
   scale-server-data:
+  terrain-server-data:
   scale-load-server-data:
   smp-server-data:
   online-server-data:

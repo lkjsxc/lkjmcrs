@@ -11,7 +11,7 @@ Give automation agents one short map before reading detailed docs.
 - Manual client boundary:
   [operations/verification/manual-client-boundary.md](operations/verification/manual-client-boundary.md).
 - Active implementation target:
-  [operations/verification/load-and-metrics.md](operations/verification/load-and-metrics.md).
+  [architecture/world/terrain-generation.md](architecture/world/terrain-generation.md).
 - Canonical compose pipeline:
   [operations/verification/compose-pipeline.md](operations/verification/compose-pipeline.md).
 

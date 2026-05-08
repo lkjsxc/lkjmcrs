@@ -25,6 +25,8 @@ mod smp_commands;
 mod survival_expect;
 mod survival_item;
 mod survival_vitals;
+mod terrain_chunk;
+mod terrain_generation;
 mod validation;
 mod vitals_packets;
 
@@ -101,6 +103,12 @@ pub async fn profile_reconnect(host: &str) -> Result<(), Box<dyn std::error::Err
 pub async fn chunk_stream(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     chunk_stream::run(host).await?;
     println!("chunk-stream probe ok");
+    Ok(())
+}
+
+pub async fn terrain_generation(host: &str) -> Result<(), Box<dyn std::error::Error>> {
+    terrain_generation::run(host).await?;
+    println!("terrain-generation probe ok");
     Ok(())
 }
 

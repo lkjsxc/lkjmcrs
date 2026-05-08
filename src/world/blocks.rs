@@ -1,3 +1,4 @@
+use crate::world::chunk_layers;
 use crate::world::{BlockPos, ChunkPos};
 use std::collections::HashMap;
 
@@ -21,21 +22,27 @@ pub struct ChunkSnapshot {
     palette: [BlockState; 5],
     layers: Vec<u8>,
     overrides: HashMap<u16, BlockState>,
+    shared_flat_base: bool,
 }
 
 impl ChunkSnapshot {
     pub fn flat(pos: ChunkPos) -> Self {
         Self {
             pos,
-            palette: [
-                BlockState::Air,
-                BlockState::Bedrock,
-                BlockState::Stone,
-                BlockState::Dirt,
-                BlockState::GrassBlock,
-            ],
-            layers: build_flat_layers(),
+            palette: chunk_layers::palette(),
+            layers: chunk_layers::flat_layers(),
             overrides: HashMap::new(),
+            shared_flat_base: true,
+        }
+    }
+
+    pub fn natural(pos: ChunkPos, heights: [i32; 256]) -> Self {
+        Self {
+            pos,
+            palette: chunk_layers::palette(),
+            layers: chunk_layers::terrain_layers(&heights),
+            overrides: HashMap::new(),
+            shared_flat_base: false,
         }
     }
 
@@ -47,10 +54,13 @@ impl ChunkSnapshot {
         if !valid_local(x, z) {
             return BlockState::Air;
         }
+        if !in_world(y) {
+            return BlockState::Air;
+        }
         if let Some(state) = self.overrides.get(&local_key(x, y, z)) {
             return *state;
         }
-        self.base_block_at(y)
+        self.base_block_at_local(x, y, z)
     }
 
     pub fn block_at_pos(&self, pos: BlockPos) -> BlockState {
@@ -64,11 +74,12 @@ impl ChunkSnapshot {
         if pos.chunk() != self.pos || !in_world(pos.y) {
             return None;
         }
-        if self.base_block_at(pos.y) == BlockState::Bedrock {
+        let base = self.base_block_at_local(pos.local_x(), pos.y, pos.local_z());
+        if base == BlockState::Bedrock {
             return Some(BlockState::Bedrock);
         }
         let key = local_key(pos.local_x(), pos.y, pos.local_z());
-        if state == self.base_block_at(pos.y) {
+        if state == base {
             self.overrides.remove(&key);
         } else {
             self.overrides.insert(key, state);
@@ -76,12 +87,8 @@ impl ChunkSnapshot {
         Some(self.block_at_pos(pos))
     }
 
-    pub fn unique_palette_len(&self) -> usize {
-        self.palette.len()
-    }
-
-    pub fn override_count(&self) -> usize {
-        self.overrides.len()
+    pub fn is_shared_flat_base(&self) -> bool {
+        self.shared_flat_base && self.overrides.is_empty()
     }
 
     pub fn override_entries(&self) -> Vec<(BlockPos, BlockState)> {
@@ -94,28 +101,29 @@ impl ChunkSnapshot {
         entries
     }
 
-    fn base_block_at(&self, y: i32) -> BlockState {
-        let index = y - MIN_Y;
-        if !(0..CHUNK_HEIGHT as i32).contains(&index) {
+    #[cfg(test)]
+    pub fn base_entries_for_tests(&self) -> Vec<(usize, i32, usize, BlockState)> {
+        let mut entries = Vec::new();
+        for z in 0..CHUNK_WIDTH {
+            for x in 0..CHUNK_WIDTH {
+                for y in MIN_Y..=MAX_Y {
+                    let state = self.base_block_at_local(x, y, z);
+                    if state != BlockState::Air {
+                        entries.push((x, y, z, state));
+                    }
+                }
+            }
+        }
+        entries
+    }
+
+    fn base_block_at_local(&self, x: usize, y: i32, z: usize) -> BlockState {
+        if !in_world(y) || !valid_local(x, z) {
             return BlockState::Air;
         }
-        self.palette[self.layers[index as usize] as usize]
+        let index = chunk_layers::layer_index(x, y, z);
+        self.palette[self.layers[index] as usize]
     }
-}
-
-fn build_flat_layers() -> Vec<u8> {
-    let mut layers = vec![0; CHUNK_HEIGHT];
-    for y in 0..=79 {
-        let state = match y {
-            0 => 1,
-            1..=62 => 2,
-            63..=78 => 3,
-            79 => 4,
-            _ => 0,
-        };
-        layers[(y - MIN_Y) as usize] = state;
-    }
-    layers
 }
 
 fn in_world(y: i32) -> bool {
@@ -145,50 +153,5 @@ impl ChunkPos {
 }
 
 #[cfg(test)]
-mod tests {
-    use super::{BlockState, ChunkSnapshot};
-    use crate::world::{BlockPos, ChunkPos};
-
-    #[test]
-    fn flat_chunk_layers_match_contract() {
-        let chunk = ChunkSnapshot::flat(ChunkPos::new(0, 0));
-        assert_eq!(chunk.block_at(-1), BlockState::Air);
-        assert_eq!(chunk.block_at(0), BlockState::Bedrock);
-        assert_eq!(chunk.block_at(62), BlockState::Stone);
-        assert_eq!(chunk.block_at(78), BlockState::Dirt);
-        assert_eq!(chunk.block_at(79), BlockState::GrassBlock);
-        assert_eq!(chunk.block_at(80), BlockState::Air);
-    }
-
-    #[test]
-    fn sparse_overrides_mutate_only_target_blocks() {
-        let mut chunk = ChunkSnapshot::flat(ChunkPos::new(-1, 0));
-        let pos = BlockPos::new(-1, 80, 0);
-        assert_eq!(
-            chunk.set_block(pos, BlockState::Stone),
-            Some(BlockState::Stone)
-        );
-        assert_eq!(chunk.block_at_pos(pos), BlockState::Stone);
-        assert_eq!(chunk.block_at_local(14, 80, 0), BlockState::Air);
-        assert_eq!(chunk.set_block(pos, BlockState::Air), Some(BlockState::Air));
-    }
-
-    #[test]
-    fn override_entries_return_global_positions() {
-        let mut chunk = ChunkSnapshot::flat(ChunkPos::new(-1, 0));
-        let pos = BlockPos::new(-1, 80, 0);
-        chunk.set_block(pos, BlockState::Stone);
-        assert_eq!(chunk.override_entries(), vec![(pos, BlockState::Stone)]);
-    }
-
-    #[test]
-    fn bedrock_is_immutable() {
-        let mut chunk = ChunkSnapshot::flat(ChunkPos::new(0, 0));
-        let pos = BlockPos::new(0, 0, 0);
-        assert_eq!(
-            chunk.set_block(pos, BlockState::Air),
-            Some(BlockState::Bedrock)
-        );
-        assert_eq!(chunk.block_at_pos(pos), BlockState::Bedrock);
-    }
-}
+#[path = "blocks_tests.rs"]
+mod tests;

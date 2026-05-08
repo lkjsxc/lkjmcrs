@@ -1,3 +1,7 @@
+mod terrain;
+
+pub use terrain::TerrainGeneratorName;
+
 use crate::player::GameMode;
 use serde::Deserialize;
 use std::net::SocketAddr;
@@ -17,6 +21,8 @@ pub struct Config {
     pub default_game_mode: GameMode,
     pub view_distance: i32,
     pub simulation_distance: i32,
+    pub terrain_generator: TerrainGeneratorName,
+    pub world_seed: i64,
     pub session_server_url: String,
     pub allow_insecure_session_server: bool,
     pub operator_uuids: Vec<Uuid>,
@@ -39,6 +45,8 @@ pub enum ConfigError {
     InvalidSessionServerUrl,
     #[error("invalid default_game_mode: {0}")]
     DefaultGameMode(String),
+    #[error(transparent)]
+    TerrainGenerator(#[from] terrain::TerrainGeneratorError),
     #[error("{0} must be between 2 and 8")]
     DistanceRange(&'static str),
 }
@@ -61,6 +69,10 @@ struct RawConfig {
     #[serde(default = "default_distance")]
     view_distance: i32,
     simulation_distance: Option<i32>,
+    #[serde(default = "terrain::default_terrain_generator")]
+    terrain_generator: String,
+    #[serde(default = "terrain::default_world_seed")]
+    world_seed: i64,
     #[serde(default)]
     session_server_url: Option<String>,
     #[serde(default)]
@@ -75,7 +87,7 @@ impl Config {
         if path.exists() {
             return Self::from_path(path);
         }
-        RawConfig::default().validate()
+        Self::from_json("{}")
     }
 
     pub fn from_path(path: impl AsRef<Path>) -> Result<Self, ConfigError> {
@@ -111,6 +123,7 @@ impl RawConfig {
         validate_distance("view_distance", self.view_distance)?;
         let simulation_distance = self.simulation_distance.unwrap_or(self.view_distance);
         validate_distance("simulation_distance", simulation_distance)?;
+        let terrain_generator = TerrainGeneratorName::parse(&self.terrain_generator)?;
         Ok(Config {
             bind: self.bind.parse()?,
             motd: self.motd,
@@ -120,6 +133,8 @@ impl RawConfig {
             default_game_mode,
             view_distance: self.view_distance,
             simulation_distance,
+            terrain_generator,
+            world_seed: self.world_seed,
             session_server_url,
             allow_insecure_session_server: self.allow_insecure_session_server,
             operator_uuids: self.operator_uuids,
@@ -140,24 +155,6 @@ fn validate_session_server_url(url: &str) -> Result<(), ConfigError> {
     match parsed.scheme() {
         "http" | "https" => Ok(()),
         _ => Err(ConfigError::InvalidSessionServerUrl),
-    }
-}
-
-impl Default for RawConfig {
-    fn default() -> Self {
-        Self {
-            bind: default_bind(),
-            motd: default_motd(),
-            max_players: default_max_players(),
-            online_mode: false,
-            data_dir: default_data_dir(),
-            default_game_mode: default_game_mode(),
-            view_distance: default_distance(),
-            simulation_distance: None,
-            session_server_url: None,
-            allow_insecure_session_server: false,
-            operator_uuids: Vec::new(),
-        }
     }
 }
 

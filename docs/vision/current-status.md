@@ -12,8 +12,8 @@ the next work batch.
 - Offline-mode login, online-mode encrypted login, configuration, play entry,
   chunks, light, position, time, keepalive, and command declaration are
   implemented.
-- The playable world is a deterministic flat overworld with sparse persisted
-  block overrides stored in `redb`.
+- The product config uses deterministic natural terrain with a flat spawn
+  plateau and sparse persisted block overrides stored in `redb`.
 - Player profiles, online identity, and world overrides use the current
   `redb` storage foundation; earlier SQLite storage is not supported.
 - Survival placement, breaking, simple drops, pickup, inventory projection, and
@@ -27,8 +27,8 @@ the next work batch.
 - Progressive chunk streaming is implemented: radius `2` bootstraps eagerly,
   configured radii through `8` stream farther chunks under chunk and byte
   budgets.
-- Radius `8` automated load evidence is landed for initial `25` chunks and
-  eventual `289` unique chunks.
+- Radius `8` automated load, moving-pending, scale-counter, and storage timing
+  evidence is landed.
 - Play keepalive timeout is implemented and compose-verified.
 - Public runtime exposure requires `online_mode=true` with session
   verification.
@@ -37,22 +37,19 @@ the next work batch.
 
 - Manual stock-client evidence still needs a fresh raw client log or explicit
   success artifact after the latest packet-shape fixes.
-- Normal survival is incomplete: tools and crafting are absent, terrain is
-  flat, and mobs/weather are not gameplay systems yet.
-- Large distance targets above the current cap require stale-pending movement
-  evidence and stronger scale counter evidence before the configured cap can
-  increase.
+- Normal survival is incomplete: tools, crafting, mobs, weather, caves,
+  structures, ores, and decorations are not gameplay systems yet.
+- Large distance targets above the current cap require a separate acceptance
+  batch.
 
 ## Next Implementation Target
 
-Scale evidence is the active foundation for larger-distance work:
+Terra-inspired simple natural terrain is the active target:
 
-- keep the near bootstrap small,
-- batch farther chunk loads under explicit budgets,
-- prove stale queued chunks are replaced when movement happens before far
-  streaming finishes,
-- record active sessions, region mailbox depth, cache counters, pending queue
-  length, and storage timings before raising caps.
+- keep the spawn plateau behavior stable,
+- generate deterministic first-party height variation outside the plateau,
+- layer sparse storage overrides on the generated base,
+- keep flat mode for scale verification configs.
 
 ## Rules
 

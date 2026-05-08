@@ -4,6 +4,7 @@ use crate::probe::chunk;
 use crate::probe::live_play;
 use crate::probe::play_client::PlayClient;
 use crate::probe::position::BlockPos;
+use crate::probe::terrain_chunk::DecodedChunk;
 use crate::probe::validation::validate_chunk_batch_finished;
 use crate::protocol::{codec, ids};
 use std::collections::HashSet;
@@ -19,12 +20,12 @@ pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     live_play::send_position_look_at(&mut client.stream, 16.5, 80.0, 0.5, 0.0, 0.0).await?;
     expect_cache_center(&mut client.stream, 1, 0).await?;
     expect_unload_column(&mut client.stream, -2).await?;
-    expect_column_batch(&mut client.stream, 3).await?;
+    let streamed_surface = expect_column_batch(&mut client.stream, 3).await?;
     live_play::send_position_look_at(&mut client.stream, 44.5, 80.0, 0.5, 0.0, 0.0).await?;
     expect_cache_center(&mut client.stream, 2, 0).await?;
     expect_unload_column(&mut client.stream, -1).await?;
     expect_column_batch(&mut client.stream, 4).await?;
-    place_in_streamed_chunk(&mut client.stream).await
+    place_in_streamed_chunk(&mut client.stream, streamed_surface).await
 }
 
 async fn expect_cache_center(
@@ -64,26 +65,32 @@ async fn expect_unload_column(
 async fn expect_column_batch(
     stream: &mut TcpStream,
     expected_x: i32,
-) -> Result<(), Box<dyn std::error::Error>> {
+) -> Result<i32, Box<dyn std::error::Error>> {
     let start = block_mutation::read_next_non_time(stream, "stream batch start").await?;
     if start.id != ids::play::CHUNK_BATCH_START {
         return Err(Box::new(ProbeError::Phase("stream batch start id")));
     }
     let mut positions = HashSet::new();
+    let mut surface = None;
     for _ in 0..5 {
         let chunk_packet = block_mutation::read_next_non_time(stream, "stream chunk").await?;
         if chunk_packet.id != ids::play::LEVEL_CHUNK_WITH_LIGHT {
             return Err(Box::new(ProbeError::Phase("stream chunk id")));
         }
-        positions.insert(chunk::level_chunk_pos(&chunk_packet.data)?);
-        chunk::validate_level_chunk_with_light(chunk_packet.data)?;
+        let pos = chunk::level_chunk_pos(&chunk_packet.data)?;
+        positions.insert(pos);
+        chunk::validate_level_chunk_with_light(chunk_packet.data.clone())?;
+        if pos == (expected_x, 0) {
+            surface = DecodedChunk::from_packet(chunk_packet.data)?.surface_y(0, 0);
+        }
     }
     validate_new_column(positions, expected_x)?;
     let finished = block_mutation::read_next_non_time(stream, "stream batch finished").await?;
     if finished.id != ids::play::CHUNK_BATCH_FINISHED {
         return Err(Box::new(ProbeError::Phase("stream batch finished id")));
     }
-    validate_chunk_batch_finished(finished.data, 5)
+    validate_chunk_batch_finished(finished.data, 5)?;
+    Ok(surface.unwrap_or(79))
 }
 
 fn validate_new_column(
@@ -97,9 +104,12 @@ fn validate_new_column(
     Ok(())
 }
 
-async fn place_in_streamed_chunk(stream: &mut TcpStream) -> Result<(), Box<dyn std::error::Error>> {
-    let base = BlockPos::new(48, 79, 0);
-    let placed = BlockPos::new(48, 80, 0);
+async fn place_in_streamed_chunk(
+    stream: &mut TcpStream,
+    surface_y: i32,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let base = BlockPos::new(48, surface_y, 0);
+    let placed = BlockPos::new(48, surface_y + 1, 0);
     block_mutation::send_use_item_on_at(stream, STREAM_PLACE_SEQUENCE, base).await?;
     let ack = block_mutation::read_next_non_time(stream, "stream placement ack").await?;
     if ack.id != ids::play::BLOCK_CHANGED_ACK {

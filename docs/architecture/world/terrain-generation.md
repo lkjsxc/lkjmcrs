@@ -2,30 +2,34 @@
 
 ## Goal
 
-Replace the deterministic flat world only after chunk storage and progressive
-streaming can absorb realistic generation cost.
+Provide a first-party terrain lane inspired by Terra concepts without adopting
+Terra config packs, plugins, or compatibility.
 
 ## Direction
 
-- Keep flat terrain as the current implementation.
-- Introduce a generator boundary before adding natural terrain.
+- Keep flat terrain selectable for scale probes.
+- Use an internal generator boundary with `flat` and `natural` providers.
 - Keep generation deterministic by world seed and chunk coordinate.
 - Keep hot-path generation bounded to local chunk neighborhoods.
 - Store player mutations as overrides above generated terrain.
+- Keep chunks within Chebyshev radius `1` of spawn equivalent to the flat
+  spawn surface.
 
 ## Pipeline Target
 
-1. Sample deterministic fields such as height, temperature, humidity, roughness,
-   and cave density.
-2. Select a biome from data-driven distribution rules.
-3. Build vertical block palettes for the chunk.
-4. Apply local features such as ores, trees, and caves.
-5. Run expensive enrichment only as background or pregeneration work.
+1. Choose `terrain_generator` as `natural` or `flat`.
+2. Seed generation from `world_seed`.
+3. Return flat spawn plateau chunks near `0,0`.
+4. Sample deterministic smoothed value noise for outer-column height.
+5. Build bedrock, stone, dirt, grass, and air columns.
+6. Apply sparse stored overrides above the generated base.
 
 ## Rules
 
 1. Generated chunks must be cheap to discard and rebuild.
 2. Generation must not block session packet I/O.
 3. Terrain docs must define new block IDs before protocol tests depend on them.
-4. Direct Bukkit, Paper, Folia, or worldgen-plugin compatibility is not a
-   current target.
+4. Direct Bukkit, Paper, Folia, Terra, or worldgen-plugin compatibility is not
+   a current target.
+5. Caves, biomes, ores, trees, mobs, weather, structures, and Anvil files are
+   out of scope for this slice.

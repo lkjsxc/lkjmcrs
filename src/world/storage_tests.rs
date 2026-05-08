@@ -1,4 +1,4 @@
-use crate::world::{BlockPos, BlockState, ChunkPos, ChunkSnapshot, WorldStorage};
+use crate::world::{BlockPos, BlockState, ChunkPos, ChunkSnapshot, TerrainGenerator, WorldStorage};
 use redb::{Database, TableDefinition};
 use std::fs;
 use std::path::PathBuf;
@@ -23,6 +23,20 @@ fn missing_chunk_loads_flat_base() {
     assert_eq!(
         loaded.block_at_pos(BlockPos::new(0, 80, 0)),
         BlockState::Air
+    );
+    cleanup(root);
+}
+
+#[test]
+fn missing_chunk_loads_configured_generator_base() {
+    let root = temp_root();
+    let storage = WorldStorage::with_generator(&root, TerrainGenerator::natural(19));
+    let loaded = storage.load_chunk(ChunkPos::new(2, 0)).unwrap();
+
+    assert!(!loaded.is_shared_flat_base());
+    assert_ne!(
+        loaded.base_entries_for_tests(),
+        ChunkSnapshot::flat(ChunkPos::new(2, 0)).base_entries_for_tests()
     );
     cleanup(root);
 }
@@ -61,6 +75,32 @@ fn reset_to_base_deletes_override_value() {
 
     let loaded = storage.load_chunk(pos).unwrap();
     assert_eq!(loaded.block_at_pos(block), BlockState::Air);
+    cleanup(root);
+}
+
+#[test]
+fn natural_override_resets_to_generated_base() {
+    let root = temp_root();
+    let storage = WorldStorage::with_generator(&root, TerrainGenerator::natural(23));
+    let pos = ChunkPos::new(2, 0);
+    let base = storage.load_chunk(pos).unwrap();
+    let target = base
+        .base_entries_for_tests()
+        .into_iter()
+        .find(|(x, _, z, state)| *x == 0 && *z == 0 && *state == BlockState::GrassBlock)
+        .map(|(_, y, _, state)| (BlockPos::new(32, y, 0), state))
+        .unwrap();
+    let mut changed = storage.load_chunk(pos).unwrap();
+    changed.set_block(target.0, BlockState::Stone);
+    storage.save_chunk(&changed).unwrap();
+
+    changed.set_block(target.0, target.1);
+    storage.save_chunk(&changed).unwrap();
+
+    assert_eq!(
+        storage.load_chunk(pos).unwrap().block_at_pos(target.0),
+        target.1
+    );
     cleanup(root);
 }
 

@@ -19,7 +19,7 @@ pub struct ChunkPayloadCacheStats {
 
 impl ChunkPayloadCache {
     pub fn encode(&mut self, snapshot: &ChunkSnapshot) -> Vec<u8> {
-        if snapshot.override_count() == 0 {
+        if snapshot.is_shared_flat_base() {
             return self.encode_flat(snapshot);
         }
         self.stats.override_bypasses += 1;
@@ -100,6 +100,18 @@ mod tests {
         overridden.set_block(BlockPos::new(192, 80, 0), BlockState::Stone);
 
         cache.encode(&overridden);
+
+        assert_eq!(cache.stats().flat_hits, 0);
+        assert_eq!(cache.stats().flat_misses, 0);
+        assert_eq!(cache.stats().override_bypasses, 1);
+    }
+
+    #[test]
+    fn natural_chunks_bypass_shared_flat_cache() {
+        let mut cache = ChunkPayloadCache::default();
+        let chunk = crate::world::TerrainGenerator::natural(9).chunk_snapshot(ChunkPos::new(2, 0));
+
+        cache.encode(&chunk);
 
         assert_eq!(cache.stats().flat_hits, 0);
         assert_eq!(cache.stats().flat_misses, 0);

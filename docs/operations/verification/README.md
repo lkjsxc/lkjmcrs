@@ -31,6 +31,8 @@ Use this subtree for required compose verification contracts.
   streaming smoke.
 - [scale-chunk-stream-smoke.md](scale-chunk-stream-smoke.md): progressive
   larger-radius chunk streaming smoke.
+- [terrain-generation-smoke.md](terrain-generation-smoke.md): natural terrain
+  and spawn plateau smoke.
 - [load-and-metrics.md](load-and-metrics.md): scale verification and metric
   targets.
 - [smp-commands-smoke.md](smp-commands-smoke.md): chat and command smoke.

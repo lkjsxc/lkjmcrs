@@ -1,5 +1,5 @@
 use crate::world::storage_json::StoredChunk;
-use crate::world::{ChunkPos, ChunkSnapshot};
+use crate::world::{ChunkPos, ChunkSnapshot, TerrainGenerator};
 use redb::{Database, ReadableDatabase, TableDefinition};
 use std::fs;
 use std::path::PathBuf;
@@ -15,6 +15,7 @@ const CHUNKS: TableDefinition<&str, &[u8]> = TableDefinition::new("chunks");
 #[derive(Debug, Clone)]
 pub struct WorldStorage {
     root: PathBuf,
+    generator: TerrainGenerator,
     database: Arc<Mutex<Option<Arc<Database>>>>,
     write_lock: Arc<Mutex<()>>,
     #[cfg(test)]
@@ -48,6 +49,18 @@ impl WorldStorage {
     pub fn new(root: impl Into<PathBuf>) -> Self {
         Self {
             root: root.into(),
+            generator: TerrainGenerator::flat(),
+            database: Arc::new(Mutex::new(None)),
+            write_lock: Arc::new(Mutex::new(())),
+            #[cfg(test)]
+            test: TestStorage::default(),
+        }
+    }
+
+    pub fn with_generator(root: impl Into<PathBuf>, generator: TerrainGenerator) -> Self {
+        Self {
+            root: root.into(),
+            generator,
             database: Arc::new(Mutex::new(None)),
             write_lock: Arc::new(Mutex::new(())),
             #[cfg(test)]
@@ -59,6 +72,7 @@ impl WorldStorage {
     pub fn with_delay_for_tests(root: impl Into<PathBuf>, delay: Duration) -> Self {
         Self {
             root: root.into(),
+            generator: TerrainGenerator::flat(),
             database: Arc::new(Mutex::new(None)),
             write_lock: Arc::new(Mutex::new(())),
             test: TestStorage {
@@ -72,6 +86,7 @@ impl WorldStorage {
     pub fn with_save_failure_for_tests(root: impl Into<PathBuf>) -> Self {
         Self {
             root: root.into(),
+            generator: TerrainGenerator::flat(),
             database: Arc::new(Mutex::new(None)),
             write_lock: Arc::new(Mutex::new(())),
             test: TestStorage {
@@ -90,11 +105,12 @@ impl WorldStorage {
         let database = self.database()?;
         let read = database.begin_read().map_err(redb_error)?;
         let table = read.open_table(CHUNKS).map_err(redb_error)?;
+        let base = self.generator.chunk_snapshot(pos);
         let Some(bytes) = table.get(chunk_key(pos).as_str()).map_err(redb_error)? else {
-            return Ok(ChunkSnapshot::flat(pos));
+            return Ok(base);
         };
         let stored: StoredChunk = serde_json::from_slice(bytes.value())?;
-        stored.into_snapshot(pos)
+        stored.apply_to(base)
     }
 
     pub fn save_chunk(&self, chunk: &ChunkSnapshot) -> Result<(), WorldStorageError> {

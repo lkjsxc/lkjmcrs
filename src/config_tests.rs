@@ -1,4 +1,4 @@
-use super::{Config, ConfigError};
+use super::{Config, ConfigError, TerrainGeneratorName};
 use crate::player::GameMode;
 use std::path::PathBuf;
 
@@ -13,6 +13,8 @@ fn json_defaults_match_canon() {
     assert_eq!(config.default_game_mode, GameMode::Survival);
     assert_eq!(config.view_distance, 2);
     assert_eq!(config.simulation_distance, 2);
+    assert_eq!(config.terrain_generator, TerrainGeneratorName::Natural);
+    assert_eq!(config.world_seed, 0);
     assert_eq!(
         config.session_server_url,
         "https://sessionserver.mojang.com"
@@ -32,6 +34,8 @@ fn parses_explicit_json_config() {
           "default_game_mode": "survival",
           "view_distance": 3,
           "simulation_distance": 4,
+          "terrain_generator": "flat",
+          "world_seed": -42,
           "online_mode": true,
           "operator_uuids": ["00000000-0000-0000-0000-000000000007"]
         }"#,
@@ -39,8 +43,18 @@ fn parses_explicit_json_config() {
     .unwrap();
     assert_eq!(config.default_game_mode, GameMode::Survival);
     assert_eq!(config.simulation_distance, 4);
+    assert_eq!(config.terrain_generator, TerrainGeneratorName::Flat);
+    assert_eq!(config.world_seed, -42);
     assert!(config.online_mode);
     assert!(config.is_op(uuid::Uuid::from_u128(7)));
+}
+
+#[test]
+fn rejects_unknown_terrain_generator() {
+    assert!(matches!(
+        Config::from_json(r#"{"terrain_generator":"terra"}"#),
+        Err(ConfigError::TerrainGenerator(_))
+    ));
 }
 
 #[test]

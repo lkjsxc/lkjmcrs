@@ -1,5 +1,5 @@
 use crate::world::storage_blocks::{block_state, state_name};
-use crate::world::{BlockPos, ChunkPos, ChunkSnapshot, WorldStorageError};
+use crate::world::{BlockPos, ChunkSnapshot, WorldStorageError};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -39,11 +39,14 @@ impl StoredChunk {
         self.overrides.is_empty()
     }
 
-    pub(super) fn into_snapshot(self, pos: ChunkPos) -> Result<ChunkSnapshot, WorldStorageError> {
+    pub(super) fn apply_to(
+        self,
+        mut chunk: ChunkSnapshot,
+    ) -> Result<ChunkSnapshot, WorldStorageError> {
+        let pos = chunk.pos;
         if self.chunk_x != pos.x || self.chunk_z != pos.z {
             return Err(WorldStorageError::InvalidChunkKey);
         }
-        let mut chunk = ChunkSnapshot::flat(pos);
         for block in self.overrides {
             let state = block_state(&block.state)?;
             let pos = BlockPos::new(

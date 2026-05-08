@@ -7,6 +7,8 @@
   "default_game_mode": "survival",
   "view_distance": 8,
   "simulation_distance": 8,
+  "terrain_generator": "flat",
+  "world_seed": 0,
   "session_server_url": "https://sessionserver.mojang.com",
   "allow_insecure_session_server": false,
   "operator_uuids": []

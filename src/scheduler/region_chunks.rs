@@ -164,7 +164,7 @@ impl RegionActor {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::world::{FlatWorld, RegionId};
+    use crate::world::{RegionId, TerrainGenerator};
     use std::collections::HashMap;
     use tokio::sync::mpsc;
 
@@ -186,7 +186,7 @@ mod tests {
             chunks: HashMap::new(),
             item_entities: HashMap::new(),
             next_item_entity_id: 1000,
-            world: FlatWorld::default(),
+            world: TerrainGenerator::flat(),
             storage: None,
             outbox,
             inbox,
