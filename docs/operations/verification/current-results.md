@@ -2,7 +2,7 @@
 
 ## 2026-05-08 Scale Load Metrics
 
-Implementation tested: `072b063`, with batched pending chunk loads, scale
+Implementation tested: `21683b3`, with batched pending chunk loads, scale
 counters, radius `8` load verification, and refreshed docs canon.
 
 Command owner:
