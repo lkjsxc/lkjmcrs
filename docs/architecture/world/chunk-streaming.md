@@ -40,12 +40,15 @@ simulation distance for ticking are out of scope.
 ## Distance Budget Boundary
 
 The current configured view-distance range stays `2..=8`. Larger targets require
-progressive loading before the cap changes:
+scale evidence before the cap changes:
 
 - near chunks stream first,
 - far chunks use explicit chunk and byte budgets,
 - reusable encoded chunk payloads are cached for unchanged generated chunks,
 - full square bootstrap is not used for large-distance targets.
+
+The exact large-radius radius model, budgets, and cache boundary are owned by
+[large-distance-streaming.md](large-distance-streaming.md).
 
 ## Mutation Boundary
 

@@ -18,12 +18,12 @@ const TOTAL_CHUNKS: usize = 81;
 
 pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut stream = connect(host).await?;
-    let mut seen = read_bootstrap(&mut stream).await?;
+    let mut seen = read_bootstrap(&mut stream, packets::RADIUS).await?;
     collect_until(&mut stream, &mut seen, TOTAL_CHUNKS).await?;
     move_east_and_collect_new_column(&mut stream).await
 }
 
-async fn connect(host: &str) -> Result<TcpStream, Box<dyn std::error::Error>> {
+pub(super) async fn connect(host: &str) -> Result<TcpStream, Box<dyn std::error::Error>> {
     let host = host.to_string();
     super::retry_connect(|| {
         let host = host.clone();
@@ -42,12 +42,13 @@ async fn connect(host: &str) -> Result<TcpStream, Box<dyn std::error::Error>> {
     .await
 }
 
-async fn read_bootstrap(
+pub(super) async fn read_bootstrap(
     stream: &mut TcpStream,
+    expected_radius: i32,
 ) -> Result<HashSet<(i32, i32)>, Box<dyn std::error::Error>> {
     let login = super::expect(stream, ids::play::LOGIN, "play login").await?;
     let login = decode_login_packet(login.data)?;
-    if login.view_distance != packets::RADIUS {
+    if login.view_distance != expected_radius {
         return Err(Box::new(ProbeError::Phase("login view distance")));
     }
     super::expect(stream, ids::play::DEFAULT_SPAWN_POSITION, "spawn").await?;
@@ -61,8 +62,10 @@ async fn read_bootstrap(
     validate_game_state_change(ready.data)?;
     super::expect(stream, ids::play::CHUNK_CACHE_CENTER, "chunk center").await?;
     let radius = super::expect(stream, ids::play::CHUNK_CACHE_RADIUS, "chunk radius").await?;
-    packets::expect_radius(radius.data)?;
-    let seen = packets::expect_batch(stream, INITIAL_CHUNKS).await?;
+    packets::expect_radius_value(radius.data, expected_radius)?;
+    let seen = packets::expect_batch(stream, INITIAL_CHUNKS)
+        .await?
+        .positions;
     let position = super::expect(stream, ids::play::PLAYER_POSITION, "position").await?;
     decode_position_packet(position.data)?;
     packets::confirm_and_ack_keepalive(stream).await?;
@@ -76,7 +79,7 @@ async fn collect_until(
 ) -> Result<(), Box<dyn std::error::Error>> {
     while seen.len() < total {
         let batch = packets::read_next_batch(stream).await?;
-        seen.extend(batch);
+        seen.extend(batch.positions);
     }
     Ok(())
 }
@@ -96,7 +99,7 @@ async fn move_east_and_collect_new_column(
     }
     let mut loaded = HashSet::new();
     while loaded.len() < 9 {
-        loaded.extend(packets::read_next_batch(stream).await?);
+        loaded.extend(packets::read_next_batch(stream).await?.positions);
     }
     let expected_load: HashSet<_> = (-4..=4).map(|z| (5, z)).collect();
     if loaded != expected_load {

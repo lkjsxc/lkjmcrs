@@ -25,8 +25,8 @@
 - Storage abstraction centered on `redb` tables and JSON values.
 - No compatibility with earlier SQLite files.
 - Online-mode login, encryption, and session verification outside tick paths.
-- UUID-owned permission model after online identity is implemented.
-- Progressive chunk streaming budgets before large distance targets.
+- UUID-owned permission model backed by online identity when enabled.
+- Progressive chunk streaming budgets for configured radii through `8`.
 
 ## Normal Survival
 
@@ -37,6 +37,7 @@
 
 ## Scale Architecture
 
+- Radius `8` load and metric evidence.
 - Region splitting and merging.
 - Region-local task queues.
 - Broader async chunk generation and storage pipeline.

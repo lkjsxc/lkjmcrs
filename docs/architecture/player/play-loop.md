@@ -50,7 +50,9 @@ The play loop tracks the current chunk center for each session. Crossing from
 center `0,0` to `1,0` with radius `2` sends one new visible column at chunk
 `x=3`, unloads column `x=-2`, updates the client chunk-cache center, and
 updates the registry subscriptions. The streaming contract is documented in
-[../world/chunk-streaming.md](../world/chunk-streaming.md).
+[../world/chunk-streaming.md](../world/chunk-streaming.md), and larger-radius
+progressive delivery is owned by
+[../world/large-distance-streaming.md](../world/large-distance-streaming.md).
 
 ## Keepalive
 

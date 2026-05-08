@@ -1,5 +1,8 @@
+use crate::session::chunk_payload_cache::ChunkPayloadCache;
 use crate::session::chunk_stream::{ChunkStream, chunk_center, visible_chunks};
-use crate::world::ChunkPos;
+use crate::session::chunk_stream_load::encode_loaded_with_budget;
+use crate::session::chunk_stream_send::{ChunkSendBudget, EncodedChunk};
+use crate::world::{ChunkPos, ChunkSnapshot};
 use std::collections::HashSet;
 
 #[test]
@@ -45,4 +48,53 @@ fn movement_replaces_stale_pending_chunks() {
     let mut stream = ChunkStream::new(ChunkPos::new(0, 0), 4);
     assert!(stream.advance(ChunkPos::new(1, 0)).unwrap().is_empty());
     assert_eq!(stream.pending_len(), 56);
+}
+
+#[test]
+fn pending_drain_selects_budget_order() {
+    let mut stream = ChunkStream::new(ChunkPos::new(0, 0), 4);
+    let drained = stream.drain_pending_positions(8);
+    assert_eq!(drained.len(), 8);
+    assert_eq!(
+        drained,
+        vec![
+            ChunkPos::new(-3, -3),
+            ChunkPos::new(-3, -2),
+            ChunkPos::new(-3, -1),
+            ChunkPos::new(-3, 0),
+            ChunkPos::new(-3, 1),
+            ChunkPos::new(-3, 2),
+            ChunkPos::new(-3, 3),
+            ChunkPos::new(-2, -3),
+        ]
+    );
+    assert_eq!(stream.pending_len(), 48);
+}
+
+#[test]
+fn byte_budget_allows_one_oversized_chunk() {
+    let mut cache = ChunkPayloadCache::default();
+    let positions = vec![ChunkPos::new(0, 0), ChunkPos::new(1, 0)];
+    let snapshots = positions
+        .iter()
+        .copied()
+        .map(ChunkSnapshot::flat)
+        .collect::<Vec<_>>();
+    let (chunks, unsent) = encode_loaded_with_budget(
+        positions,
+        snapshots,
+        &mut cache,
+        ChunkSendBudget {
+            max_chunks: 8,
+            max_payload_bytes: 1,
+        },
+    );
+    assert_eq!(chunks.len(), 1);
+    assert_eq!(unsent, vec![ChunkPos::new(1, 0)]);
+}
+
+#[test]
+fn encoded_chunk_test_payload_reports_len() {
+    let chunk = EncodedChunk::from_payload_for_tests(ChunkPos::new(0, 0), vec![1, 2, 3]);
+    assert_eq!(chunk.len(), 3);
 }

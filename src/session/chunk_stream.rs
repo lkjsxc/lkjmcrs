@@ -2,13 +2,15 @@ use crate::protocol::{chunk, ids, play};
 use crate::scheduler::RegionHandle;
 use crate::session::SessionState;
 use crate::session::chunk_payload_cache::ChunkPayloadCache;
+use crate::session::chunk_stream_load::encode_loaded_with_budget;
+use crate::session::chunk_stream_metrics::{ChunkStreamStats, emit_chunk_stream_stats};
 use crate::session::chunk_stream_send::{ChunkSendBudget, EncodedChunk, send_encoded_chunk_batch};
 use crate::session::chunk_stream_window::{EAGER_RADIUS, eager_chunks, ordered_pending};
 use crate::session::error::ConnectionError;
 use crate::session::io::write_packet;
 use crate::session::item_visibility;
 use crate::session::registry::{SessionId, SessionRegistry};
-use crate::world::{ChunkPos, ChunkSnapshot};
+use crate::world::ChunkPos;
 use std::collections::{HashSet, VecDeque};
 use tokio::io::AsyncWrite;
 
@@ -20,6 +22,7 @@ pub struct ChunkStream {
     radius: i32,
     sent: HashSet<ChunkPos>,
     pending: VecDeque<ChunkPos>,
+    stats: ChunkStreamStats,
 }
 
 impl ChunkStream {
@@ -32,6 +35,7 @@ impl ChunkStream {
             radius,
             sent,
             pending,
+            stats: ChunkStreamStats::default(),
         }
     }
 
@@ -121,6 +125,8 @@ impl ChunkStream {
         if chunks.is_empty() {
             return Ok(());
         }
+        let batch_chunks = chunks.len();
+        let batch_payload_bytes = chunks.iter().map(EncodedChunk::len).sum::<usize>();
         send_encoded_chunk_batch(writer, &chunks).await?;
         let sent = chunks.iter().map(|chunk| chunk.pos).collect::<Vec<_>>();
         item_visibility::send_items_in_chunks(writer, phase, context.region, sent.clone()).await?;
@@ -129,6 +135,15 @@ impl ChunkStream {
             .subscribe(context.session_id, sent.iter().copied())
             .await;
         self.sent.extend(sent);
+        self.stats
+            .record_batch(batch_chunks, batch_payload_bytes, self.pending.len());
+        emit_chunk_stream_stats(
+            self.stats,
+            cache.stats(),
+            batch_chunks,
+            batch_payload_bytes,
+            self.pending.len(),
+        );
         Ok(())
     }
 
@@ -143,23 +158,35 @@ impl ChunkStream {
         cache: &mut ChunkPayloadCache,
         budget: ChunkSendBudget,
     ) -> Result<Vec<EncodedChunk>, ConnectionError> {
-        let mut chunks = Vec::new();
-        let mut bytes = 0;
-        while chunks.len() < budget.max_chunks {
+        self.stats.record_pending(self.pending.len());
+        let positions = self.drain_pending_positions(budget.max_chunks);
+        if positions.is_empty() {
+            return Ok(Vec::new());
+        }
+        let snapshots = region
+            .load_chunks(positions.clone())
+            .await
+            .map_err(|source| ConnectionError::Region { phase, source })?;
+        let (chunks, unsent) = encode_loaded_with_budget(positions, snapshots, cache, budget);
+        self.restore_unsent_front(unsent);
+        Ok(chunks)
+    }
+
+    pub(super) fn drain_pending_positions(&mut self, limit: usize) -> Vec<ChunkPos> {
+        let mut positions = Vec::new();
+        while positions.len() < limit {
             let Some(pos) = self.pending.pop_front() else {
                 break;
             };
-            let snapshot = load_one(region, phase, pos).await?;
-            let encoded = EncodedChunk::from_snapshot(&snapshot, cache);
-            let would_exceed = bytes + encoded.len() > budget.max_payload_bytes;
-            if would_exceed && !chunks.is_empty() {
-                self.pending.push_front(pos);
-                break;
-            }
-            bytes += encoded.len();
-            chunks.push(encoded);
+            positions.push(pos);
         }
-        Ok(chunks)
+        positions
+    }
+
+    fn restore_unsent_front(&mut self, positions: Vec<ChunkPos>) {
+        for pos in positions.into_iter().rev() {
+            self.pending.push_front(pos);
+        }
     }
 }
 
@@ -168,16 +195,4 @@ pub struct StreamContext<'a> {
     pub region: &'a RegionHandle,
     pub sessions: &'a SessionRegistry,
     pub session_id: SessionId,
-}
-
-async fn load_one(
-    region: &RegionHandle,
-    phase: SessionState,
-    pos: ChunkPos,
-) -> Result<ChunkSnapshot, ConnectionError> {
-    region
-        .load_chunks(vec![pos])
-        .await
-        .map(|mut chunks| chunks.remove(0))
-        .map_err(|source| ConnectionError::Region { phase, source })
 }

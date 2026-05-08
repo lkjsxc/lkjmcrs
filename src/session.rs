@@ -8,6 +8,8 @@ pub mod bootstrap;
 pub mod chat;
 mod chunk_payload_cache;
 pub mod chunk_stream;
+mod chunk_stream_load;
+mod chunk_stream_metrics;
 mod chunk_stream_send;
 #[cfg(test)]
 mod chunk_stream_tests;

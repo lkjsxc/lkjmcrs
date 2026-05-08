@@ -1,10 +1,9 @@
 # Current Results
 
-## 2026-05-08 Progressive Chunk Streaming
+## 2026-05-08 Scale Load Metrics
 
-Implementation tested: `f5fc629`, with radius `4` progressive chunk streaming,
-near-radius bootstrap, budgeted follow-up chunk batches, flat chunk payload
-caching, and a dedicated scale stream probe.
+Implementation tested: `072b063`, with batched pending chunk loads, scale
+counters, radius `8` load verification, and refreshed docs canon.
 
 Command owner:
 
@@ -12,87 +11,22 @@ Command owner:
 
 Result:
 
+- initial `down -v`: pass.
 - `verify`: pass with compact output:
   `verify fmt ... ok`, `verify clippy ... ok`, `verify test ... ok`,
   `verify docs-topology ... ok`, `verify line-limits ... ok`, `verify pass`.
-- initial `down -v`: pass.
 - `server` startup: pass.
 - `smoke`: pass, `login-play probe ok`.
 - `profile-reconnect`: pass, `profile-reconnect probe ok`.
 - `chunk-stream`: pass, `chunk-stream probe ok`.
 - `scale-server` startup: pass.
 - `scale-chunk-stream`: pass, `scale-chunk-stream probe ok`.
-- `persist-place`: pass, `persist-place probe ok`.
-- server restart: pass.
-- `persist-check`: pass, `persist-check probe ok`.
-- `survival-server` startup: pass.
-- `survival-item`: pass, `survival-item probe ok`.
-- `inventory-sync`: pass, `inventory-sync probe ok`.
-- `item-pickup`: pass, `item-pickup probe ok`.
-- `survival-vitals-server` startup: pass.
-- `survival-vitals`: pass, `survival-vitals probe ok`.
-- `smp-server` startup: pass.
-- `smp-commands`: pass, `smp-commands probe ok`.
-- `online-server` startup with session fixture: pass.
-- `online-auth`: pass, `online-auth probe ok`.
-- final `down -v`: pass.
-
-## 2026-05-07 Survival Vitals And Smoke
-
-Implementation tested: `4b7ebbd`, with docs canon refresh, hunger-loop vitals,
-operator `/vitals`, full status/play/mutation/observer/keepalive smoke, stricter
-verifier URL validation, protocol import-boundary checks, and probe-local
-position helpers.
-
-Command owner:
-
-- [compose-pipeline.md](compose-pipeline.md)
-
-Result:
-
-- initial `down -v`: pass.
-- `verify`: pass with compact output:
-  `verify fmt ... ok`, `verify clippy ... ok`, `verify test ... ok`,
-  `verify docs-topology ... ok`, `verify line-limits ... ok`, `verify pass`.
-- `server` startup: pass.
-- `smoke`: pass, `login-play probe ok`.
-- `profile-reconnect`: pass, `profile-reconnect probe ok`.
-- `chunk-stream`: pass, `chunk-stream probe ok`.
-- `persist-place`: pass, `persist-place probe ok`.
-- server restart: pass.
-- `persist-check`: pass, `persist-check probe ok`.
-- `survival-server` startup: pass.
-- `survival-item`: pass, `survival-item probe ok`.
-- `inventory-sync`: pass, `inventory-sync probe ok`.
-- `item-pickup`: pass, `item-pickup probe ok`.
-- `survival-vitals-server` startup: pass.
-- `survival-vitals`: pass, `survival-vitals probe ok`.
-- `smp-server` startup: pass.
-- `smp-commands`: pass, `smp-commands probe ok`.
-- `online-server` startup with session fixture: pass.
-- `online-auth`: pass, `online-auth probe ok`.
-- final `down -v`: pass.
-
-## 2026-05-07 Auth Hardening
-
-Implementation tested: `32006f4`, with process-local online login key reuse,
-partial-write-safe encrypted streams, localhost Compose publishing, and an
-`online-auth` probe that reaches encrypted play bootstrap.
-
-Command owner:
-
-- [compose-pipeline.md](compose-pipeline.md)
-
-Result:
-
-- initial `down -v`: pass.
-- `verify`: pass with compact output:
-  `verify fmt ... ok`, `verify clippy ... ok`, `verify test ... ok`,
-  `verify docs-topology ... ok`, `verify line-limits ... ok`, `verify pass`.
-- `server` startup: pass.
-- `smoke`: pass, `multiplayer-mutation probe ok`.
-- `profile-reconnect`: pass, `profile-reconnect probe ok`.
-- `chunk-stream`: pass, `chunk-stream probe ok`.
+- `scale-load-server` startup: pass.
+- `scale-load-metrics`: pass,
+  `scale-load-metrics counters radius=8 initial=25 total=289
+  followup_batches=33 max_followup_batch=8
+  max_followup_payload_bytes=481920`, then
+  `scale-load-metrics probe ok`.
 - `persist-place`: pass, `persist-place probe ok`.
 - server restart: pass.
 - `persist-check`: pass, `persist-check probe ok`.

@@ -86,8 +86,9 @@ The active manual boundary is owned by
 10. Server sends enabled features with `minecraft:vanilla`.
 11. Server sends finish configuration.
 12. Client acknowledges finish configuration.
-13. Server sends play login, game event `13`, the full advertised flat chunk
-    radius, light, position, and keepalive.
+13. Server sends play login, game event `13`, the initial chunk batch, light,
+    position, and keepalive. Radius behavior is owned by
+    [../world/large-distance-streaming.md](../world/large-distance-streaming.md).
 
 ## Rule
 

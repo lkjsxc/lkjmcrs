@@ -34,6 +34,8 @@ a full square of chunks.
 - Drain interval: `100ms`.
 - Maximum chunks per follow-up batch: `8`.
 - Maximum level-chunk payload bytes per follow-up batch: `524288`.
+- Pending drains issue one region `load_chunks` request for the selected batch.
+- Radius `8` requires `25` initial chunks and `289` eventual unique chunks.
 
 ## Cache Boundary
 
@@ -47,5 +49,5 @@ a full square of chunks.
 
 1. Radius `2` behavior stays wire-identical unless this doc changes first.
 2. Do not raise the configured cap until progressive streaming is
-   compose-verified.
+   compose-verified with load evidence.
 3. Do not full-square bootstrap for larger radii.

@@ -18,6 +18,7 @@ mod profile_reconnect;
 mod registry_assert;
 mod scale_chunk_stream;
 mod scale_chunk_stream_packets;
+mod scale_load_metrics;
 mod smoke;
 mod smp_commands;
 mod survival_expect;
@@ -105,6 +106,12 @@ pub async fn chunk_stream(host: &str) -> Result<(), Box<dyn std::error::Error>> 
 pub async fn scale_chunk_stream(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     scale_chunk_stream::run(host).await?;
     println!("scale-chunk-stream probe ok");
+    Ok(())
+}
+
+pub async fn scale_load_metrics(host: &str) -> Result<(), Box<dyn std::error::Error>> {
+    scale_load_metrics::run(host).await?;
+    println!("scale-load-metrics probe ok");
     Ok(())
 }
 

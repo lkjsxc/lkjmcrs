@@ -8,10 +8,17 @@ use tokio::net::TcpStream;
 
 pub const RADIUS: i32 = 4;
 pub const MAX_BATCH: usize = 8;
+pub const MAX_PAYLOAD_BYTES: usize = 512 * 1024;
+
+#[derive(Debug)]
+pub struct ChunkBatch {
+    pub positions: HashSet<(i32, i32)>,
+    pub payload_bytes: usize,
+}
 
 pub async fn read_next_batch(
     stream: &mut TcpStream,
-) -> Result<HashSet<(i32, i32)>, Box<dyn std::error::Error>> {
+) -> Result<ChunkBatch, Box<dyn std::error::Error>> {
     loop {
         let packet = codec::read_packet(stream).await?;
         match packet.id {
@@ -26,19 +33,23 @@ pub async fn read_next_batch(
 pub async fn expect_batch(
     stream: &mut TcpStream,
     expected: usize,
-) -> Result<HashSet<(i32, i32)>, Box<dyn std::error::Error>> {
+) -> Result<ChunkBatch, Box<dyn std::error::Error>> {
     super::expect(stream, ids::play::CHUNK_BATCH_START, "scale batch start").await?;
     let batch = read_chunks(stream, expected).await?;
     let finished =
         super::expect(stream, ids::play::CHUNK_BATCH_FINISHED, "scale batch end").await?;
     validate_chunk_batch_finished(finished.data, expected)?;
-    Ok(batch)
+    Ok(ChunkBatch {
+        positions: batch,
+        payload_bytes: 0,
+    })
 }
 
 async fn read_batch_after_start(
     stream: &mut TcpStream,
-) -> Result<HashSet<(i32, i32)>, Box<dyn std::error::Error>> {
+) -> Result<ChunkBatch, Box<dyn std::error::Error>> {
     let mut batch = HashSet::new();
+    let mut payload_bytes = 0;
     loop {
         let packet = codec::read_packet(stream).await?;
         if packet.id == ids::play::CHUNK_BATCH_FINISHED {
@@ -46,11 +57,18 @@ async fn read_batch_after_start(
             if batch.is_empty() || batch.len() > MAX_BATCH {
                 return Err(Box::new(ProbeError::Phase("scale batch size")));
             }
-            return Ok(batch);
+            if payload_bytes > MAX_PAYLOAD_BYTES && batch.len() > 1 {
+                return Err(Box::new(ProbeError::Phase("scale batch payload bytes")));
+            }
+            return Ok(ChunkBatch {
+                positions: batch,
+                payload_bytes,
+            });
         }
         if packet.id != ids::play::LEVEL_CHUNK_WITH_LIGHT {
             return Err(Box::new(ProbeError::Phase("scale chunk id")));
         }
+        payload_bytes += packet.data.len();
         batch.insert(chunk::level_chunk_pos(&packet.data)?);
         chunk::validate_level_chunk_with_light(packet.data)?;
     }
@@ -70,9 +88,9 @@ async fn read_chunks(
     Ok(batch)
 }
 
-pub fn expect_radius(data: Vec<u8>) -> Result<(), Box<dyn std::error::Error>> {
+pub fn expect_radius_value(data: Vec<u8>, expected: i32) -> Result<(), Box<dyn std::error::Error>> {
     let mut cursor = Cursor::new(data);
-    if codec::read_var_i32(&mut cursor)? != RADIUS {
+    if codec::read_var_i32(&mut cursor)? != expected {
         return Err(Box::new(ProbeError::Phase("scale chunk radius")));
     }
     Ok(())

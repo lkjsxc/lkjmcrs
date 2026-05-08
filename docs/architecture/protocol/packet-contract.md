@@ -36,8 +36,10 @@ owned by [dynamic-registries.md](dynamic-registries.md).
 - `0x67 held_item_slot`: authoritative selected hotbar slot.
 - `0x6a set_player_inventory`: player inventory slot ID and slot contents.
 - `0x0c chunk_batch_start`: empty payload.
-- `0x2c level_chunk_with_light`: flat chunks for the configured view distance,
-  with chunk data and light arrays.
+- `0x2c level_chunk_with_light`: flat chunks for the current bootstrap or
+  streaming batch, with chunk data and light arrays. Large-radius delivery is
+  owned by
+  [../world/large-distance-streaming.md](../world/large-distance-streaming.md).
 - `0x2f update_light`: reserved for later changed-light events; not sent after
   normal flat chunk batch entries.
 - `0x0b chunk_batch_finished`: batch size.

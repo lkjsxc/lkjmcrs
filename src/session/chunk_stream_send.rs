@@ -48,6 +48,11 @@ impl EncodedChunk {
     pub fn len(&self) -> usize {
         self.payload.len()
     }
+
+    #[cfg(test)]
+    pub fn from_payload_for_tests(pos: ChunkPos, payload: Vec<u8>) -> Self {
+        Self { pos, payload }
+    }
 }
 
 pub async fn send_encoded_chunk_batch<W>(
