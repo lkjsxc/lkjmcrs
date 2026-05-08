@@ -1,10 +1,12 @@
 use crate::protocol::chunk;
 use crate::session::chunk_wire::WireChunk;
 use crate::world::ChunkSnapshot;
+use std::sync::OnceLock;
+
+static FLAT_BODY: OnceLock<Vec<u8>> = OnceLock::new();
 
 #[derive(Debug, Default)]
 pub struct ChunkPayloadCache {
-    flat_body: Option<Vec<u8>>,
     stats: ChunkPayloadCacheStats,
 }
 
@@ -29,15 +31,13 @@ impl ChunkPayloadCache {
     }
 
     fn encode_flat(&mut self, snapshot: &ChunkSnapshot) -> Vec<u8> {
-        if self.flat_body.is_some() {
+        if FLAT_BODY.get().is_some() {
             self.stats.flat_hits += 1;
         } else {
             self.stats.flat_misses += 1;
-            self.flat_body = Some(chunk::encode_level_chunk_body_with_light(&WireChunk(
-                snapshot,
-            )));
         }
-        let body = self.flat_body.as_ref().expect("flat payload body");
+        let body = FLAT_BODY
+            .get_or_init(|| chunk::encode_level_chunk_body_with_light(&WireChunk(snapshot)));
         with_position(snapshot, body)
     }
 }
@@ -77,8 +77,32 @@ mod tests {
         let mut overridden = ChunkSnapshot::flat(ChunkPos::new(2, 0));
         overridden.set_block(BlockPos::new(32, 80, 0), BlockState::Stone);
         cache.encode(&overridden);
-        assert_eq!(cache.stats().flat_misses, 1);
-        assert_eq!(cache.stats().flat_hits, 1);
+        assert_eq!(cache.stats().flat_misses + cache.stats().flat_hits, 2);
+        assert_eq!(cache.stats().override_bypasses, 1);
+    }
+
+    #[test]
+    fn flat_payload_body_is_shared_across_cache_instances() {
+        let mut first = ChunkPayloadCache::default();
+        let mut second = ChunkPayloadCache::default();
+
+        first.encode(&ChunkSnapshot::flat(ChunkPos::new(10, 0)));
+        second.encode(&ChunkSnapshot::flat(ChunkPos::new(11, 0)));
+
+        assert_eq!(second.stats().flat_hits, 1);
+        assert_eq!(second.stats().flat_misses, 0);
+    }
+
+    #[test]
+    fn override_chunks_bypass_shared_flat_cache() {
+        let mut cache = ChunkPayloadCache::default();
+        let mut overridden = ChunkSnapshot::flat(ChunkPos::new(12, 0));
+        overridden.set_block(BlockPos::new(192, 80, 0), BlockState::Stone);
+
+        cache.encode(&overridden);
+
+        assert_eq!(cache.stats().flat_hits, 0);
+        assert_eq!(cache.stats().flat_misses, 0);
         assert_eq!(cache.stats().override_bypasses, 1);
     }
 }

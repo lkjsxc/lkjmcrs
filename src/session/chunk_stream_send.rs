@@ -3,11 +3,9 @@ use crate::session::SessionState;
 use crate::session::chunk_payload_cache::ChunkPayloadCache;
 use crate::session::error::ConnectionError;
 use crate::session::io::write_packet;
+use crate::session::stream_budget::{MAX_FOLLOWUP_CHUNKS, MAX_FOLLOWUP_PAYLOAD_BYTES};
 use crate::world::{ChunkPos, ChunkSnapshot};
 use tokio::io::AsyncWrite;
-
-pub const MAX_CHUNKS_PER_BATCH: usize = 8;
-pub const MAX_PAYLOAD_BYTES_PER_BATCH: usize = 512 * 1024;
 
 #[derive(Debug, Clone, Copy)]
 pub struct ChunkSendBudget {
@@ -18,8 +16,8 @@ pub struct ChunkSendBudget {
 impl ChunkSendBudget {
     pub const fn progressive() -> Self {
         Self {
-            max_chunks: MAX_CHUNKS_PER_BATCH,
-            max_payload_bytes: MAX_PAYLOAD_BYTES_PER_BATCH,
+            max_chunks: MAX_FOLLOWUP_CHUNKS,
+            max_payload_bytes: MAX_FOLLOWUP_PAYLOAD_BYTES,
         }
     }
 

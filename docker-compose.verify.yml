@@ -157,6 +157,21 @@ services:
       - scale-load-server
     entrypoint: ["cargo", "run", "--", "probe", "scale-load-metrics", "--host", "scale-load-server:25565"]
 
+  scale-moving-pending:
+    build:
+      context: .
+      dockerfile: Dockerfile.verify
+    working_dir: /workspace
+    environment:
+      CARGO_TARGET_DIR: /target
+    volumes:
+      - .:/workspace:ro
+      - cargo-registry:/usr/local/cargo/registry
+      - target-cache:/target
+    depends_on:
+      - scale-load-server
+    entrypoint: ["cargo", "run", "--", "probe", "scale-moving-pending", "--host", "scale-load-server:25565"]
+
   persist-place:
     build:
       context: .

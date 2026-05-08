@@ -19,6 +19,7 @@ mod registry_assert;
 mod scale_chunk_stream;
 mod scale_chunk_stream_packets;
 mod scale_load_metrics;
+mod scale_moving_pending;
 mod smoke;
 mod smp_commands;
 mod survival_expect;
@@ -112,6 +113,12 @@ pub async fn scale_chunk_stream(host: &str) -> Result<(), Box<dyn std::error::Er
 pub async fn scale_load_metrics(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     scale_load_metrics::run(host).await?;
     println!("scale-load-metrics probe ok");
+    Ok(())
+}
+
+pub async fn scale_moving_pending(host: &str) -> Result<(), Box<dyn std::error::Error>> {
+    scale_moving_pending::run(host).await?;
+    println!("scale-moving-pending probe ok");
     Ok(())
 }
 

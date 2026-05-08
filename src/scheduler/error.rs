@@ -6,4 +6,6 @@ pub enum RegionActorError {
     Storage(#[from] crate::world::WorldStorageError),
     #[error("storage task failed: {0}")]
     StorageTask(String),
+    #[error("loaded chunk {0},{1} is missing from region memory")]
+    MissingLoadedChunk(i32, i32),
 }

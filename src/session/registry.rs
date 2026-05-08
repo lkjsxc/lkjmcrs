@@ -82,6 +82,11 @@ impl SessionRegistry {
     pub async fn unregister(&self, id: SessionId) {
         self.inner.sessions.lock().await.remove(&id);
     }
+
+    pub async fn active_count(&self) -> usize {
+        self.inner.sessions.lock().await.len()
+    }
+
     pub async fn broadcast_block_update(
         &self,
         chunk: ChunkPos,

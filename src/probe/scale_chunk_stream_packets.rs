@@ -2,13 +2,12 @@ use crate::probe::ProbeError;
 use crate::probe::chunk;
 use crate::probe::validation::validate_chunk_batch_finished;
 use crate::protocol::{codec, ids, play};
+use crate::session::stream_budget::{MAX_FOLLOWUP_CHUNKS, MAX_FOLLOWUP_PAYLOAD_BYTES};
 use std::collections::HashSet;
 use std::io::Cursor;
 use tokio::net::TcpStream;
 
 pub const RADIUS: i32 = 4;
-pub const MAX_BATCH: usize = 8;
-pub const MAX_PAYLOAD_BYTES: usize = 512 * 1024;
 
 #[derive(Debug)]
 pub struct ChunkBatch {
@@ -54,10 +53,10 @@ async fn read_batch_after_start(
         let packet = codec::read_packet(stream).await?;
         if packet.id == ids::play::CHUNK_BATCH_FINISHED {
             validate_chunk_batch_finished(packet.data, batch.len())?;
-            if batch.is_empty() || batch.len() > MAX_BATCH {
+            if batch.is_empty() || batch.len() > MAX_FOLLOWUP_CHUNKS {
                 return Err(Box::new(ProbeError::Phase("scale batch size")));
             }
-            if payload_bytes > MAX_PAYLOAD_BYTES && batch.len() > 1 {
+            if payload_bytes > MAX_FOLLOWUP_PAYLOAD_BYTES && batch.len() > 1 {
                 return Err(Box::new(ProbeError::Phase("scale batch payload bytes")));
             }
             return Ok(ChunkBatch {

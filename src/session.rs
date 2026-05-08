@@ -52,6 +52,7 @@ pub mod registry;
 mod registry_tests;
 pub mod state;
 mod status;
+pub(crate) mod stream_budget;
 mod travel_commands;
 mod travel_teleport;
 mod vitals;

@@ -1,3 +1,4 @@
+use crate::scheduler::region_actor::REGION_MAILBOX_CAPACITY;
 use crate::scheduler::region_command::RegionCommand;
 use crate::scheduler::{BlockMutation, RegionActorError};
 use crate::world::{BlockPos, BlockState, ChunkPos, ChunkSnapshot, DroppedItemEntity, RegionId};
@@ -13,6 +14,10 @@ pub struct RegionHandle {
 impl RegionHandle {
     pub const fn id(&self) -> RegionId {
         self.id
+    }
+
+    pub fn mailbox_depth(&self) -> usize {
+        REGION_MAILBOX_CAPACITY.saturating_sub(self.outbox.capacity())
     }
 
     pub async fn apply(&self, label: impl Into<String>) -> Result<usize, RegionActorError> {

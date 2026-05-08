@@ -92,9 +92,7 @@ impl ChunkStream {
         if next_center == self.center {
             return None;
         }
-        let next_set: HashSet<_> = visible_chunks(next_center, self.radius)
-            .into_iter()
-            .collect();
+        let next_set = HashSet::<_>::from_iter(visible_chunks(next_center, self.radius));
         let mut leaving = self
             .sent
             .iter()
@@ -137,12 +135,15 @@ impl ChunkStream {
         self.sent.extend(sent);
         self.stats
             .record_batch(batch_chunks, batch_payload_bytes, self.pending.len());
+        let active_sessions = context.sessions.active_count().await;
         emit_chunk_stream_stats(
             self.stats,
             cache.stats(),
             batch_chunks,
             batch_payload_bytes,
             self.pending.len(),
+            active_sessions,
+            context.region.mailbox_depth(),
         );
         Ok(())
     }

@@ -56,6 +56,19 @@ async fn unregister_removes_subscriptions() {
 }
 
 #[tokio::test]
+async fn active_count_tracks_registered_sessions() {
+    let registry = SessionRegistry::default();
+    let first = profile("first");
+    let second = profile("second");
+    let (first_id, _first_rx) = registry.register(&first).await;
+    let (_second_id, _second_rx) = registry.register(&second).await;
+
+    assert_eq!(registry.active_count().await, 2);
+    registry.unregister(first_id).await;
+    assert_eq!(registry.active_count().await, 1);
+}
+
+#[tokio::test]
 async fn newly_subscribed_chunks_are_fanout_eligible() {
     let registry = SessionRegistry::default();
     let mover = profile("Mover");

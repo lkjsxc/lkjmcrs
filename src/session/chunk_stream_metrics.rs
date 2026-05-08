@@ -27,6 +27,8 @@ pub fn emit_chunk_stream_stats(
     batch_chunks: usize,
     batch_payload_bytes: usize,
     pending_queue_len: usize,
+    active_sessions: usize,
+    region_mailbox_depth: usize,
 ) {
     tracing::info!(
         target: "lkjmcrs::scale",
@@ -37,6 +39,8 @@ pub fn emit_chunk_stream_stats(
         batch_payload_bytes,
         pending_queue_len,
         max_pending_queue_len = stream.max_pending_queue_len,
+        active_sessions,
+        region_mailbox_depth,
         flat_cache_hits = cache.flat_hits,
         flat_cache_misses = cache.flat_misses,
         override_cache_bypasses = cache.override_bypasses,

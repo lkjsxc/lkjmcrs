@@ -8,6 +8,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 async fn applies_tasks_in_mailbox_order() {
     let handle = RegionActor::spawn(RegionId(7));
     assert_eq!(handle.id(), RegionId(7));
+    assert_eq!(handle.mailbox_depth(), 0);
     assert_eq!(handle.apply("a").await.unwrap(), 1);
     assert_eq!(handle.apply("b").await.unwrap(), 2);
     assert_eq!(handle.applied_count().await.unwrap(), 2);
@@ -48,6 +49,38 @@ async fn loads_exact_chunk_positions() {
             .unwrap()
             .is_none()
     );
+}
+
+#[tokio::test]
+async fn loads_generated_cached_and_persisted_chunks_in_requested_order() {
+    let root = temp_root();
+    let storage = WorldStorage::new(&root);
+    let mut persisted = crate::world::ChunkSnapshot::flat(ChunkPos::new(6, 0));
+    let persisted_block = BlockPos::new(96, 80, 0);
+    persisted.set_block(persisted_block, BlockState::Stone);
+    storage.save_chunk(&persisted).unwrap();
+    let handle = RegionActor::spawn_persistent(RegionId(10), storage);
+    handle.load_chunks(vec![ChunkPos::new(5, 0)]).await.unwrap();
+
+    let chunks = handle
+        .load_chunks(vec![
+            ChunkPos::new(4, 0),
+            ChunkPos::new(5, 0),
+            ChunkPos::new(6, 0),
+        ])
+        .await
+        .unwrap();
+
+    assert_eq!(
+        chunks.iter().map(|chunk| chunk.pos).collect::<Vec<_>>(),
+        vec![
+            ChunkPos::new(4, 0),
+            ChunkPos::new(5, 0),
+            ChunkPos::new(6, 0)
+        ]
+    );
+    assert_eq!(chunks[2].block_at_pos(persisted_block), BlockState::Stone);
+    cleanup(root);
 }
 
 #[tokio::test]

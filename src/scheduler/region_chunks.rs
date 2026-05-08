@@ -73,14 +73,14 @@ impl RegionActor {
             .filter(|pos| !self.chunks.contains_key(pos))
             .collect::<Vec<_>>();
         if missing.is_empty() {
-            let _ = reply.send(Ok(self.collect_chunks(&positions)));
+            let _ = reply.send(self.collect_chunks(&positions));
             return;
         }
         let Some(storage) = self.storage.clone() else {
             for pos in missing {
                 self.chunks.insert(pos, self.world.chunk_snapshot(pos));
             }
-            let _ = reply.send(Ok(self.collect_chunks(&positions)));
+            let _ = reply.send(self.collect_chunks(&positions));
             return;
         };
         let id = self.next_job();
@@ -102,9 +102,7 @@ impl RegionActor {
                 chunks.into_iter().for_each(|c| {
                     self.chunks.insert(c.pos, c);
                 });
-                let _ = pending
-                    .reply
-                    .send(Ok(self.collect_chunks(&pending.positions)));
+                let _ = pending.reply.send(self.collect_chunks(&pending.positions));
             }
             Err(error) => _ = pending.reply.send(Err(error)),
         }
@@ -141,10 +139,18 @@ impl RegionActor {
         }
     }
 
-    fn collect_chunks(&self, positions: &[ChunkPos]) -> Vec<ChunkSnapshot> {
+    fn collect_chunks(
+        &self,
+        positions: &[ChunkPos],
+    ) -> Result<Vec<ChunkSnapshot>, RegionActorError> {
         positions
             .iter()
-            .filter_map(|pos| self.chunks.get(pos).cloned())
+            .map(|pos| {
+                self.chunks
+                    .get(pos)
+                    .cloned()
+                    .ok_or(RegionActorError::MissingLoadedChunk(pos.x, pos.z))
+            })
             .collect()
     }
 
@@ -152,5 +158,41 @@ impl RegionActor {
         let id = self.next_job;
         self.next_job += 1;
         id
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::world::{FlatWorld, RegionId};
+    use std::collections::HashMap;
+    use tokio::sync::mpsc;
+
+    #[test]
+    fn collect_chunks_reports_missing_loaded_chunk() {
+        let actor = actor_for_tests();
+        let error = actor
+            .collect_chunks(&[ChunkPos::new(9, -1)])
+            .unwrap_err()
+            .to_string();
+        assert!(error.contains("9,-1"));
+    }
+
+    fn actor_for_tests() -> RegionActor {
+        let (outbox, inbox) = mpsc::channel(1);
+        RegionActor {
+            id: RegionId(99),
+            applied: 0,
+            chunks: HashMap::new(),
+            item_entities: HashMap::new(),
+            next_item_entity_id: 1000,
+            world: FlatWorld::default(),
+            storage: None,
+            outbox,
+            inbox,
+            pending_loads: HashMap::new(),
+            pending_saves: HashMap::new(),
+            next_job: 1,
+        }
     }
 }

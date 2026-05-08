@@ -1,6 +1,7 @@
 use crate::probe::ProbeError;
 use crate::probe::scale_chunk_stream;
 use crate::probe::scale_chunk_stream_packets as packets;
+use crate::session::stream_budget::{MAX_FOLLOWUP_CHUNKS, MAX_FOLLOWUP_PAYLOAD_BYTES};
 use std::collections::HashSet;
 
 const RADIUS: i32 = 8;
@@ -27,10 +28,10 @@ pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     if seen.len() != TOTAL_CHUNKS {
         return Err(Box::new(ProbeError::Phase("scale load total chunks")));
     }
-    if max_followup_batch > packets::MAX_BATCH {
+    if max_followup_batch > MAX_FOLLOWUP_CHUNKS {
         return Err(Box::new(ProbeError::Phase("scale load max batch")));
     }
-    if max_followup_payload_bytes > packets::MAX_PAYLOAD_BYTES {
+    if max_followup_payload_bytes > MAX_FOLLOWUP_PAYLOAD_BYTES {
         return Err(Box::new(ProbeError::Phase("scale load max payload bytes")));
     }
     if followup_batches == 0 {

@@ -5,6 +5,8 @@ use crate::world::{FlatWorld, RegionId, WorldStorage};
 use std::collections::HashMap;
 use tokio::sync::mpsc;
 
+pub(super) const REGION_MAILBOX_CAPACITY: usize = 64;
+
 impl RegionActor {
     pub fn spawn(id: RegionId) -> RegionHandle {
         Self::spawn_with_storage(id, None)
@@ -15,7 +17,7 @@ impl RegionActor {
     }
 
     fn spawn_with_storage(id: RegionId, storage: Option<WorldStorage>) -> RegionHandle {
-        let (outbox, inbox) = mpsc::channel(64);
+        let (outbox, inbox) = mpsc::channel(REGION_MAILBOX_CAPACITY);
         let actor = Self {
             id,
             applied: 0,
