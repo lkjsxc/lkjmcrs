@@ -14,13 +14,14 @@ for the current debugging boundary.
 The play bootstrap sends:
 
 1. `chunk_batch_start`
-2. one `level_chunk_with_light` packet for every chunk in the advertised
-   chunk-cache radius
+2. one `level_chunk_with_light` packet for every chunk in the bootstrap radius
 3. `chunk_batch_finished`
 
-The advertised radius is authoritative. A radius of `2` means the initial
-terrain batch is a `5x5` square centered on chunk `0,0`, for `25` chunks total.
-Do not advertise a larger radius than the bootstrap sends.
+The default radius is `2`, so the full initial terrain batch is a `5x5` square
+centered on chunk `0,0`, for `25` chunks total. Larger configured radii still
+advertise the configured cache radius, but
+[../world/large-distance-streaming.md](../world/large-distance-streaming.md)
+owns the progressive delivery behavior beyond the near bootstrap.
 
 `level_chunk_with_light` carries the complete light payload for the current flat
 chunk. Do not send a separate `update_light` packet during bootstrap or normal

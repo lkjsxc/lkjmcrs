@@ -13,10 +13,9 @@ Define scale evidence before adding broad terrain, entity, and distance claims.
 - Radius `8` total loaded chunks: `289` unique chunks.
 - Chunk payload cache hits, misses, and override bypasses.
 - Pending chunk queue length.
-- Follow-up chunk batch counters.
+- Follow-up chunk batch, chunk, and payload byte counters.
 - Region mailbox depth.
-- Storage read and write duration.
-- Storage commit duration.
+- Storage load and save job durations.
 - Active sessions.
 
 ## Load Scenarios
@@ -26,6 +25,14 @@ Define scale evidence before adding broad terrain, entity, and distance claims.
 - Mutation-heavy players in neighboring chunks.
 - Reconnect loop with persisted player and world data.
 
+## Log Check
+
+After running scale probes, verify server-side counter emission from the host:
+
+```sh
+docker compose -f docker-compose.yml -f docker-compose.verify.yml logs scale-load-server | grep "chunk stream counters"
+```
+
 ## Rules
 
 1. Metrics must avoid high-cardinality player names and raw UUID labels.
@@ -33,3 +40,5 @@ Define scale evidence before adding broad terrain, entity, and distance claims.
 3. Scale claims require recorded command evidence under verification results.
 4. `scale-load-metrics` is the radius `8` automated gate for chunk count,
    follow-up batch size, payload bytes, and emitted scale counters.
+5. `scale-moving-pending` proves movement replaces old queued chunks before
+   far streaming finishes.

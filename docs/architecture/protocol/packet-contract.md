@@ -46,10 +46,10 @@ owned by [dynamic-registries.md](dynamic-registries.md).
 - `0x46 position`: spawn teleport with teleport ID `1`.
 - `0x2b keep_alive`: signed 64-bit keepalive ID.
 
-The `level_chunk_with_light` count is derived from
-`(radius * 2 + 1) ^ 2`. The default radius is `2`, so the bootstrap
-must send `25` chunks. A smaller `3x3` batch is invalid because it advertises
-terrain the client never receives during initial world entry.
+For the default radius `2`, the `level_chunk_with_light` count is
+`(2 * 2 + 1) ^ 2`, so the bootstrap must send `25` chunks. Larger-radius
+bootstrap and follow-up behavior is owned by
+[../world/large-distance-streaming.md](../world/large-distance-streaming.md).
 
 Movement may send `0x25 unload_chunk` for chunks leaving the visible window.
 Its payload is `chunkZ` as `i32`, then `chunkX` as `i32`.

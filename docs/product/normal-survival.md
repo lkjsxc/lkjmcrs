@@ -4,13 +4,16 @@
 
 Define the next vanilla-survival target after the current survival sandbox.
 
-## Required Behavior
+## Current Verified Behavior
 
 - Health affects whether the player remains alive.
 - Hunger and saturation affect regeneration and starvation.
 - Damage can reduce health.
 - Death moves the player into a respawn flow.
 - Respawn returns the player to spawn with restored baseline vitals.
+
+## Future Required Behavior
+
 - Tools affect mining speed for the first supported block set.
 - Durability decreases when supported tools are used.
 - Minimal recipes transform inventory inputs into outputs.

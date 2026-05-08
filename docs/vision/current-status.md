@@ -27,6 +27,8 @@ the next work batch.
 - Progressive chunk streaming is implemented: radius `2` bootstraps eagerly,
   configured radii through `8` stream farther chunks under chunk and byte
   budgets.
+- Radius `8` automated load evidence is landed for initial `25` chunks and
+  eventual `289` unique chunks.
 - Play keepalive timeout is implemented and compose-verified.
 - Public runtime exposure requires `online_mode=true` with session
   verification.
@@ -37,8 +39,9 @@ the next work batch.
   success artifact after the latest packet-shape fixes.
 - Normal survival is incomplete: tools and crafting are absent, terrain is
   flat, and mobs/weather are not gameplay systems yet.
-- Large distance targets above the current cap require stronger load evidence
-  before the configured cap can increase.
+- Large distance targets above the current cap require stale-pending movement
+  evidence and stronger scale counter evidence before the configured cap can
+  increase.
 
 ## Next Implementation Target
 
@@ -46,7 +49,10 @@ Scale evidence is the active foundation for larger-distance work:
 
 - keep the near bootstrap small,
 - batch farther chunk loads under explicit budgets,
-- record radius `8` automated evidence before raising caps.
+- prove stale queued chunks are replaced when movement happens before far
+  streaming finishes,
+- record active sessions, region mailbox depth, cache counters, pending queue
+  length, and storage timings before raising caps.
 
 ## Rules
 

@@ -37,7 +37,8 @@
 
 ## Scale Architecture
 
-- Radius `8` load and metric evidence.
+- Radius `8` load evidence for initial `25` and eventual `289` chunks.
+- Stale-pending movement evidence before raising distance caps.
 - Region splitting and merging.
 - Region-local task queues.
 - Broader async chunk generation and storage pipeline.

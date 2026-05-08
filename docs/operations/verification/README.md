@@ -16,6 +16,8 @@ Use this subtree for required compose verification contracts.
   fixture verifier contract.
 - [online-vanilla-join.md](online-vanilla-join.md): manual online-mode stock
   client evidence.
+- [manual-client-boundary.md](manual-client-boundary.md): active manual
+  stock-client evidence boundary.
 - [results/README.md](results/README.md): historical compose verification
   summaries.
 - [smoke-probe.md](smoke-probe.md): wire smoke behavior.
