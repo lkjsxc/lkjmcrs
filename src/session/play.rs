@@ -9,6 +9,9 @@ use crate::session::chunk_stream::ChunkStream;
 use crate::session::error::ConnectionError;
 use crate::session::io::{read_packet, write_packet};
 use crate::session::item_visibility;
+use crate::session::play_intervals::{
+    CHUNK_DRAIN_INTERVAL, HUNGER_INTERVAL, KEEPALIVE_INTERVAL, TIME_INTERVAL, TIME_STEP_TICKS,
+};
 pub use crate::session::play_model::PlaySettings;
 use crate::session::play_model::RegisteredSession;
 use crate::session::play_outbound::{OutboundStep, handle_outbound};
@@ -18,13 +21,7 @@ use crate::session::play_state::PlaySession;
 use crate::session::play_timers::delayed_interval;
 use crate::session::registry::SessionRegistry;
 use tokio::io::{AsyncRead, AsyncWrite};
-use tokio::time::{Duration, Instant};
-
-const KEEPALIVE_INTERVAL: Duration = Duration::from_secs(10);
-const TIME_INTERVAL: Duration = Duration::from_secs(1);
-const HUNGER_INTERVAL: Duration = Duration::from_secs(4);
-const CHUNK_DRAIN_INTERVAL: Duration = Duration::from_millis(100);
-const TIME_STEP_TICKS: i64 = 20;
+use tokio::time::Instant;
 pub async fn handle_play<S>(
     stream: &mut S,
     settings: PlaySettings,

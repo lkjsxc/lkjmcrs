@@ -9,11 +9,11 @@ use crate::session::chunk_stream_window::{EAGER_RADIUS, eager_chunks, ordered_pe
 use crate::session::error::ConnectionError;
 use crate::session::io::write_packet;
 use crate::session::item_visibility;
-use crate::session::registry::{SessionId, SessionRegistry};
 use crate::world::ChunkPos;
 use std::collections::{HashSet, VecDeque};
 use tokio::io::AsyncWrite;
 
+pub use crate::session::chunk_stream_context::StreamContext;
 pub use crate::session::chunk_stream_window::{chunk_center, visible_chunks};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -189,11 +189,4 @@ impl ChunkStream {
             self.pending.push_front(pos);
         }
     }
-}
-
-#[derive(Debug, Clone, Copy)]
-pub struct StreamContext<'a> {
-    pub region: &'a RegionHandle,
-    pub sessions: &'a SessionRegistry,
-    pub session_id: SessionId,
 }

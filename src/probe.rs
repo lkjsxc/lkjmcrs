@@ -2,6 +2,7 @@ use crate::protocol::codec;
 mod block_mutation;
 mod chunk;
 mod chunk_stream;
+mod commands;
 mod inventory_packets;
 mod inventory_sync;
 mod item_entities;
@@ -29,6 +30,12 @@ mod terrain_chunk;
 mod terrain_generation;
 mod validation;
 mod vitals_packets;
+
+pub use commands::{
+    chunk_stream, inventory_sync, item_pickup, login_play, multiplayer_mutation, online_auth,
+    persist_check, persist_place, profile_reconnect, scale_chunk_stream, scale_load_metrics,
+    scale_moving_pending, smp_commands, survival_item, survival_vitals, terrain_generation,
+};
 
 use crate::protocol::PROTOCOL_VERSION;
 use crate::protocol::ids;
@@ -68,102 +75,6 @@ where
             }
         }
     }
-}
-
-pub async fn login_play(host: &str) -> Result<(), Box<dyn std::error::Error>> {
-    smoke::run(host).await?;
-    println!("login-play probe ok");
-    Ok(())
-}
-
-pub async fn multiplayer_mutation(host: &str) -> Result<(), Box<dyn std::error::Error>> {
-    multiplayer_mutation::run(host).await?;
-    println!("multiplayer-mutation probe ok");
-    Ok(())
-}
-
-pub async fn persist_place(host: &str) -> Result<(), Box<dyn std::error::Error>> {
-    persistence::place(host).await?;
-    println!("persist-place probe ok");
-    Ok(())
-}
-
-pub async fn persist_check(host: &str) -> Result<(), Box<dyn std::error::Error>> {
-    persistence::check(host).await?;
-    println!("persist-check probe ok");
-    Ok(())
-}
-
-pub async fn profile_reconnect(host: &str) -> Result<(), Box<dyn std::error::Error>> {
-    profile_reconnect::run(host).await?;
-    println!("profile-reconnect probe ok");
-    Ok(())
-}
-
-pub async fn chunk_stream(host: &str) -> Result<(), Box<dyn std::error::Error>> {
-    chunk_stream::run(host).await?;
-    println!("chunk-stream probe ok");
-    Ok(())
-}
-
-pub async fn terrain_generation(host: &str) -> Result<(), Box<dyn std::error::Error>> {
-    terrain_generation::run(host).await?;
-    println!("terrain-generation probe ok");
-    Ok(())
-}
-
-pub async fn scale_chunk_stream(host: &str) -> Result<(), Box<dyn std::error::Error>> {
-    scale_chunk_stream::run(host).await?;
-    println!("scale-chunk-stream probe ok");
-    Ok(())
-}
-
-pub async fn scale_load_metrics(host: &str) -> Result<(), Box<dyn std::error::Error>> {
-    scale_load_metrics::run(host).await?;
-    println!("scale-load-metrics probe ok");
-    Ok(())
-}
-
-pub async fn scale_moving_pending(host: &str) -> Result<(), Box<dyn std::error::Error>> {
-    scale_moving_pending::run(host).await?;
-    println!("scale-moving-pending probe ok");
-    Ok(())
-}
-
-pub async fn survival_item(host: &str) -> Result<(), Box<dyn std::error::Error>> {
-    survival_item::run(host).await?;
-    println!("survival-item probe ok");
-    Ok(())
-}
-
-pub async fn survival_vitals(host: &str) -> Result<(), Box<dyn std::error::Error>> {
-    survival_vitals::run(host).await?;
-    println!("survival-vitals probe ok");
-    Ok(())
-}
-
-pub async fn inventory_sync(host: &str) -> Result<(), Box<dyn std::error::Error>> {
-    inventory_sync::run(host).await?;
-    println!("inventory-sync probe ok");
-    Ok(())
-}
-
-pub async fn item_pickup(host: &str) -> Result<(), Box<dyn std::error::Error>> {
-    item_pickup::run(host).await?;
-    println!("item-pickup probe ok");
-    Ok(())
-}
-
-pub async fn smp_commands(host: &str) -> Result<(), Box<dyn std::error::Error>> {
-    smp_commands::run(host).await?;
-    println!("smp-commands probe ok");
-    Ok(())
-}
-
-pub async fn online_auth(host: &str) -> Result<(), Box<dyn std::error::Error>> {
-    online_auth_probe::run(host).await?;
-    println!("online-auth probe ok");
-    Ok(())
 }
 
 pub(super) async fn send_handshake(
