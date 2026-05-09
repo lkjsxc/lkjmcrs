@@ -8,6 +8,7 @@ mod inventory_sync;
 mod item_entities;
 mod item_pickup;
 mod live_play;
+mod movement_authority;
 mod multiplayer_mutation;
 #[path = "probe/online_auth.rs"]
 mod online_auth_probe;
@@ -25,6 +26,7 @@ mod scale_load_metrics;
 mod scale_moving_pending;
 mod smoke;
 mod smp_commands;
+mod storage_section_persistence;
 mod survival_expect;
 mod survival_item;
 mod survival_vitals;
@@ -34,9 +36,10 @@ mod validation;
 mod vitals_packets;
 
 pub use commands::{
-    chunk_stream, inventory_sync, item_pickup, login_play, multiplayer_mutation, online_auth,
-    persist_check, persist_place, profile_reconnect, render_distance, render_moving_pending,
-    scale_chunk_stream, scale_load_metrics, scale_moving_pending, smp_commands, survival_item,
+    chunk_stream, inventory_sync, item_pickup, login_play, movement_authority,
+    multiplayer_mutation, online_auth, persist_check, persist_place, profile_reconnect,
+    render_distance, render_moving_pending, scale_chunk_stream, scale_load_metrics,
+    scale_moving_pending, smp_commands, storage_section_persistence, survival_item,
     survival_vitals, terrain_generation,
 };
 

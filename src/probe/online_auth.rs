@@ -47,7 +47,11 @@ async fn run_once(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     }
     codec::write_packet(&mut stream, ids::login::ACKNOWLEDGED, &[]).await?;
     super::play_bootstrap::complete_configuration(&mut stream).await?;
-    super::play_bootstrap::complete_play_bootstrap(&mut stream, Some(0)).await?;
+    super::play_bootstrap::complete_play_bootstrap(
+        &mut stream,
+        &[(super::position::BlockPos::new(3, 80, 0), 0)],
+    )
+    .await?;
     Ok(())
 }
 

@@ -1,0 +1,15 @@
+{
+  "bind": "0.0.0.0:25565",
+  "motd": "lkjmcrs 1.21.11 storage section verify",
+  "max_players": 100,
+  "online_mode": false,
+  "data_dir": "data",
+  "default_game_mode": "survival",
+  "view_distance": 2,
+  "simulation_distance": 2,
+  "terrain_generator": "flat",
+  "world_seed": 0,
+  "session_server_url": "https://sessionserver.mojang.com",
+  "allow_insecure_session_server": false,
+  "operator_uuids": []
+}

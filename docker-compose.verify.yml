@@ -17,6 +17,15 @@ services:
       - ./config:/app/config:ro
       - persistence-server-data:/app/data
 
+  storage-section-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["serve"]
+    volumes:
+      - ./config/verify/storage-section-server.json:/app/config/server.json:ro
+      - storage-section-server-data:/app/data
+
   survival-item-server:
     build:
       context: .
@@ -43,6 +52,15 @@ services:
     volumes:
       - ./config:/app/config:ro
       - item-pickup-server-data:/app/data
+
+  movement-authority-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["serve"]
+    volumes:
+      - ./config:/app/config:ro
+      - movement-authority-server-data:/app/data
 
   smp-server:
     build:
@@ -174,6 +192,21 @@ services:
     depends_on:
       - server
     entrypoint: ["cargo", "run", "--", "probe", "profile-reconnect", "--host", "server:25565"]
+
+  movement-authority:
+    build:
+      context: .
+      dockerfile: Dockerfile.verify
+    working_dir: /workspace
+    environment:
+      CARGO_TARGET_DIR: /target
+    volumes:
+      - .:/workspace:ro
+      - cargo-registry:/usr/local/cargo/registry
+      - target-cache:/target
+    depends_on:
+      - movement-authority-server
+    entrypoint: ["cargo", "run", "--", "probe", "movement-authority", "--host", "movement-authority-server:25565"]
 
   chunk-stream:
     build:
@@ -310,6 +343,21 @@ services:
       - persistence-server
     entrypoint: ["cargo", "run", "--", "probe", "persist-check", "--host", "persistence-server:25565"]
 
+  storage-section-persistence:
+    build:
+      context: .
+      dockerfile: Dockerfile.verify
+    working_dir: /workspace
+    environment:
+      CARGO_TARGET_DIR: /target
+    volumes:
+      - .:/workspace:ro
+      - cargo-registry:/usr/local/cargo/registry
+      - target-cache:/target
+    depends_on:
+      - storage-section-server
+    entrypoint: ["cargo", "run", "--", "probe", "storage-section-persistence", "--host", "storage-section-server:25565"]
+
   survival-item:
     build:
       context: .
@@ -405,9 +453,11 @@ volumes:
   target-cache:
   server-data:
   persistence-server-data:
+  storage-section-server-data:
   survival-item-server-data:
   inventory-sync-server-data:
   item-pickup-server-data:
+  movement-authority-server-data:
   survival-vitals-server-data:
   scale-server-data:
   terrain-server-data:

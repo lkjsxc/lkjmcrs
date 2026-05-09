@@ -4,6 +4,7 @@ use crate::probe::inventory_packets;
 use crate::probe::inventory_packets::PlayerInventorySlot;
 use crate::probe::live_play;
 use crate::probe::persistence;
+use crate::probe::position::BlockPos;
 use crate::probe::registry_assert;
 use crate::probe::validation::{
     LoginPacket, PositionPacket, decode_login_packet, decode_position_packet,
@@ -54,7 +55,7 @@ where
 
 pub(super) async fn complete_play_bootstrap<S>(
     stream: &mut S,
-    expected_block: Option<i32>,
+    expected_blocks: &[(BlockPos, i32)],
 ) -> Result<PlayBootstrap, Box<dyn std::error::Error>>
 where
     S: AsyncRead + AsyncWrite + Unpin,
@@ -74,7 +75,7 @@ where
     super::expect(stream, ids::play::CHUNK_CACHE_CENTER, "chunk center").await?;
     let radius = super::expect(stream, ids::play::CHUNK_CACHE_RADIUS, "chunk radius").await?;
     let chunk_count = validate_chunk_radius(radius.data)?;
-    expect_chunks(stream, chunk_count, expected_block).await?;
+    expect_chunks(stream, chunk_count, expected_blocks).await?;
     let position = super::expect(stream, ids::play::PLAYER_POSITION, "position").await?;
     let initial_position = decode_position_packet(position.data)?;
     confirm_and_keepalive(stream).await?;
@@ -90,30 +91,31 @@ where
 async fn expect_chunks<S>(
     stream: &mut S,
     chunk_count: usize,
-    expected_block: Option<i32>,
+    expected_blocks: &[(BlockPos, i32)],
 ) -> Result<(), Box<dyn std::error::Error>>
 where
     S: AsyncRead + AsyncWrite + Unpin,
 {
     super::expect(stream, ids::play::CHUNK_BATCH_START, "chunk batch").await?;
-    let mut observed = None;
+    let mut observed = vec![None; expected_blocks.len()];
     for _ in 0..chunk_count {
         let chunk_packet =
             super::expect(stream, ids::play::LEVEL_CHUNK_WITH_LIGHT, "level chunk").await?;
-        let persisted = expected_block
-            .is_some()
-            .then(|| persistence::target_block_state(chunk_packet.data.clone()))
-            .transpose()?
-            .flatten();
-        if persisted.is_none() {
+        let mut matched = false;
+        for (index, (pos, _)) in expected_blocks.iter().enumerate() {
+            if observed[index].is_none() {
+                observed[index] = persistence::block_state_at(chunk_packet.data.clone(), *pos)?;
+                matched |= observed[index].is_some();
+            }
+        }
+        if !matched {
             chunk::validate_level_chunk_with_light(chunk_packet.data)?;
         }
-        observed = observed.or(persisted);
     }
-    if let Some(expected) = expected_block
-        && observed != Some(expected)
-    {
-        return Err(Box::new(ProbeError::Phase("persisted block state")));
+    for (index, (_, expected)) in expected_blocks.iter().enumerate() {
+        if observed[index] != Some(*expected) {
+            return Err(Box::new(ProbeError::Phase("persisted block state")));
+        }
     }
     let finished = super::expect(
         stream,

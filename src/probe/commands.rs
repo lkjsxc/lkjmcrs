@@ -10,6 +10,12 @@ pub async fn multiplayer_mutation(host: &str) -> Result<(), Box<dyn std::error::
     Ok(())
 }
 
+pub async fn movement_authority(host: &str) -> Result<(), Box<dyn std::error::Error>> {
+    super::movement_authority::run(host).await?;
+    println!("movement-authority probe ok");
+    Ok(())
+}
+
 pub async fn persist_place(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     super::persistence::place(host).await?;
     println!("persist-place probe ok");
@@ -19,6 +25,12 @@ pub async fn persist_place(host: &str) -> Result<(), Box<dyn std::error::Error>>
 pub async fn persist_check(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     super::persistence::check(host).await?;
     println!("persist-check probe ok");
+    Ok(())
+}
+
+pub async fn storage_section_persistence(host: &str) -> Result<(), Box<dyn std::error::Error>> {
+    super::storage_section_persistence::run(host).await?;
+    println!("storage-section-persistence probe ok");
     Ok(())
 }
 

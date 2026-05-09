@@ -1,5 +1,6 @@
 use crate::probe::inventory_packets::PlayerInventorySlot;
 use crate::probe::play_bootstrap::{complete_configuration, complete_play_bootstrap};
+use crate::probe::position::BlockPos;
 use crate::probe::validation::{LoginPacket, PositionPacket, validate_login_success};
 use crate::probe::vitals_packets::HealthState;
 use crate::protocol::types::{LoginStart, NextState};
@@ -26,11 +27,23 @@ impl PlayClient {
         name: &str,
         expected_block: Option<i32>,
     ) -> Result<Self, Box<dyn std::error::Error>> {
+        let expected = expected_block
+            .map(|state| vec![(BlockPos::new(3, 80, 0), state)])
+            .unwrap_or_default();
+        Self::connect_with_blocks(host, name, expected).await
+    }
+
+    pub async fn connect_with_blocks(
+        host: &str,
+        name: &str,
+        expected_blocks: Vec<(BlockPos, i32)>,
+    ) -> Result<Self, Box<dyn std::error::Error>> {
         let host = host.to_string();
         let name = name.to_string();
         super::retry_connect(|| {
             let host = host.clone();
             let name = name.clone();
+            let expected_blocks = expected_blocks.clone();
             async move {
                 let mut stream = TcpStream::connect(&host).await?;
                 super::send_handshake(&mut stream, &host, NextState::Login).await?;
@@ -42,7 +55,7 @@ impl PlayClient {
                 codec::write_packet(&mut stream, ids::login::ACKNOWLEDGED, &[]).await?;
                 complete_configuration(&mut stream).await?;
                 let (login, selected_hotbar_slot, inventory_slots, health, initial_position) =
-                    complete_play_bootstrap(&mut stream, expected_block).await?;
+                    complete_play_bootstrap(&mut stream, &expected_blocks).await?;
                 Ok::<Self, Box<dyn std::error::Error>>(Self {
                     stream,
                     login,

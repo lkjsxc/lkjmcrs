@@ -51,9 +51,7 @@ async fn expect_bootstrap_terrain(stream: &mut TcpStream) -> Result<(), ErrorBox
             super::expect(stream, ids::play::LEVEL_CHUNK_WITH_LIGHT, "terrain chunk").await?;
         chunk::validate_level_chunk_with_light(packet.data.clone())?;
         let decoded = DecodedChunk::from_packet(packet.data)?;
-        if decoded.is_spawn_plateau() {
-            decoded.assert_flat_surface()?;
-        } else if decoded.has_non_flat_surface() {
+        if decoded.has_non_flat_surface() {
             natural = true;
         }
     }

@@ -6,8 +6,6 @@ use crate::protocol::{chunk, codec};
 use std::io::{Cursor, Read};
 
 const TARGET_STATE: i32 = 10;
-const TARGET_Y: i32 = 80;
-const TARGET_INDEX: usize = 3;
 const BLOCK_ENTRY_COUNT: usize = 4096;
 const BIOME_ENTRY_COUNT: usize = 64;
 const HEIGHTMAP_COUNT: usize = 2;
@@ -32,7 +30,10 @@ pub(super) async fn check(host: &str) -> Result<(), Box<dyn std::error::Error>> 
     Ok(())
 }
 
-pub(super) fn target_block_state(data: Vec<u8>) -> Result<Option<i32>, Box<dyn std::error::Error>> {
+pub(super) fn block_state_at(
+    data: Vec<u8>,
+    pos: BlockPos,
+) -> Result<Option<i32>, Box<dyn std::error::Error>> {
     let mut cursor = Cursor::new(data);
     let chunk_x = read_i32(&mut cursor)?;
     let chunk_z = read_i32(&mut cursor)?;
@@ -42,7 +43,7 @@ pub(super) fn target_block_state(data: Vec<u8>) -> Result<Option<i32>, Box<dyn s
         return Err(Box::new(ProbeError::Phase("persist chunk length")));
     }
     let end = cursor.position() + chunk_data_len as u64;
-    let state = read_sections(&mut cursor, chunk_x, chunk_z)?;
+    let state = read_sections(&mut cursor, chunk_x, chunk_z, pos)?;
     if cursor.position() != end {
         return Err(Box::new(ProbeError::Phase("persist chunk boundary")));
     }
@@ -53,20 +54,30 @@ fn read_sections(
     cursor: &mut Cursor<Vec<u8>>,
     chunk_x: i32,
     chunk_z: i32,
+    pos: BlockPos,
 ) -> Result<Option<i32>, Box<dyn std::error::Error>> {
     let mut observed = None;
     for section in 0..chunk::SECTION_COUNT {
         let min_y = MIN_Y + section as i32 * 16;
-        let target = (chunk_x, chunk_z, min_y) == (0, 0, TARGET_Y);
+        let target = target_index(chunk_x, chunk_z, min_y, pos);
         let _non_air = codec::read_u16(cursor)?;
-        observed = observed.or(read_container(
-            cursor,
-            BLOCK_ENTRY_COUNT,
-            target.then_some(TARGET_INDEX),
-        )?);
+        observed = observed.or(read_container(cursor, BLOCK_ENTRY_COUNT, target)?);
         read_container(cursor, BIOME_ENTRY_COUNT, None)?;
     }
     Ok(observed)
+}
+
+fn target_index(chunk_x: i32, chunk_z: i32, min_y: i32, pos: BlockPos) -> Option<usize> {
+    if chunk_x != pos.x.div_euclid(16)
+        || chunk_z != pos.z.div_euclid(16)
+        || !(min_y..min_y + 16).contains(&pos.y)
+    {
+        return None;
+    }
+    let local_x = pos.x.rem_euclid(16) as usize;
+    let local_y = (pos.y - min_y) as usize;
+    let local_z = pos.z.rem_euclid(16) as usize;
+    Some(local_y * 256 + local_z * 16 + local_x)
 }
 
 fn read_container(

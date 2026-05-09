@@ -7,8 +7,6 @@ const AIR: i32 = 0;
 type ErrorBox = Box<dyn std::error::Error>;
 
 pub(super) struct DecodedChunk {
-    x: i32,
-    z: i32,
     blocks: HashMap<(usize, i32, usize), i32>,
 }
 
@@ -24,22 +22,8 @@ impl DecodedChunk {
         if cursor.position() != end {
             return Err(Box::new(ProbeError::Phase("terrain chunk data boundary")));
         }
-        Ok(Self { x, z, blocks })
-    }
-
-    pub(super) fn is_spawn_plateau(&self) -> bool {
-        self.x.abs().max(self.z.abs()) <= 1
-    }
-
-    pub(super) fn assert_flat_surface(&self) -> Result<(), ErrorBox> {
-        for z in 0..16 {
-            for x in 0..16 {
-                if self.state(x, 79, z) == AIR || self.state(x, 80, z) != AIR {
-                    return Err(Box::new(ProbeError::Phase("terrain plateau surface")));
-                }
-            }
-        }
-        Ok(())
+        let _chunk_pos = (x, z);
+        Ok(Self { blocks })
     }
 
     pub(super) fn has_non_flat_surface(&self) -> bool {
