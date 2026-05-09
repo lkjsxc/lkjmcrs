@@ -7,6 +7,7 @@ pub(super) fn state_code(state: BlockState) -> u16 {
         BlockState::Stone => 2,
         BlockState::Dirt => 3,
         BlockState::GrassBlock => 4,
+        BlockState::Water => 5,
     }
 }
 
@@ -17,6 +18,7 @@ pub(super) fn block_state(code: u16) -> Result<BlockState, WorldStorageError> {
         2 => Ok(BlockState::Stone),
         3 => Ok(BlockState::Dirt),
         4 => Ok(BlockState::GrassBlock),
+        5 => Ok(BlockState::Water),
         other => Err(WorldStorageError::InvalidState(other.to_string())),
     }
 }

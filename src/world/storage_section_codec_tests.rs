@@ -24,6 +24,21 @@ fn binary_section_round_trips_multiple_overrides() {
 }
 
 #[test]
+fn binary_section_round_trips_water_override() {
+    let pos = ChunkPos::new(0, 0);
+    let water = BlockPos::new(1, 63, 1);
+    let mut chunk = ChunkSnapshot::flat(pos);
+
+    let bytes = section_bytes(pos, vec![(water, BlockState::Water)]);
+    StoredSection::decode(&bytes)
+        .unwrap()
+        .apply_to(&mut chunk)
+        .unwrap();
+
+    assert_eq!(chunk.block_at_pos(water), BlockState::Water);
+}
+
+#[test]
 fn invalid_state_code_is_rejected() {
     let mut bytes = one_override_bytes();
     bytes[STATE_CODE_OFFSET..STATE_CODE_OFFSET + 2].copy_from_slice(&99_u16.to_le_bytes());

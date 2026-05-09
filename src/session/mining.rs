@@ -39,12 +39,15 @@ pub(super) fn required_break_time(state: BlockState, game_mode: GameMode) -> Dur
     match state {
         BlockState::Dirt | BlockState::GrassBlock => DIRT_BREAK_TIME,
         BlockState::Stone => STONE_BREAK_TIME,
-        BlockState::Air | BlockState::Bedrock => Duration::ZERO,
+        BlockState::Air | BlockState::Bedrock | BlockState::Water => Duration::ZERO,
     }
 }
 
 pub(super) fn can_start_mining(state: BlockState) -> bool {
-    !matches!(state, BlockState::Air | BlockState::Bedrock)
+    !matches!(
+        state,
+        BlockState::Air | BlockState::Bedrock | BlockState::Water
+    )
 }
 
 #[cfg(test)]
@@ -78,6 +81,7 @@ mod tests {
     fn air_and_bedrock_do_not_start_mining() {
         assert!(!can_start_mining(BlockState::Air));
         assert!(!can_start_mining(BlockState::Bedrock));
+        assert!(!can_start_mining(BlockState::Water));
         assert!(can_start_mining(BlockState::Dirt));
     }
 }

@@ -15,6 +15,7 @@ fn simple_drops_match_contract() {
     );
     assert_eq!(simple_drop(Some(BlockState::Air)), None);
     assert_eq!(simple_drop(Some(BlockState::Bedrock)), None);
+    assert_eq!(simple_drop(Some(BlockState::Water)), None);
 }
 
 #[test]

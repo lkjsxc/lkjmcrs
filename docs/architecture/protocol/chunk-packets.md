@@ -23,8 +23,8 @@ still advertise the configured cache radius, but
 [../world/large-distance-streaming.md](../world/large-distance-streaming.md)
 owns the progressive delivery behavior beyond the near bootstrap.
 
-`level_chunk_with_light` carries the complete light payload for the current flat
-chunk. Do not send a separate `update_light` packet during bootstrap or normal
+`level_chunk_with_light` carries the complete light payload for generated
+chunks. Do not send a separate `update_light` packet during bootstrap or normal
 movement chunk batches. Reserve explicit `update_light` for later changed-light
 events after the server has mutable lighting.
 
@@ -70,6 +70,17 @@ Each vertical section writes:
 
 The current join sequence uses one biome value: `minecraft:plains` registry ID
 `0`.
+
+## Current Block-State IDs
+
+- `minecraft:air`: `0`.
+- `minecraft:stone`: `1`.
+- `minecraft:grass_block`: `9`.
+- `minecraft:dirt`: `10`.
+- `minecraft:bedrock`: `85`.
+- `minecraft:water[level=0]`: `86`.
+
+These are protocol block-state IDs, not section-storage codes.
 
 ## Paletted Container Wire Shape
 

@@ -14,6 +14,7 @@ pub enum BlockState {
     Stone,
     Dirt,
     GrassBlock,
+    Water,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
@@ -31,7 +32,7 @@ pub struct GeneratedChunkKey {
 #[derive(Debug, Clone)]
 pub struct ChunkSnapshot {
     pub pos: ChunkPos,
-    palette: [BlockState; 5],
+    palette: [BlockState; 6],
     layers: Vec<u8>,
     overrides: HashMap<u16, BlockState>,
     shared_flat_base: bool,

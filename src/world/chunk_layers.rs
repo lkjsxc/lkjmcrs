@@ -1,14 +1,15 @@
 use crate::world::blocks::{BlockState, CHUNK_HEIGHT, CHUNK_WIDTH, MIN_Y};
 
-const PALETTE: [BlockState; 5] = [
+const PALETTE: [BlockState; 6] = [
     BlockState::Air,
     BlockState::Bedrock,
     BlockState::Stone,
     BlockState::Dirt,
     BlockState::GrassBlock,
+    BlockState::Water,
 ];
 
-pub(super) fn palette() -> [BlockState; 5] {
+pub(super) fn palette() -> [BlockState; 6] {
     PALETTE
 }
 

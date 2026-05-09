@@ -1,5 +1,5 @@
 use crate::protocol::chunk::{
-    AIR_ID, BEDROCK_ID, ChunkColumn, ChunkPosition, DIRT_ID, GRASS_BLOCK_ID, STONE_ID,
+    AIR_ID, BEDROCK_ID, ChunkColumn, ChunkPosition, DIRT_ID, GRASS_BLOCK_ID, STONE_ID, WATER_ID,
     encode_level_chunk_with_light, encode_update_light,
 };
 use crate::protocol::codec;
@@ -49,6 +49,7 @@ fn exposes_minecraft_data_default_ids() {
     assert_eq!(GRASS_BLOCK_ID, 9);
     assert_eq!(DIRT_ID, 10);
     assert_eq!(BEDROCK_ID, 85);
+    assert_eq!(WATER_ID, 86);
 }
 
 #[test]
