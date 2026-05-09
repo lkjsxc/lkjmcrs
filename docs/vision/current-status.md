@@ -12,8 +12,8 @@ the next work batch.
 - Offline-mode login, online-mode encrypted login, configuration, play entry,
   chunks, light, position, time, keepalive, and command declaration are
   implemented.
-- The product config uses deterministic natural terrain with a protected spawn
-  safety core and sparse persisted block overrides stored in `redb`.
+- The product config uses deterministic natural terrain with seed-scored spawn
+  resolution and sparse persisted block overrides stored in `redb`.
 - Player profiles and online identity use the current `redb` storage
   foundation; earlier SQLite storage is not supported.
 - World overrides are owned by `WorldStore`; chunk override values use the
@@ -50,9 +50,6 @@ the next work batch.
 
 World foundation and verification hardening are the active target:
 
-- replace the plateau-first natural generator with staged deterministic terrain,
-- add a spawn resolver instead of hardcoded player spawn coordinates,
-- move world persistence toward section-oriented `redb` records,
 - add deterministic worldgen golden coverage,
 - add generated chunk-border property coverage,
 - broaden storage persistence coverage across multiple overrides and vertical

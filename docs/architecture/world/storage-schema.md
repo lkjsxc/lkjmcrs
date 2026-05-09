@@ -15,6 +15,7 @@ Document the active server-owned world storage schema for section-oriented
 ## World Tables
 
 - `meta`: string keys with byte values.
+- `chunk_meta`: one record per saved chunk.
 - `chunk_sections`: one record per dirty vertical section.
 
 ## Meta Keys
@@ -32,14 +33,15 @@ Document the active server-owned world storage schema for section-oriented
 
 - `chunk_sections` stores compact block states plus optional biome and light
   payloads.
+- `chunk_meta` stores dirty-section bitmap, generated content hash, and save
+  bookkeeping.
 - A missing section means the generated base has no persisted changes there.
 - A chunk with no dirty sections must not keep empty section records.
 - Old JSON chunk override values are unsupported.
 
 ## Queued Tables
 
-- `chunk_meta`: dirty-section bitmap, generated content hash, last save tick,
-  and feature bookkeeping.
+- Future `chunk_meta` fields may add terrain feature masks and lighting state.
 - `chunk_entities`: persisted non-player entity records after entity storage is
   documented.
 

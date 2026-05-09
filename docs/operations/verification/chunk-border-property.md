@@ -18,7 +18,7 @@ For any generated neighboring chunks with the same generator and seed:
 
 - East-west and north-south neighbor pairs.
 - Positive and negative chunk coordinates.
-- Chunks adjacent to the spawn safety core.
+- Chunks adjacent to the resolved spawn.
 - At least one natural-terrain outer pair.
 - At least one persisted override near a border.
 
@@ -29,7 +29,7 @@ For any generated neighboring chunks with the same generator and seed:
 3. Failing examples should print seed, chunk pair, and world coordinate.
 4. Compose terrain probes remain responsible for protocol-level chunk delivery.
 
-## Deferred Command
+## Gate Command
 
-No dedicated compose command is active yet. This property belongs in static
-verification once implemented.
+- Static gate: `cargo test adjacent_chunks_share_border_heights`.
+- Compose terrain probes remain responsible for protocol-level chunk delivery.

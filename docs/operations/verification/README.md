@@ -32,7 +32,7 @@ Use this subtree for required compose verification contracts.
 - [scale-chunk-stream-smoke.md](scale-chunk-stream-smoke.md): progressive
   larger-radius chunk streaming smoke.
 - [terrain-generation-smoke.md](terrain-generation-smoke.md): natural terrain
-  and spawn safety-core smoke.
+  and spawn-resolution smoke.
 - [worldgen-golden.md](worldgen-golden.md): deterministic terrain golden
   target.
 - [chunk-border-property.md](chunk-border-property.md): generated chunk border

@@ -17,8 +17,8 @@ minimal spawn area.
 ## World
 
 - One dimension: `minecraft:overworld`.
-- Deterministic generated terrain with a protected spawn safety core.
-- Spawn defaults to `0, 80, 0`.
+- Deterministic generated terrain with server-resolved spawn safety.
+- Spawn is resolved from the active terrain generator.
 - World entry sends the vanilla level-chunk readiness game event.
 - The initial world-entry batch covers the near radius `2`; larger advertised
   radii stream progressively after play begins.

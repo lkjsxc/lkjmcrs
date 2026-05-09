@@ -9,7 +9,6 @@ pub enum TerrainGenerator {
 
 #[derive(Debug, Clone)]
 pub struct NaturalWorld {
-    flat: FlatWorld,
     seed: i64,
 }
 
@@ -19,10 +18,7 @@ impl TerrainGenerator {
     }
 
     pub fn natural(seed: i64) -> Self {
-        Self::Natural(NaturalWorld {
-            flat: FlatWorld::default(),
-            seed,
-        })
+        Self::Natural(NaturalWorld { seed })
     }
 
     pub fn chunk_snapshot(&self, pos: ChunkPos) -> ChunkSnapshot {
@@ -46,9 +42,6 @@ impl TerrainGenerator {
 
 impl NaturalWorld {
     pub fn chunk_snapshot(&self, pos: ChunkPos) -> ChunkSnapshot {
-        if pos.x.abs().max(pos.z.abs()) <= 1 {
-            return self.flat.chunk_snapshot(pos);
-        }
         let mut heights = [79; 256];
         for z in 0..16 {
             for x in 0..16 {
@@ -61,29 +54,16 @@ impl NaturalWorld {
     }
 
     pub fn spawn(&self) -> (f64, f64, f64) {
-        let _scored_spawn = terrain::spawn_position(self.seed);
-        (0.5, 80.0, 0.5)
+        terrain::spawn_position(self.seed)
     }
 
     fn height_at(&self, x: i32, z: i32) -> i32 {
-        let natural = self.natural_height_at(x, z);
-        let r = ((x as f64 / 16.0).powi(2) + (z as f64 / 16.0).powi(2)).sqrt();
-        let t = ((r - 1.0) / 5.0).clamp(0.0, 1.0);
-        let weight = smooth(t);
-        lerp(79.0, natural as f64, weight).round() as i32
+        self.natural_height_at(x, z)
     }
 
     fn natural_height_at(&self, x: i32, z: i32) -> i32 {
         terrain::surface_height(self.seed, x, z)
     }
-}
-
-fn smooth(t: f64) -> f64 {
-    t * t * (3.0 - 2.0 * t)
-}
-
-fn lerp(a: f64, b: f64, t: f64) -> f64 {
-    a + (b - a) * t
 }
 
 #[cfg(test)]
@@ -99,11 +79,11 @@ mod tests {
     }
 
     #[test]
-    fn spawn_plateau_matches_flat_surface() {
-        let chunk = TerrainGenerator::natural(7).chunk_snapshot(ChunkPos::new(1, -1));
-        assert!(chunk.is_shared_flat_base());
-        assert_eq!(chunk.block_at(79), BlockState::GrassBlock);
-        assert_eq!(chunk.block_at(80), BlockState::Air);
+    fn natural_spawn_uses_scored_column() {
+        let spawn = TerrainGenerator::natural(7).spawn();
+        assert_ne!(spawn, (0.5, 80.0, 0.5));
+        assert_eq!(spawn.0.fract(), 0.5);
+        assert_eq!(spawn.2.fract(), 0.5);
     }
 
     #[test]

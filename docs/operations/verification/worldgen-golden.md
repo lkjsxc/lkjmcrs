@@ -9,7 +9,7 @@ private runtime state.
 
 - Verify `natural` terrain with a fixed `world_seed`.
 - Verify `flat` terrain remains selectable for scale regression probes.
-- Cover spawn safety-core chunks and representative outer chunks.
+- Cover spawn-near chunks and representative outer chunks.
 - Cover final generated blocks before sparse persisted overrides are applied.
 
 ## Golden Inputs
@@ -18,7 +18,7 @@ private runtime state.
 - World seed.
 - Chunk coordinate.
 - Expected sampled block states or column heights.
-- Expected result for at least one boundary chunk near the spawn safety core.
+- Expected result for at least one chunk adjacent to a sampled golden chunk.
 
 ## Acceptance Rules
 

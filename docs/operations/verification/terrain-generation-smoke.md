@@ -14,7 +14,7 @@ docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-com
 
 - Connects to `terrain-server` using `config/verify/terrain-server.json`.
 - Verifies the initial chunk batch shape.
-- Verifies spawn safety-core chunks keep the current safe surface.
+- Verifies the server-resolved spawn and nearby chunk delivery.
 - Verifies at least one outer bootstrap chunk has non-flat deterministic
   terrain.
 - Verifies chunk batches use embedded light in `level_chunk_with_light`.

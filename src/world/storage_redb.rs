@@ -1,7 +1,8 @@
 use crate::world::storage::{WorldStore, redb_error};
+use crate::world::storage_meta::ChunkMeta;
 use crate::world::storage_section_codec::{StoredSection, section_range, section_y};
 use crate::world::{ChunkPos, ChunkSnapshot, WorldStorageError};
-use redb::{Database, ReadableDatabase, TableDefinition};
+use redb::{Database, ReadableDatabase, ReadableTable, TableDefinition};
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::PathBuf;
@@ -85,23 +86,35 @@ impl WorldStore for RedbWorldStore {
             .lock()
             .map_err(|_| std::io::Error::other("world storage write lock poisoned"))?;
         let database = self.database()?;
-        let sections = sections_from_snapshot(chunk);
+        let sections = encoded_sections_from_snapshot(chunk)?;
         let write = database.begin_write().map_err(redb_error)?;
         {
+            let meta_key = chunk_meta_key(chunk.pos);
+            let previous = {
+                let meta = write.open_table(CHUNK_META).map_err(redb_error)?;
+                meta.get(meta_key.as_str())
+                    .map_err(redb_error)?
+                    .map(|bytes| ChunkMeta::decode(bytes.value()))
+                    .transpose()?
+            };
+            let current = ChunkMeta::from_sections(&sections, previous);
+            let current_dirty = current.dirty_sections();
+            let old_dirty = previous.map(ChunkMeta::dirty_sections).unwrap_or_default();
             let mut table = write.open_table(CHUNK_SECTIONS).map_err(redb_error)?;
-            for y in section_range() {
+            for y in old_dirty.difference(&current_dirty) {
                 table
-                    .remove(section_key(chunk.pos, y).as_str())
+                    .remove(section_key(chunk.pos, *y).as_str())
                     .map_err(redb_error)?;
             }
-            for (y, stored) in sections {
-                if !stored.is_empty() {
-                    let bytes = stored.encode()?;
-                    table
-                        .insert(section_key(chunk.pos, y).as_str(), bytes.as_slice())
-                        .map_err(redb_error)?;
-                }
+            for (y, bytes) in sections {
+                table
+                    .insert(section_key(chunk.pos, y).as_str(), bytes.as_slice())
+                    .map_err(redb_error)?;
             }
+            drop(table);
+            let mut meta = write.open_table(CHUNK_META).map_err(redb_error)?;
+            meta.insert(meta_key.as_str(), current.encode().as_slice())
+                .map_err(redb_error)?;
         }
         write.commit().map_err(redb_error)?;
         Ok(())
@@ -122,6 +135,20 @@ fn sections_from_snapshot(chunk: &ChunkSnapshot) -> BTreeMap<i32, StoredSection>
         .collect()
 }
 
+fn encoded_sections_from_snapshot(
+    chunk: &ChunkSnapshot,
+) -> Result<BTreeMap<i32, Vec<u8>>, WorldStorageError> {
+    sections_from_snapshot(chunk)
+        .into_iter()
+        .filter(|(_, stored)| !stored.is_empty())
+        .map(|(y, stored)| stored.encode().map(|bytes| (y, bytes)))
+        .collect()
+}
+
 fn section_key(pos: ChunkPos, section_y: i32) -> String {
     format!("overworld/{}/{}/{}", pos.x, pos.z, section_y)
+}
+
+fn chunk_meta_key(pos: ChunkPos) -> String {
+    format!("overworld/{}/{}", pos.x, pos.z)
 }
