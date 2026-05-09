@@ -1,5 +1,6 @@
 mod auth;
 pub mod block_actions;
+mod block_destroy;
 mod block_packets;
 mod block_rules;
 #[cfg(test)]
@@ -32,6 +33,7 @@ mod inventory_sync;
 pub mod io;
 mod item_pickup;
 mod item_visibility;
+mod mining;
 mod online_login;
 pub mod outbound;
 pub mod play;

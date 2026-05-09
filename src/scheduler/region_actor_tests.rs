@@ -1,5 +1,5 @@
 use crate::scheduler::RegionActor;
-use crate::world::{BlockPos, BlockState, ChunkPos, RegionId, WorldStorage};
+use crate::world::{BlockPos, BlockState, ChunkPos, PICKUP_DELAY, RegionId, WorldStorage};
 use std::fs;
 use std::path::PathBuf;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
@@ -157,6 +157,7 @@ async fn item_entities_spawn_and_collect_by_radius() {
             .len(),
         1
     );
+    tokio::time::sleep(PICKUP_DELAY + Duration::from_millis(10)).await;
     assert!(
         handle
             .collect_nearby(0.5, 79.5, 0.5, vec!["minecraft:dirt".to_string()])

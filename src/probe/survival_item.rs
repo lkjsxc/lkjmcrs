@@ -43,15 +43,8 @@ async fn reject_far_selected_item(
 }
 
 async fn break_grass_for_dirt(client: &mut PlayClient) -> Result<(), Box<dyn std::error::Error>> {
-    break_at(
-        &mut client.stream,
-        34,
-        BlockPos::new(1, 79, 0),
-        0,
-        "grass break",
-    )
-    .await?;
-    item_entities::collect_drop(&mut client.stream, 28, "grass pickup").await?;
+    break_at(&mut client.stream, 34, BlockPos::new(1, 79, 0), 9, 0).await?;
+    item_entities::collect_drop_at(&mut client.stream, 28, "grass pickup", 1.5, 80.0, 0.5).await?;
     Ok(())
 }
 
@@ -71,15 +64,8 @@ async fn place_dirt(client: &mut PlayClient) -> Result<(), Box<dyn std::error::E
 async fn break_dirt_for_persistence(
     client: &mut PlayClient,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    break_at(
-        &mut client.stream,
-        36,
-        BlockPos::new(1, 80, 0),
-        0,
-        "dirt break",
-    )
-    .await?;
-    item_entities::collect_drop(&mut client.stream, 28, "dirt pickup").await?;
+    break_at(&mut client.stream, 36, BlockPos::new(1, 80, 0), 10, 0).await?;
+    item_entities::collect_drop_at(&mut client.stream, 28, "dirt pickup", 1.5, 80.0, 0.5).await?;
     Ok(())
 }
 
@@ -117,11 +103,10 @@ async fn break_at(
     stream: &mut TcpStream,
     sequence: i32,
     pos: BlockPos,
+    current_state: i32,
     state: i32,
-    phase: &'static str,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    block_mutation::send_start_destroy_at(stream, sequence, pos).await?;
-    expect_update_at(stream, sequence, pos, state, phase).await
+    block_mutation::mine_dirt_like_at(stream, sequence, pos, current_state, state).await
 }
 
 async fn expect_update_at(

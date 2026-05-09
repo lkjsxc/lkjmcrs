@@ -57,6 +57,14 @@ impl NaturalWorld {
     }
 
     fn height_at(&self, x: i32, z: i32) -> i32 {
+        let natural = self.natural_height_at(x, z);
+        let r = ((x as f64 / 16.0).powi(2) + (z as f64 / 16.0).powi(2)).sqrt();
+        let t = ((r - 1.0) / 5.0).clamp(0.0, 1.0);
+        let weight = smooth(t);
+        lerp(79.0, natural as f64, weight).round() as i32
+    }
+
+    fn natural_height_at(&self, x: i32, z: i32) -> i32 {
         let broad = value_noise(self.seed, x, z, 32) * 18.0;
         let detail = value_noise(self.seed ^ 0x51f2_d36a, x, z, 8) * 5.0;
         (79.0 + broad + detail).round().clamp(62.0, 96.0) as i32
@@ -121,13 +129,23 @@ mod tests {
     }
 
     #[test]
-    fn outer_chunks_have_height_variation() {
+    fn blended_outer_chunks_have_height_variation() {
         let chunk = TerrainGenerator::natural(7).chunk_snapshot(ChunkPos::new(2, 0));
         let entries = chunk.base_entries_for_tests();
         assert!(
             entries
                 .iter()
                 .any(|(_, y, _, state)| *y != 79 && *state == BlockState::GrassBlock)
+        );
+    }
+
+    #[test]
+    fn far_chunks_are_fully_natural() {
+        let blended = TerrainGenerator::natural(7).chunk_snapshot(ChunkPos::new(2, 0));
+        let far = TerrainGenerator::natural(7).chunk_snapshot(ChunkPos::new(7, 0));
+        assert_ne!(
+            blended.base_entries_for_tests(),
+            far.base_entries_for_tests()
         );
     }
 }

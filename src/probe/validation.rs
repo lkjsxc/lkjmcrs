@@ -105,7 +105,7 @@ pub(super) fn decode_login_packet(
 pub(super) fn validate_chunk_radius(data: Vec<u8>) -> Result<usize, Box<dyn std::error::Error>> {
     let mut cursor = Cursor::new(data);
     let radius = codec::read_var_i32(&mut cursor)?;
-    if radius != play::Bootstrap::new(100).view_distance {
+    if !(2..=32).contains(&radius) {
         return Err(Box::new(ProbeError::Phase("chunk radius payload")));
     }
     Ok(play::chunk_count_for_radius(radius.min(EAGER_RADIUS)))

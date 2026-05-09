@@ -53,6 +53,15 @@ services:
       - ./config/verify/terrain-server.json:/app/config/server.json:ro
       - terrain-server-data:/app/data
 
+  chunk-stream-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["serve"]
+    volumes:
+      - ./config/verify/terrain-server.json:/app/config/server.json:ro
+      - chunk-stream-server-data:/app/data
+
   scale-load-server:
     build:
       context: .
@@ -61,6 +70,15 @@ services:
     volumes:
       - ./config/verify/scale-load-server.json:/app/config/server.json:ro
       - scale-load-server-data:/app/data
+
+  scale-moving-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["serve"]
+    volumes:
+      - ./config/verify/scale-load-server.json:/app/config/server.json:ro
+      - scale-moving-server-data:/app/data
 
   render32-server:
     build:
@@ -142,8 +160,8 @@ services:
       - cargo-registry:/usr/local/cargo/registry
       - target-cache:/target
     depends_on:
-      - server
-    entrypoint: ["cargo", "run", "--", "probe", "chunk-stream", "--host", "server:25565"]
+      - chunk-stream-server
+    entrypoint: ["cargo", "run", "--", "probe", "chunk-stream", "--host", "chunk-stream-server:25565"]
 
   scale-chunk-stream:
     build:
@@ -202,8 +220,8 @@ services:
       - cargo-registry:/usr/local/cargo/registry
       - target-cache:/target
     depends_on:
-      - scale-load-server
-    entrypoint: ["cargo", "run", "--", "probe", "scale-moving-pending", "--host", "scale-load-server:25565"]
+      - scale-moving-server
+    entrypoint: ["cargo", "run", "--", "probe", "scale-moving-pending", "--host", "scale-moving-server:25565"]
 
   render-distance:
     build:
@@ -363,7 +381,9 @@ volumes:
   survival-vitals-server-data:
   scale-server-data:
   terrain-server-data:
+  chunk-stream-server-data:
   scale-load-server-data:
+  scale-moving-server-data:
   render32-server-data:
   smp-server-data:
   online-server-data:

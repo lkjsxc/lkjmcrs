@@ -42,5 +42,6 @@ docker compose -f docker-compose.yml -f docker-compose.verify.yml logs scale-loa
 5. `render-distance` is the natural radius `32` automated gate for chunk
    count, follow-up batch size, payload bytes, terrain shape, and emitted scale
    counters.
-6. `scale-moving-pending` and `render-moving-pending` prove movement replaces
-   old queued chunks before far streaming finishes.
+6. `scale-moving-pending` uses an isolated `scale-moving-server` and proves
+   movement replaces old queued chunks before far streaming finishes.
+7. `render-moving-pending` proves the same boundary for radius `32`.

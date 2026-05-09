@@ -3,6 +3,7 @@ use crate::probe::live_play;
 use crate::probe::scale_chunk_stream;
 use crate::probe::scale_chunk_stream_packets as packets;
 use std::collections::HashSet;
+use tokio::time::{Duration, timeout};
 
 const RADIUS: i32 = 32;
 const INITIAL_CHUNKS: usize = 25;
@@ -15,18 +16,40 @@ pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
         return Err(Box::new(ProbeError::Phase("render moving initial")));
     }
     live_play::send_position_look_at(&mut stream, 16.5, 80.0, 0.5, 0.0, 0.0).await?;
-    packets::expect_cache_center(&mut stream, 1, 0).await?;
     let expected = window(1, 0, RADIUS);
+    for batch in packets::expect_cache_center_collecting_batches(&mut stream, 1, 0).await? {
+        accept_batch(&mut seen, &expected, batch.positions)?;
+    }
     while seen.len() < TOTAL_CHUNKS {
-        let batch = packets::read_next_batch(&mut stream).await?;
-        reject_stale_chunks(&batch.positions, &expected)?;
-        reject_duplicate_chunks(&seen, &batch.positions)?;
-        seen.extend(batch.positions);
+        let batch = timeout(
+            Duration::from_secs(10),
+            packets::read_next_batch(&mut stream),
+        )
+        .await
+        .map_err(|_| missing_chunks_error(seen.len()))??;
+        accept_batch(&mut seen, &expected, batch.positions)?;
     }
     if seen != expected {
         return Err(Box::new(ProbeError::Phase("render moving total")));
     }
     Ok(())
+}
+
+fn accept_batch(
+    seen: &mut HashSet<(i32, i32)>,
+    expected: &HashSet<(i32, i32)>,
+    batch: HashSet<(i32, i32)>,
+) -> Result<(), Box<dyn std::error::Error>> {
+    reject_stale_chunks(&batch, expected)?;
+    reject_duplicate_chunks(seen, &batch)?;
+    seen.extend(batch);
+    Ok(())
+}
+
+fn missing_chunks_error(seen: usize) -> Box<dyn std::error::Error> {
+    Box::new(std::io::Error::other(format!(
+        "render moving timed out after {seen} chunks"
+    )))
 }
 
 fn reject_stale_chunks(

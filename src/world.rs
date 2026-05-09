@@ -15,7 +15,7 @@ mod storage_tests;
 pub use blocks::{BlockState, ChunkSnapshot, GeneratedChunkKey, MIN_Y, TerrainKind};
 pub use flat::FlatWorld;
 pub use generator::TerrainGenerator;
-pub use item_entity::{DroppedItemEntity, PICKUP_RADIUS};
+pub use item_entity::{DroppedItemEntity, PICKUP_DELAY, PICKUP_EXPAND};
 pub use position::{BlockFace, BlockPos, ChunkPos, RegionSection};
 pub use region::{RegionDirectory, RegionId};
 pub use storage::{WorldStorage, WorldStorageError, WorldStore};

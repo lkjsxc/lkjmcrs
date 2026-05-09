@@ -22,7 +22,7 @@ pub(super) fn load_chunks(
         .await
         .map_err(|error| RegionActorError::StorageTask(error.to_string()))
         .and_then(|result| result.map_err(RegionActorError::from));
-        tracing::info!(
+        tracing::debug!(
             target: "lkjmcrs::scale",
             storage_operation = "load_chunks",
             storage_chunks = count,
@@ -48,7 +48,7 @@ pub(super) fn save_chunk(
             .await
             .map_err(|error| RegionActorError::StorageTask(error.to_string()))
             .and_then(|result| result.map_err(RegionActorError::from));
-        tracing::info!(
+        tracing::debug!(
             target: "lkjmcrs::scale",
             storage_operation = "save_chunk",
             storage_chunks = 1_usize,

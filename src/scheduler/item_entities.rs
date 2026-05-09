@@ -1,6 +1,7 @@
 use crate::scheduler::region_state::RegionActor;
 use crate::world::{BlockPos, ChunkPos, DroppedItemEntity};
 use std::collections::HashSet;
+use std::time::Instant;
 use tokio::sync::oneshot;
 
 const FIRST_ITEM_ENTITY_ID: i32 = 1000;
@@ -43,12 +44,13 @@ impl RegionActor {
         accepted_items: Vec<String>,
         reply: oneshot::Sender<Option<DroppedItemEntity>>,
     ) {
+        let now = Instant::now();
         let Some(entity_id) = self
             .item_entities
             .values()
             .find(|entity| {
                 accepted_items.iter().any(|item| item == &entity.item_id)
-                    && entity.within_pickup_radius(x, y, z)
+                    && entity.can_pickup_at(x, y, z, now)
             })
             .map(|entity| entity.entity_id)
         else {

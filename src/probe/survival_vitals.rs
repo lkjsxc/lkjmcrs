@@ -13,7 +13,7 @@ pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
 
     smp_commands::send_command(&mut admin.stream, "damage VitalsTarget 7.5").await?;
     smp_commands::expect_system_chat(&mut admin.stream, "Damage applied").await?;
-    let damaged = vitals_packets::expect_update_health(&mut target.stream).await?;
+    let damaged = expect_later_health(&mut target).await?;
     validate_health(damaged, 12.5, "damaged health")?;
 
     smp_commands::send_command(&mut admin.stream, "damage VitalsTarget 20").await?;
@@ -26,7 +26,7 @@ pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
 }
 
 async fn expect_death(client: &mut PlayClient) -> Result<(), Box<dyn std::error::Error>> {
-    let zero = vitals_packets::expect_update_health(&mut client.stream).await?;
+    let zero = expect_later_health(client).await?;
     validate_health(zero, 0.0, "lethal health")?;
     let packet = block_mutation::read_next_non_time(&mut client.stream, "death event").await?;
     if packet.id != ids::play::DEATH_COMBAT_EVENT {
@@ -61,7 +61,7 @@ async fn expect_respawn(client: &mut PlayClient) -> Result<(), Box<dyn std::erro
     if !approx(position.x, 0.5) || !approx(position.y, 80.0) || !approx(position.z, 0.5) {
         return Err(Box::new(ProbeError::Phase("respawn position")));
     }
-    let restored = vitals_packets::expect_update_health(&mut client.stream).await?;
+    let restored = expect_later_health(client).await?;
     validate_health(restored, 20.0, "respawn health")
 }
 
@@ -75,7 +75,7 @@ async fn expect_regeneration(
 ) -> Result<(), Box<dyn std::error::Error>> {
     smp_commands::send_command(&mut admin.stream, "vitals VitalsTarget 19 20 1").await?;
     smp_commands::expect_system_chat(&mut admin.stream, "Vitals updated").await?;
-    let set = vitals_packets::expect_update_health(&mut target.stream).await?;
+    let set = expect_later_health(target).await?;
     vitals_packets::validate_state(set, 19.0, 20, 1.0, "set regen vitals")?;
     let regen = expect_later_health(target).await?;
     vitals_packets::validate_state(regen, 20.0, 20, 0.0, "regenerated health")
@@ -87,7 +87,7 @@ async fn expect_starvation(
 ) -> Result<(), Box<dyn std::error::Error>> {
     smp_commands::send_command(&mut admin.stream, "vitals VitalsTarget 20 0 0").await?;
     smp_commands::expect_system_chat(&mut admin.stream, "Vitals updated").await?;
-    let set = vitals_packets::expect_update_health(&mut target.stream).await?;
+    let set = expect_later_health(target).await?;
     vitals_packets::validate_state(set, 20.0, 0, 0.0, "set starvation vitals")?;
     let starved = expect_later_health(target).await?;
     vitals_packets::validate_state(starved, 19.0, 0, 0.0, "starvation health")

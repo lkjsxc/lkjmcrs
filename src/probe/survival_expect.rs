@@ -9,7 +9,7 @@ pub(super) async fn read_next_material_packet(
     phase: &'static str,
 ) -> Result<codec::Packet, Box<dyn std::error::Error>> {
     loop {
-        let packet = read_next_live_packet(stream).await?;
+        let packet = read_next_survival_packet(stream).await?;
         if !matches!(
             packet.id,
             ids::play::SET_TIME | ids::play::SET_PLAYER_INVENTORY | ids::play::HELD_ITEM_SLOT
@@ -20,6 +20,17 @@ pub(super) async fn read_next_material_packet(
             phase,
             "inventory or time packet skipped during survival probe"
         );
+    }
+}
+
+pub(super) async fn read_next_survival_packet(
+    stream: &mut TcpStream,
+) -> Result<codec::Packet, Box<dyn std::error::Error>> {
+    loop {
+        let packet = read_next_live_packet(stream).await?;
+        if !is_chunk_stream_packet(packet.id) {
+            return Ok(packet);
+        }
     }
 }
 
@@ -47,6 +58,18 @@ async fn respond_keepalive(
     codec::write_i64(&mut response, id);
     codec::write_packet(stream, ids::play::SERVERBOUND_KEEPALIVE, &response).await?;
     Ok(())
+}
+
+fn is_chunk_stream_packet(id: i32) -> bool {
+    matches!(
+        id,
+        ids::play::CHUNK_BATCH_START
+            | ids::play::CHUNK_BATCH_FINISHED
+            | ids::play::LEVEL_CHUNK_WITH_LIGHT
+            | ids::play::UNLOAD_CHUNK
+            | ids::play::CHUNK_CACHE_CENTER
+            | ids::play::CHUNK_CACHE_RADIUS
+    )
 }
 
 pub(super) fn validate_update_state(

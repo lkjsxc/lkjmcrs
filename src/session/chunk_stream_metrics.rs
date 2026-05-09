@@ -30,7 +30,29 @@ pub fn emit_chunk_stream_stats(
     active_sessions: usize,
     region_mailbox_depth: usize,
 ) {
-    tracing::info!(
+    if pending_queue_len == 0 {
+        tracing::info!(
+            target: "lkjmcrs::scale",
+            followup_batches = stream.followup_batches,
+            followup_chunks = stream.followup_chunks,
+            followup_payload_bytes = stream.followup_payload_bytes,
+            batch_chunks,
+            batch_payload_bytes,
+            pending_queue_len,
+            max_pending_queue_len = stream.max_pending_queue_len,
+            active_sessions,
+            region_mailbox_depth,
+            flat_cache_hits = cache.flat_hits,
+            flat_cache_misses = cache.flat_misses,
+            generated_cache_hits = cache.generated_hits,
+            generated_cache_misses = cache.generated_misses,
+            generated_cache_evictions = cache.generated_evictions,
+            override_cache_bypasses = cache.override_bypasses,
+            "chunk stream counters"
+        );
+        return;
+    }
+    tracing::debug!(
         target: "lkjmcrs::scale",
         followup_batches = stream.followup_batches,
         followup_chunks = stream.followup_chunks,

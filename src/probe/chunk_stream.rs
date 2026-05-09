@@ -4,6 +4,7 @@ use crate::probe::chunk;
 use crate::probe::live_play;
 use crate::probe::play_client::PlayClient;
 use crate::probe::position::BlockPos;
+use crate::probe::survival_expect;
 use crate::probe::terrain_chunk::DecodedChunk;
 use crate::probe::validation::validate_chunk_batch_finished;
 use crate::protocol::{codec, ids};
@@ -33,7 +34,7 @@ async fn expect_cache_center(
     x: i32,
     z: i32,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let packet = block_mutation::read_next_non_time(stream, "stream cache center").await?;
+    let packet = read_next_stream_packet(stream, "stream cache center").await?;
     if packet.id != ids::play::CHUNK_CACHE_CENTER {
         return Err(Box::new(ProbeError::Phase("stream cache center id")));
     }
@@ -50,7 +51,7 @@ async fn expect_unload_column(
 ) -> Result<(), Box<dyn std::error::Error>> {
     let mut positions = HashSet::new();
     for _ in 0..5 {
-        let packet = block_mutation::read_next_non_time(stream, "stream unload").await?;
+        let packet = read_next_stream_packet(stream, "stream unload").await?;
         if packet.id != ids::play::UNLOAD_CHUNK {
             return Err(Box::new(ProbeError::Phase("stream unload id")));
         }
@@ -66,14 +67,14 @@ async fn expect_column_batch(
     stream: &mut TcpStream,
     expected_x: i32,
 ) -> Result<i32, Box<dyn std::error::Error>> {
-    let start = block_mutation::read_next_non_time(stream, "stream batch start").await?;
+    let start = read_next_stream_packet(stream, "stream batch start").await?;
     if start.id != ids::play::CHUNK_BATCH_START {
         return Err(Box::new(ProbeError::Phase("stream batch start id")));
     }
     let mut positions = HashSet::new();
     let mut surface = None;
     for _ in 0..5 {
-        let chunk_packet = block_mutation::read_next_non_time(stream, "stream chunk").await?;
+        let chunk_packet = read_next_stream_packet(stream, "stream chunk").await?;
         if chunk_packet.id != ids::play::LEVEL_CHUNK_WITH_LIGHT {
             return Err(Box::new(ProbeError::Phase("stream chunk id")));
         }
@@ -85,12 +86,28 @@ async fn expect_column_batch(
         }
     }
     validate_new_column(positions, expected_x)?;
-    let finished = block_mutation::read_next_non_time(stream, "stream batch finished").await?;
+    let finished = read_next_stream_packet(stream, "stream batch finished").await?;
     if finished.id != ids::play::CHUNK_BATCH_FINISHED {
         return Err(Box::new(ProbeError::Phase("stream batch finished id")));
     }
     validate_chunk_batch_finished(finished.data, 5)?;
     Ok(surface.unwrap_or(79))
+}
+
+async fn read_next_stream_packet(
+    stream: &mut TcpStream,
+    phase: &'static str,
+) -> Result<codec::Packet, Box<dyn std::error::Error>> {
+    loop {
+        let packet = survival_expect::read_next_live_packet(stream).await?;
+        if !matches!(
+            packet.id,
+            ids::play::SET_PLAYER_INVENTORY | ids::play::HELD_ITEM_SLOT
+        ) {
+            return Ok(packet);
+        }
+        tracing::debug!(phase, "inventory packet skipped during stream probe");
+    }
 }
 
 fn validate_new_column(
@@ -111,12 +128,13 @@ async fn place_in_streamed_chunk(
     let base = BlockPos::new(48, surface_y, 0);
     let placed = BlockPos::new(48, surface_y + 1, 0);
     block_mutation::send_use_item_on_at(stream, STREAM_PLACE_SEQUENCE, base).await?;
-    let ack = block_mutation::read_next_non_time(stream, "stream placement ack").await?;
+    let ack = survival_expect::read_next_material_packet(stream, "stream placement ack").await?;
     if ack.id != ids::play::BLOCK_CHANGED_ACK {
         return Err(Box::new(ProbeError::Phase("stream placement ack id")));
     }
     block_mutation::validate_ack(ack.data, STREAM_PLACE_SEQUENCE)?;
-    let update = block_mutation::read_next_non_time(stream, "stream placement update").await?;
+    let update =
+        survival_expect::read_next_material_packet(stream, "stream placement update").await?;
     if update.id != ids::play::BLOCK_UPDATE {
         return Err(Box::new(ProbeError::Phase("stream placement update id")));
     }

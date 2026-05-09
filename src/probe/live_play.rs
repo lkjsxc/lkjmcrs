@@ -65,5 +65,11 @@ fn ignorable_live_packet(id: i32) -> bool {
             | ids::play::SET_PLAYER_INVENTORY
             | ids::play::SYSTEM_CHAT
             | ids::play::COLLECT
+            | ids::play::CHUNK_BATCH_START
+            | ids::play::CHUNK_BATCH_FINISHED
+            | ids::play::LEVEL_CHUNK_WITH_LIGHT
+            | ids::play::UNLOAD_CHUNK
+            | ids::play::CHUNK_CACHE_CENTER
+            | ids::play::CHUNK_CACHE_RADIUS
     )
 }

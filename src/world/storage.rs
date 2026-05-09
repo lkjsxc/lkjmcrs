@@ -49,35 +49,40 @@ pub trait WorldStore: Send + Sync + std::fmt::Debug {
 
 impl WorldStorage {
     pub fn new(root: impl Into<PathBuf>) -> Self {
-        Self::with_backend(root, TerrainGenerator::flat(), test_storage())
+        Self::with_generator(root, TerrainGenerator::flat())
     }
 
     pub fn with_generator(root: impl Into<PathBuf>, generator: TerrainGenerator) -> Self {
-        Self::with_backend(root, generator, test_storage())
+        Self {
+            generator,
+            store: Arc::new(RedbWorldStore::new(root)),
+            #[cfg(test)]
+            test: TestStorage::default(),
+        }
     }
 
     #[cfg(test)]
     pub fn with_delay_for_tests(root: impl Into<PathBuf>, delay: Duration) -> Self {
-        Self::with_backend(
-            root,
-            TerrainGenerator::flat(),
-            TestStorage {
+        Self {
+            generator: TerrainGenerator::flat(),
+            store: Arc::new(RedbWorldStore::new(root)),
+            test: TestStorage {
                 delay: Some(delay),
                 fail_saves: false,
             },
-        )
+        }
     }
 
     #[cfg(test)]
     pub fn with_save_failure_for_tests(root: impl Into<PathBuf>) -> Self {
-        Self::with_backend(
-            root,
-            TerrainGenerator::flat(),
-            TestStorage {
+        Self {
+            generator: TerrainGenerator::flat(),
+            store: Arc::new(RedbWorldStore::new(root)),
+            test: TestStorage {
                 delay: None,
                 fail_saves: true,
             },
-        )
+        }
     }
 
     pub fn validate(&self) -> Result<(), WorldStorageError> {
@@ -110,34 +115,8 @@ impl WorldStorage {
         }
         Ok(())
     }
-
-    fn with_backend(
-        root: impl Into<PathBuf>,
-        generator: TerrainGenerator,
-        test: TestStorage,
-    ) -> Self {
-        #[cfg(not(test))]
-        let _ = test;
-        Self {
-            generator,
-            store: Arc::new(RedbWorldStore::new(root)),
-            #[cfg(test)]
-            test,
-        }
-    }
 }
 
 pub(super) fn redb_error(error: impl std::fmt::Display) -> WorldStorageError {
     WorldStorageError::Redb(error.to_string())
-}
-
-#[cfg(not(test))]
-type TestStorage = ();
-
-#[cfg(not(test))]
-fn test_storage() -> TestStorage {}
-
-#[cfg(test)]
-fn test_storage() -> TestStorage {
-    TestStorage::default()
 }

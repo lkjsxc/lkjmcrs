@@ -2,6 +2,7 @@ use crate::player::PlayerProfile;
 use crate::protocol::block_interaction::{self, BlockInteraction};
 use crate::scheduler::RegionHandle;
 use crate::session::SessionState;
+use crate::session::block_destroy;
 use crate::session::block_packets::{send_block_update, send_prediction_ack};
 use crate::session::block_rules;
 use crate::session::error::ConnectionError;
@@ -26,7 +27,7 @@ pub async fn handle_block_interaction<W>(
     region: &RegionHandle,
     sessions: &SessionRegistry,
     writer: &mut W,
-    session: &PlaySession,
+    session: &mut PlaySession,
     profile: &mut PlayerProfile,
 ) -> Result<(), ConnectionError>
 where
@@ -66,19 +67,16 @@ where
         } => {
             let before = profile.inventory.clone();
             let pos = to_world_pos(pos);
-            let result = if !session.dead && can_reach_block(session, pos) {
-                block_rules::apply_player_action(
-                    region,
-                    action,
-                    pos,
-                    phase,
-                    profile.game_mode,
-                    &mut profile.inventory,
-                )
-                .await?
-            } else {
-                reconcile(region, pos, phase).await?
-            };
+            let result = block_destroy::handle_player_action(
+                action,
+                region,
+                session,
+                pos,
+                phase,
+                profile.game_mode,
+                &mut profile.inventory,
+            )
+            .await?;
             send_prediction_ack(writer, phase, sequence).await?;
             send_block_update(writer, phase, result.pos, result.state).await?;
             send_inventory_delta(writer, phase, &before, profile, &result).await?;

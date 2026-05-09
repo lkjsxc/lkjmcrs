@@ -1,6 +1,7 @@
 use crate::player::{PlayerPosition, PlayerProfile};
 use crate::protocol::movement::Movement;
 use crate::protocol::play::Bootstrap;
+use crate::session::mining::ActiveMining;
 use crate::session::registry::SessionId;
 use tokio::time::{Duration, Instant};
 
@@ -61,6 +62,7 @@ pub struct PlaySession {
     pub age: i64,
     pub day_time: i64,
     pub dead: bool,
+    pub(super) active_mining: Option<ActiveMining>,
 }
 
 impl PlaySession {
@@ -79,6 +81,7 @@ impl PlaySession {
             age: 0,
             day_time: 0,
             dead: false,
+            active_mining: None,
         }
     }
 

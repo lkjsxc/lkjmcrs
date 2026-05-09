@@ -1,17 +1,20 @@
 use crate::probe::ProbeError;
 use crate::probe::item_entities;
 use crate::probe::position::BlockPos;
+use crate::probe::survival_expect;
 use crate::protocol::{codec, ids};
 use std::io::Cursor;
 use tokio::net::TcpStream;
+use tokio::time::{Duration, sleep};
+
+const DIRT_BREAK_WAIT: Duration = Duration::from_millis(850);
 
 pub(super) async fn acquire_dirt(
     stream: &mut TcpStream,
     grass: BlockPos,
     phase: &'static str,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    send_start_destroy_at(stream, 1000 + grass.x.abs() + grass.z.abs(), grass).await?;
-    expect_ack_and_update_at(stream, 1000 + grass.x.abs() + grass.z.abs(), grass, 0).await?;
+    mine_dirt_like_at(stream, 1000 + grass.x.abs() + grass.z.abs(), grass, 9, 0).await?;
     item_entities::collect_drop_at(
         stream,
         28,
@@ -24,11 +27,37 @@ pub(super) async fn acquire_dirt(
     Ok(())
 }
 
-pub(super) async fn send_use_item_on(
+pub(super) async fn mine_dirt_like_at(
     stream: &mut TcpStream,
     sequence: i32,
+    pos: BlockPos,
+    current_state: i32,
+    final_state: i32,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    send_use_item_on_at(stream, sequence, BlockPos::new(0, 79, 0)).await
+    mine_block_at(
+        stream,
+        sequence,
+        pos,
+        current_state,
+        final_state,
+        DIRT_BREAK_WAIT,
+    )
+    .await
+}
+
+async fn mine_block_at(
+    stream: &mut TcpStream,
+    sequence: i32,
+    pos: BlockPos,
+    current_state: i32,
+    final_state: i32,
+    wait: Duration,
+) -> Result<(), Box<dyn std::error::Error>> {
+    send_start_destroy_at(stream, sequence, pos).await?;
+    expect_ack_and_update_at(stream, sequence, pos, current_state).await?;
+    sleep(wait).await;
+    send_stop_destroy_at(stream, sequence, pos).await?;
+    expect_ack_and_update_at(stream, sequence, pos, final_state).await
 }
 
 pub(super) async fn send_use_item_on_at(
@@ -50,14 +79,7 @@ pub(super) async fn send_use_item_on_at(
     Ok(())
 }
 
-pub(super) async fn send_start_destroy(
-    stream: &mut TcpStream,
-    sequence: i32,
-) -> Result<(), Box<dyn std::error::Error>> {
-    send_start_destroy_at(stream, sequence, BlockPos::new(0, 80, 0)).await
-}
-
-pub(super) async fn send_start_destroy_at(
+async fn send_start_destroy_at(
     stream: &mut TcpStream,
     sequence: i32,
     pos: BlockPos,
@@ -71,17 +93,32 @@ pub(super) async fn send_start_destroy_at(
     Ok(())
 }
 
+async fn send_stop_destroy_at(
+    stream: &mut TcpStream,
+    sequence: i32,
+    pos: BlockPos,
+) -> Result<(), Box<dyn std::error::Error>> {
+    let mut payload = Vec::new();
+    codec::write_var_i32(&mut payload, 2);
+    codec::write_position(&mut payload, pos.x, pos.y, pos.z);
+    codec::write_u8(&mut payload, 1);
+    codec::write_var_i32(&mut payload, sequence);
+    codec::write_packet(stream, ids::play::SERVERBOUND_PLAYER_ACTION, &payload).await?;
+    Ok(())
+}
+
 pub(super) async fn expect_ack_and_update(
     stream: &mut TcpStream,
     sequence: i32,
     block_state: i32,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let ack = read_next_non_time(stream, "block mutation ack").await?;
+    let ack = survival_expect::read_next_material_packet(stream, "block mutation ack").await?;
     if ack.id != ids::play::BLOCK_CHANGED_ACK {
         return Err(Box::new(ProbeError::Phase("block mutation ack id")));
     }
     validate_ack(ack.data, sequence)?;
-    let update = read_next_non_time(stream, "block mutation update").await?;
+    let update =
+        survival_expect::read_next_material_packet(stream, "block mutation update").await?;
     if update.id != ids::play::BLOCK_UPDATE {
         return Err(Box::new(ProbeError::Phase("block mutation update id")));
     }
@@ -92,16 +129,7 @@ pub(super) async fn read_next_non_time(
     stream: &mut TcpStream,
     phase: &'static str,
 ) -> Result<codec::Packet, Box<dyn std::error::Error>> {
-    loop {
-        let packet = codec::read_packet(stream).await?;
-        if !matches!(
-            packet.id,
-            ids::play::SET_TIME | ids::play::SET_PLAYER_INVENTORY | ids::play::HELD_ITEM_SLOT
-        ) {
-            return Ok(packet);
-        }
-        tracing::debug!(phase, "periodic or inventory packet skipped");
-    }
+    survival_expect::read_next_material_packet(stream, phase).await
 }
 
 pub(super) fn validate_ack(data: Vec<u8>, sequence: i32) -> Result<(), Box<dyn std::error::Error>> {
@@ -148,12 +176,13 @@ pub(super) async fn expect_ack_and_update_at(
     pos: BlockPos,
     block_state: i32,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let ack = read_next_non_time(stream, "block mutation ack").await?;
+    let ack = survival_expect::read_next_material_packet(stream, "block mutation ack").await?;
     if ack.id != ids::play::BLOCK_CHANGED_ACK {
         return Err(Box::new(ProbeError::Phase("block mutation ack id")));
     }
     validate_ack(ack.data, sequence)?;
-    let update = read_next_non_time(stream, "block mutation update").await?;
+    let update =
+        survival_expect::read_next_material_packet(stream, "block mutation update").await?;
     if update.id != ids::play::BLOCK_UPDATE {
         return Err(Box::new(ProbeError::Phase("block mutation update id")));
     }

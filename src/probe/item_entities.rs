@@ -5,6 +5,9 @@ use crate::protocol::entity::ITEM_ENTITY_TYPE_ID;
 use crate::protocol::{codec, ids};
 use std::io::Cursor;
 use tokio::net::TcpStream;
+use tokio::time::{Duration, sleep};
+
+const PICKUP_WAIT: Duration = Duration::from_millis(600);
 
 pub(super) async fn collect_drop(
     stream: &mut TcpStream,
@@ -24,6 +27,7 @@ pub(super) async fn collect_drop_at(
 ) -> Result<PlayerInventorySlot, Box<dyn std::error::Error>> {
     let entity_id = expect_spawn(stream, phase).await?;
     expect_metadata(stream, entity_id, item_id, phase).await?;
+    sleep(PICKUP_WAIT).await;
     live_play::send_position_look_at(stream, x, y, z, 0.0, 0.0).await?;
     expect_collect(stream, entity_id, phase).await?;
     expect_destroy(stream, entity_id, phase).await?;
@@ -34,9 +38,9 @@ async fn expect_spawn(
     stream: &mut TcpStream,
     _phase: &'static str,
 ) -> Result<i32, Box<dyn std::error::Error>> {
-    let packet = survival_expect::read_next_live_packet(stream).await?;
+    let packet = survival_expect::read_next_survival_packet(stream).await?;
     if packet.id != ids::play::SPAWN_ENTITY {
-        return Err(Box::new(ProbeError::Phase("item spawn id")));
+        return Err(packet_error("item spawn id", packet.id));
     }
     let mut cursor = Cursor::new(packet.data);
     let entity_id = codec::read_var_i32(&mut cursor)?;
@@ -68,9 +72,9 @@ async fn expect_metadata(
     item_id: i32,
     _phase: &'static str,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let packet = survival_expect::read_next_live_packet(stream).await?;
+    let packet = survival_expect::read_next_survival_packet(stream).await?;
     if packet.id != ids::play::ENTITY_METADATA {
-        return Err(Box::new(ProbeError::Phase("item metadata id")));
+        return Err(packet_error("item metadata id", packet.id));
     }
     let mut cursor = Cursor::new(packet.data);
     if codec::read_var_i32(&mut cursor)? != entity_id || codec::read_u8(&mut cursor)? != 8 {
@@ -96,9 +100,9 @@ async fn expect_collect(
     entity_id: i32,
     _phase: &'static str,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let packet = survival_expect::read_next_live_packet(stream).await?;
+    let packet = survival_expect::read_next_survival_packet(stream).await?;
     if packet.id != ids::play::COLLECT {
-        return Err(Box::new(ProbeError::Phase("collect id")));
+        return Err(packet_error("collect id", packet.id));
     }
     let mut cursor = Cursor::new(packet.data);
     if codec::read_var_i32(&mut cursor)? != entity_id || codec::read_var_i32(&mut cursor)? != 1 {
@@ -115,9 +119,9 @@ async fn expect_destroy(
     entity_id: i32,
     _phase: &'static str,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let packet = survival_expect::read_next_live_packet(stream).await?;
+    let packet = survival_expect::read_next_survival_packet(stream).await?;
     if packet.id != ids::play::ENTITY_DESTROY {
-        return Err(Box::new(ProbeError::Phase("destroy id")));
+        return Err(packet_error("destroy id", packet.id));
     }
     let mut cursor = Cursor::new(packet.data);
     if codec::read_var_i32(&mut cursor)? != 1 || codec::read_var_i32(&mut cursor)? != entity_id {
@@ -131,13 +135,17 @@ async fn expect_inventory_delta(
     item_id: i32,
     _phase: &'static str,
 ) -> Result<PlayerInventorySlot, Box<dyn std::error::Error>> {
-    let packet = survival_expect::read_next_live_packet(stream).await?;
+    let packet = survival_expect::read_next_survival_packet(stream).await?;
     if packet.id != ids::play::SET_PLAYER_INVENTORY {
-        return Err(Box::new(ProbeError::Phase("pickup inventory id")));
+        return Err(packet_error("pickup inventory id", packet.id));
     }
     let slot = inventory_packets::decode_player_inventory_slot(packet.data)?;
     if slot.item_id != Some(item_id) {
         return Err(Box::new(ProbeError::Phase("pickup inventory item")));
     }
     Ok(slot)
+}
+
+fn packet_error(phase: &'static str, id: i32) -> Box<dyn std::error::Error> {
+    Box::new(std::io::Error::other(format!("{phase}: got 0x{id:x}")))
 }

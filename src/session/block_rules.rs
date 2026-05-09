@@ -1,5 +1,4 @@
 use crate::player::{GameMode, Inventory};
-use crate::protocol::block_interaction::PlayerAction;
 use crate::scheduler::RegionHandle;
 use crate::session::SessionState;
 use crate::session::block_actions::InteractionResult;
@@ -33,27 +32,18 @@ pub(super) async fn place_block(
     Ok(result)
 }
 
-pub(super) async fn apply_player_action(
+pub(super) async fn current_block(
     region: &RegionHandle,
-    action: PlayerAction,
     pos: BlockPos,
     phase: SessionState,
-    game_mode: GameMode,
-    inventory: &mut Inventory,
-) -> Result<InteractionResult, ConnectionError> {
-    match action {
-        PlayerAction::StartDestroyBlock | PlayerAction::StopDestroyBlock => {
-            break_block(region, pos, phase, game_mode, inventory).await
-        }
-        PlayerAction::AbortDestroyBlock | PlayerAction::Other(_) => region
-            .get_block(pos)
-            .await
-            .map(|state| reconcile(pos, state))
-            .map_err(|source| ConnectionError::Region { phase, source }),
-    }
+) -> Result<Option<BlockState>, ConnectionError> {
+    region
+        .get_block(pos)
+        .await
+        .map_err(|source| ConnectionError::Region { phase, source })
 }
 
-async fn break_block(
+pub(super) async fn break_block(
     region: &RegionHandle,
     pos: BlockPos,
     phase: SessionState,

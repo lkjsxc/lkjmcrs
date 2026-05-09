@@ -23,6 +23,8 @@ wire path.
 
 - The probe uses protocol packets only and does not inspect private server
   internals.
+- The Compose probe targets `chunk-stream-server` so the configured visible
+  window is radius `2` and terrain evidence stays isolated.
 - Unload packets are expected for chunks leaving the configured visible window.
 - Failure blocks acceptance for bounded chunk streaming or observer
   subscription updates.

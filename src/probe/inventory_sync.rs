@@ -60,9 +60,7 @@ async fn assert_invalid_held_slot_resends_authority(
 }
 
 async fn break_grass_adds_dirt(stream: &mut TcpStream) -> Result<(), Box<dyn std::error::Error>> {
-    block_mutation::send_start_destroy_at(stream, 60, BlockPos::new(0, 79, 0)).await?;
-    expect_ack(stream, 60).await?;
-    expect_update_at(stream, BlockPos::new(0, 79, 0), 0).await?;
+    block_mutation::mine_dirt_like_at(stream, 60, BlockPos::new(0, 79, 0), 9, 0).await?;
     let slot = item_entities::collect_drop(stream, 28, "inventory dirt pickup").await?;
     expect_slot(&slot, 0, 1, Some(28), "breaking inventory delta")
 }

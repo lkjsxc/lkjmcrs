@@ -21,12 +21,11 @@ pub async fn read_next_batch(
     stream: &mut TcpStream,
 ) -> Result<ChunkBatch, Box<dyn std::error::Error>> {
     loop {
-        let packet = codec::read_packet(stream).await?;
+        let packet = read_non_periodic(stream).await?;
         match packet.id {
             ids::play::CHUNK_BATCH_START => return read_batch_after_start(stream).await,
-            ids::play::SET_TIME => {}
-            ids::play::KEEPALIVE => ack_keepalive(stream, packet.data).await?,
-            _ => return Err(Box::new(ProbeError::Phase("scale stream packet"))),
+            id if ignorable_live_packet(id) => {}
+            _ => return Err(packet_error("scale stream packet", packet.id)),
         }
     }
 }
@@ -54,7 +53,7 @@ async fn read_batch_after_start(
     let mut payload_bytes = 0;
     let mut has_non_flat_surface = false;
     loop {
-        let packet = codec::read_packet(stream).await?;
+        let packet = read_non_periodic(stream).await?;
         if packet.id == ids::play::CHUNK_BATCH_FINISHED {
             validate_chunk_batch_finished(packet.data, batch.len())?;
             if batch.is_empty() || batch.len() > MAX_FOLLOWUP_CHUNKS {
@@ -125,19 +124,38 @@ pub async fn expect_cache_center(
     x: i32,
     z: i32,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    let packet = codec::read_packet(stream).await?;
-    if packet.id != ids::play::CHUNK_CACHE_CENTER {
-        return Err(Box::new(ProbeError::Phase("scale cache center")));
-    }
-    let mut cursor = Cursor::new(packet.data);
-    if codec::read_var_i32(&mut cursor)? != x || codec::read_var_i32(&mut cursor)? != z {
-        return Err(Box::new(ProbeError::Phase("scale cache center payload")));
-    }
+    let _ = expect_cache_center_collecting_batches(stream, x, z).await?;
     Ok(())
 }
 
+pub async fn expect_cache_center_collecting_batches(
+    stream: &mut TcpStream,
+    x: i32,
+    z: i32,
+) -> Result<Vec<ChunkBatch>, Box<dyn std::error::Error>> {
+    let mut skipped = Vec::new();
+    loop {
+        let packet = read_non_periodic(stream).await?;
+        match packet.id {
+            ids::play::CHUNK_CACHE_CENTER => {
+                let mut cursor = Cursor::new(packet.data);
+                if codec::read_var_i32(&mut cursor)? == x && codec::read_var_i32(&mut cursor)? == z
+                {
+                    return Ok(skipped);
+                }
+                return Err(Box::new(ProbeError::Phase("scale cache center payload")));
+            }
+            ids::play::CHUNK_BATCH_START => {
+                skipped.push(read_batch_after_start(stream).await?);
+            }
+            id if ignorable_live_packet(id) => {}
+            _ => return Err(packet_error("scale cache center", packet.id)),
+        }
+    }
+}
+
 pub async fn read_unload(stream: &mut TcpStream) -> Result<(i32, i32), Box<dyn std::error::Error>> {
-    let packet = codec::read_packet(stream).await?;
+    let packet = read_non_periodic(stream).await?;
     if packet.id != ids::play::UNLOAD_CHUNK {
         return Err(Box::new(ProbeError::Phase("scale unload id")));
     }
@@ -145,4 +163,34 @@ pub async fn read_unload(stream: &mut TcpStream) -> Result<(i32, i32), Box<dyn s
     let z = codec::read_i32(&mut cursor)?;
     let x = codec::read_i32(&mut cursor)?;
     Ok((x, z))
+}
+
+async fn read_non_periodic(
+    stream: &mut TcpStream,
+) -> Result<codec::Packet, Box<dyn std::error::Error>> {
+    loop {
+        let packet = codec::read_packet(stream).await?;
+        match packet.id {
+            ids::play::SET_TIME => {}
+            ids::play::KEEPALIVE => ack_keepalive(stream, packet.data).await?,
+            _ => return Ok(packet),
+        }
+    }
+}
+
+fn ignorable_live_packet(id: i32) -> bool {
+    matches!(
+        id,
+        ids::play::SET_PLAYER_INVENTORY
+            | ids::play::HELD_ITEM_SLOT
+            | ids::play::UPDATE_HEALTH
+            | ids::play::DEATH_COMBAT_EVENT
+            | ids::play::UNLOAD_CHUNK
+            | ids::play::CHUNK_CACHE_CENTER
+            | ids::play::CHUNK_CACHE_RADIUS
+    )
+}
+
+fn packet_error(phase: &'static str, id: i32) -> Box<dyn std::error::Error> {
+    Box::new(std::io::Error::other(format!("{phase}: got 0x{id:x}")))
 }
