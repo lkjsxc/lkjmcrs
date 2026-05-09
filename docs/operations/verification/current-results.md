@@ -1,12 +1,10 @@
 # Current Results
 
-## 2026-05-09 Survival Timing And Radius 32 Stream Acceptance
+## 2026-05-10 Binary Storage And Isolated Stateful Probes
 
-Latest recorded compose result: implementation commit `383cd26`, with the
-documentation refresh, `WorldStore` redb facade, survival mining timing,
-pickup-delay AABB checks, spawn-to-natural terrain blending, isolated
-streaming verification services, and probe readers that tolerate live packet
-interleaving.
+Latest recorded compose result: implementation commit `cb269a9`, with binary
+`redb` world override values, `WorldStore` codec validation, and isolated data
+volumes for persistence, survival-item, inventory-sync, and item-pickup probes.
 
 Command owner:
 
@@ -14,8 +12,7 @@ Command owner:
 
 Result:
 
-- data cleanup: pass. Test data volumes were removed where a clean world was
-  required; cargo and target caches were preserved between probe runs.
+- initial data cleanup: pass with `down -v`.
 - `verify`: pass with compact output:
   `verify fmt ... ok`, `verify clippy ... ok`, `verify test ... ok`,
   `verify docs-topology ... ok`, `verify line-limits ... ok`, `verify pass`.
@@ -37,15 +34,21 @@ Result:
   followup_batches=263 max_followup_batch=16
   max_followup_payload_bytes=982351`, then `render-distance probe ok`.
 - `render-moving-pending`: pass, `render-moving-pending probe ok`.
-- `persist-place`: pass, `persist-place probe ok`.
-- server restart: pass.
-- `persist-check`: pass, `persist-check probe ok`.
-- `survival-item`: pass, `survival-item probe ok`.
-- `inventory-sync`: pass, `inventory-sync probe ok`.
-- `item-pickup`: pass, `item-pickup probe ok`.
+- `persist-place`: pass against isolated `persistence-server`,
+  `persist-place probe ok`.
+- `persistence-server` restart: pass.
+- `persist-check`: pass against isolated `persistence-server`,
+  `persist-check probe ok`.
+- `survival-item`: pass against isolated `survival-item-server`,
+  `survival-item probe ok`.
+- `inventory-sync`: pass against isolated `inventory-sync-server`,
+  `inventory-sync probe ok`.
+- `item-pickup`: pass against isolated `item-pickup-server`,
+  `item-pickup probe ok`.
 - `survival-vitals`: pass, `survival-vitals probe ok`.
 - `smp-commands`: pass, `smp-commands probe ok`.
 - `online-auth`: pass, `online-auth probe ok`.
+- final data cleanup: pass with `down -v`.
 
 ## Manual Boundary
 

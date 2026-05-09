@@ -8,14 +8,41 @@ services:
       - ./config:/app/config:ro
       - server-data:/app/data
 
-  survival-server:
+  persistence-server:
     build:
       context: .
       dockerfile: Dockerfile
     command: ["serve"]
     volumes:
       - ./config:/app/config:ro
-      - survival-server-data:/app/data
+      - persistence-server-data:/app/data
+
+  survival-item-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["serve"]
+    volumes:
+      - ./config:/app/config:ro
+      - survival-item-server-data:/app/data
+
+  inventory-sync-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["serve"]
+    volumes:
+      - ./config:/app/config:ro
+      - inventory-sync-server-data:/app/data
+
+  item-pickup-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["serve"]
+    volumes:
+      - ./config:/app/config:ro
+      - item-pickup-server-data:/app/data
 
   smp-server:
     build:
@@ -265,8 +292,8 @@ services:
       - cargo-registry:/usr/local/cargo/registry
       - target-cache:/target
     depends_on:
-      - server
-    entrypoint: ["cargo", "run", "--", "probe", "persist-place", "--host", "server:25565"]
+      - persistence-server
+    entrypoint: ["cargo", "run", "--", "probe", "persist-place", "--host", "persistence-server:25565"]
 
   persist-check:
     build:
@@ -280,8 +307,8 @@ services:
       - cargo-registry:/usr/local/cargo/registry
       - target-cache:/target
     depends_on:
-      - server
-    entrypoint: ["cargo", "run", "--", "probe", "persist-check", "--host", "server:25565"]
+      - persistence-server
+    entrypoint: ["cargo", "run", "--", "probe", "persist-check", "--host", "persistence-server:25565"]
 
   survival-item:
     build:
@@ -295,8 +322,8 @@ services:
       - cargo-registry:/usr/local/cargo/registry
       - target-cache:/target
     depends_on:
-      - survival-server
-    entrypoint: ["cargo", "run", "--", "probe", "survival-item", "--host", "survival-server:25565"]
+      - survival-item-server
+    entrypoint: ["cargo", "run", "--", "probe", "survival-item", "--host", "survival-item-server:25565"]
 
   inventory-sync:
     build:
@@ -310,8 +337,8 @@ services:
       - cargo-registry:/usr/local/cargo/registry
       - target-cache:/target
     depends_on:
-      - survival-server
-    entrypoint: ["cargo", "run", "--", "probe", "inventory-sync", "--host", "survival-server:25565"]
+      - inventory-sync-server
+    entrypoint: ["cargo", "run", "--", "probe", "inventory-sync", "--host", "inventory-sync-server:25565"]
 
   item-pickup:
     build:
@@ -325,8 +352,8 @@ services:
       - cargo-registry:/usr/local/cargo/registry
       - target-cache:/target
     depends_on:
-      - survival-server
-    entrypoint: ["cargo", "run", "--", "probe", "item-pickup", "--host", "survival-server:25565"]
+      - item-pickup-server
+    entrypoint: ["cargo", "run", "--", "probe", "item-pickup", "--host", "item-pickup-server:25565"]
 
   survival-vitals:
     build:
@@ -377,7 +404,10 @@ volumes:
   cargo-registry:
   target-cache:
   server-data:
-  survival-server-data:
+  persistence-server-data:
+  survival-item-server-data:
+  inventory-sync-server-data:
+  item-pickup-server-data:
   survival-vitals-server-data:
   scale-server-data:
   terrain-server-data:
