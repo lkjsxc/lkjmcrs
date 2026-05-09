@@ -14,6 +14,8 @@ Terra config packs, plugins, or compatibility.
 - Store player mutations as overrides above generated terrain.
 - `natural` currently builds bedrock, stone, dirt, grass, and air columns from
   deterministic smoothed value-noise surface heights.
+- Static water and rivers are the next natural-terrain slice and are owned by
+  [water-and-rivers.md](water-and-rivers.md).
 - `flat` remains the controlled generator for scale and cache regression
   probes.
 - Spawn selection is owned by [spawn-resolution.md](spawn-resolution.md).
@@ -26,5 +28,5 @@ Terra config packs, plugins, or compatibility.
 3. Terrain docs must define new block IDs before protocol tests depend on them.
 4. Direct Bukkit, Paper, Folia, Terra, or worldgen-plugin compatibility is not
    a current target.
-5. Caves, biomes, ores, trees, mobs, weather, structures, and Anvil files are
-   out of scope for this slice.
+5. Caves, biomes, ores, trees, mobs, weather, structures, fluid simulation, and
+   Anvil files are out of scope for this slice.

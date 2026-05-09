@@ -20,7 +20,7 @@
 - Play login/join packet with `minecraft:overworld` spawn info.
 - Game event `13`, start waiting for level chunks.
 - Chunk cache center and radius.
-- Flat `level_chunk_with_light` chunks around spawn.
+- Generated `level_chunk_with_light` chunks around spawn.
 - Chunk batch start and finish.
 - Light data for spawn chunks.
 - Default spawn position.

@@ -8,28 +8,31 @@ Use this subtree for chunk, region, and world-data contracts.
 - You need data structure ownership.
 - You need the current storage boundary.
 
-## Child Index
+## Terrain And Spawn
 
-- [flat-world.md](flat-world.md): deterministic first world.
-- [chunk-storage.md](chunk-storage.md): chunk representation and persistence boundary.
-- [chunk-streaming.md](chunk-streaming.md): bounded player-driven chunk
-  streaming.
-- [large-distance-streaming.md](large-distance-streaming.md): progressive
-  chunk delivery for larger configured radii.
-- [terrain-generation.md](terrain-generation.md): terrain pipeline direction
-  after the flat world.
-- [terrain-pipeline.md](terrain-pipeline.md): current terrain, override, and
-  chunk-encoding pipeline.
+- [terrain-pipeline.md](terrain-pipeline.md): generated terrain, overrides,
+  and chunk encoding.
+- [terrain-generation.md](terrain-generation.md): current generator behavior.
+- [water-and-rivers.md](water-and-rivers.md): static water and river terrain.
 - [spawn-resolution.md](spawn-resolution.md): default spawn, respawn, `/spawn`,
-  and teleport safety owner.
-- [item-entities.md](item-entities.md): dropped item entity ownership and
-  pickup.
+  and teleport safety.
+- [flat-world.md](flat-world.md): controlled flat generator.
+
+## Chunk Data And Storage
+
+- [chunk-storage.md](chunk-storage.md): chunk representation and persistence
+  boundary.
 - [mutable-chunks.md](mutable-chunks.md): sparse in-memory block overrides.
-- [persistent-overrides.md](persistent-overrides.md): `redb` storage for sparse
-  chunk overrides.
-- [section-storage.md](section-storage.md): binary world override value format
-  and section-storage direction.
-- [storage-schema.md](storage-schema.md): `redb` world table and key schema.
-- [storage-migration.md](storage-migration.md): unsupported early storage
-  formats and future migration requirements.
+- [persistent-overrides.md](persistent-overrides.md): `redb` sparse override
+  behavior.
+- [section-storage.md](section-storage.md): binary section override value.
+- [storage-schema.md](storage-schema.md): `redb` world tables and keys.
+- [storage-migration.md](storage-migration.md): unsupported early formats.
+
+## Streaming And Runtime Ownership
+
+- [chunk-streaming.md](chunk-streaming.md): bounded player-driven streaming.
+- [large-distance-streaming.md](large-distance-streaming.md): progressive
+  larger-radius delivery.
 - [region-index.md](region-index.md): compact coordinate and ownership index.
+- [item-entities.md](item-entities.md): dropped item entity ownership.

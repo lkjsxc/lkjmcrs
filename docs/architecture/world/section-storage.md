@@ -44,6 +44,7 @@ All integers are little-endian.
 - `2`: `minecraft:stone`.
 - `3`: `minecraft:dirt`.
 - `4`: `minecraft:grass_block`.
+- `5`: `minecraft:water`.
 
 ## Rules
 

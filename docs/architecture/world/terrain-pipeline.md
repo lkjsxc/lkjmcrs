@@ -18,13 +18,20 @@ fit together without making Anvil or plugin-pack compatibility promises.
 2. Resolve a deterministic world spawn from `world_seed`.
 3. For `natural`, sample staged fields for continentalness, ridge/valley shape,
    erosion-like smoothing, temperature, and humidity.
-4. Build the surface from the staged fields with deterministic chunk-neighbor
-   continuity.
-5. Apply river, cave, tree, ore, and decorator stages only after their owner
-   docs and verification exist.
+4. Build the surface and river columns from staged fields with deterministic
+   chunk-neighbor continuity.
+5. Apply cave, tree, ore, and decorator stages only after their owner docs and
+   verification exist.
 6. Load sparse persisted sections through `WorldStore`.
 7. Apply persisted sections above the generated base.
 8. Encode the final chunk through the protocol chunk contract.
+
+## River And Water Slice
+
+- River terrain is owned by [water-and-rivers.md](water-and-rivers.md).
+- Rivers are static generated terrain blocks, not simulated fluids.
+- Water uses the block-state constant documented by the protocol chunk owner.
+- Spawn scoring must choose dry columns even when rivers generate near origin.
 
 ## Spawn Resolution
 

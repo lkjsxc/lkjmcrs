@@ -16,8 +16,8 @@ the next work batch.
   resolution and sparse persisted block overrides stored in `redb`.
 - Player profiles and online identity use the current `redb` storage
   foundation; earlier SQLite storage is not supported.
-- World overrides are owned by `WorldStore`; chunk override values use the
-  current binary `redb` format.
+- World overrides are owned by `WorldStore`; section override values and chunk
+  metadata use the current binary `redb` format.
 - Survival placement, breaking, simple drops, pickup, inventory projection, and
   reconnect persistence are compose-verified.
 - Health, operator damage, death state, and respawn restoration are
@@ -48,13 +48,12 @@ the next work batch.
 
 ## Next Implementation Target
 
-World foundation and verification hardening are the active target:
+Natural terrain beauty is the active target:
 
-- add deterministic worldgen golden coverage,
-- add generated chunk-border property coverage,
-- broaden storage persistence coverage across multiple overrides and vertical
-  sections,
-- add dedicated movement-authority smoke coverage before deeper SMP hardening.
+- add static water and deterministic river columns,
+- keep water separate from fluid simulation and item gameplay,
+- broaden terrain golden and chunk-border property coverage,
+- add live river terrain smoke coverage through decoded chunk packets.
 
 ## Rules
 

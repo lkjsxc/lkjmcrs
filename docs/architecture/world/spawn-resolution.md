@@ -22,7 +22,7 @@ teleport safety checks.
    column.
 4. Safety adjustment must not stamp a visible flat plateau into generated
    natural terrain.
-5. The same seed and generator version must resolve the same spawn.
+5. The same seed and generator marker must resolve the same spawn.
 
 ## Teleport Safety
 

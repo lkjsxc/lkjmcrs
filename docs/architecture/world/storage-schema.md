@@ -39,7 +39,7 @@ Document the active server-owned world storage schema for section-oriented
 - A chunk with no dirty sections must not keep empty section records.
 - Old JSON chunk override values are unsupported.
 
-## Queued Tables
+## Queued Schema Work
 
 - Future `chunk_meta` fields may add terrain feature masks and lighting state.
 - `chunk_entities`: persisted non-player entity records after entity storage is

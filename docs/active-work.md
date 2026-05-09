@@ -12,11 +12,14 @@ Give automation agents one short map before reading detailed docs.
   [operations/verification/manual-client-boundary.md](operations/verification/manual-client-boundary.md).
 - Active implementation target:
   [product/normal-survival.md](product/normal-survival.md).
+- Active world target:
+  [architecture/world/water-and-rivers.md](architecture/world/water-and-rivers.md).
 - Active verification targets:
   [operations/verification/worldgen-golden.md](operations/verification/worldgen-golden.md),
   [operations/verification/chunk-border-property.md](operations/verification/chunk-border-property.md),
   [operations/verification/storage-section-persistence.md](operations/verification/storage-section-persistence.md),
-  and [operations/verification/movement-authority-smoke.md](operations/verification/movement-authority-smoke.md).
+  [operations/verification/movement-authority-smoke.md](operations/verification/movement-authority-smoke.md),
+  and [operations/verification/terrain-rivers-smoke.md](operations/verification/terrain-rivers-smoke.md).
 - Canonical compose pipeline:
   [operations/verification/compose-pipeline.md](operations/verification/compose-pipeline.md).
 
