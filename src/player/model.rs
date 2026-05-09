@@ -7,7 +7,7 @@ pub enum GameMode {
     Creative,
 }
 
-#[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
 pub struct PlayerPosition {
     pub x: f64,
     pub y: f64,
@@ -47,9 +47,10 @@ pub struct PlayerProfile {
     pub vitals: Vitals,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct PlayerDefaults {
     pub game_mode: GameMode,
+    pub position: PlayerPosition,
 }
 
 impl GameMode {
@@ -91,6 +92,7 @@ impl Default for PlayerDefaults {
     fn default() -> Self {
         Self {
             game_mode: GameMode::default_new_player(),
+            position: PlayerPosition::default(),
         }
     }
 }
@@ -145,7 +147,7 @@ impl PlayerProfile {
             uuid,
             name: name.into(),
             game_mode: defaults.game_mode,
-            position: PlayerPosition::default(),
+            position: defaults.position,
             inventory: Inventory::for_new_profile(defaults),
             vitals: Vitals::default(),
         }
@@ -154,7 +156,7 @@ impl PlayerProfile {
 
 #[cfg(test)]
 mod tests {
-    use super::{GameMode, PlayerDefaults, PlayerProfile};
+    use super::{GameMode, PlayerDefaults, PlayerPosition, PlayerProfile};
     use uuid::Uuid;
 
     #[test]
@@ -175,6 +177,7 @@ mod tests {
             "SurvivalProbe",
             PlayerDefaults {
                 game_mode: GameMode::Survival,
+                position: PlayerPosition::default(),
             },
         );
 

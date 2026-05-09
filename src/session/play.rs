@@ -118,6 +118,7 @@ where
                             region: &region,
                             sessions: &sessions,
                             max_players: settings.max_players,
+                            spawn_position: settings.spawn_position,
                             player_store: &player_store,
                             writer: &mut writer,
                             chunk_cache: &mut chunk_cache,

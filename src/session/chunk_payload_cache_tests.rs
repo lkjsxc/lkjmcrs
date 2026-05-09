@@ -94,7 +94,7 @@ fn natural_generated_payload_cache_differs_by_seed_and_position() {
 fn natural_chunks_with_overrides_bypass_generated_cache() {
     let mut cache = ChunkPayloadCache::default();
     let mut chunk = TerrainGenerator::natural(9004).chunk_snapshot(ChunkPos::new(11, -3));
-    chunk.set_block(BlockPos::new(176, 80, -48), BlockState::Stone);
+    chunk.set_block(BlockPos::new(176, 150, -48), BlockState::Stone);
 
     cache.encode(&chunk);
 

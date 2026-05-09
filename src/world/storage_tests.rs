@@ -1,4 +1,4 @@
-use crate::world::storage_codec::StoredChunk;
+use crate::world::storage_section_codec::{StoredSection, section_y};
 use crate::world::{BlockPos, BlockState, ChunkPos, ChunkSnapshot, TerrainGenerator, WorldStorage};
 use redb::{Database, ReadableDatabase, TableDefinition};
 use std::fs;
@@ -77,7 +77,7 @@ fn reset_to_base_deletes_override_value() {
     let loaded = storage.load_chunk(pos).unwrap();
     assert_eq!(loaded.block_at_pos(block), BlockState::Air);
     drop(storage);
-    assert!(!chunk_value_exists(&root, "overworld/0/0"));
+    assert!(!section_value_exists(&root, "overworld/0/0/5"));
     cleanup(root);
 }
 
@@ -143,7 +143,7 @@ fn rejects_invalid_stored_block_state() {
     let root = temp_root();
     let mut bytes = encoded_chunk(ChunkPos::new(0, 0), BlockPos::new(0, 80, 0));
     bytes[26..28].copy_from_slice(&99_u16.to_le_bytes());
-    insert_raw_chunk(&root, "overworld/0/0", &bytes);
+    insert_raw_section(&root, "overworld/0/0/5", &bytes);
     let storage = WorldStorage::new(&root);
 
     let error = storage
@@ -160,29 +160,30 @@ fn changed_chunk(pos: ChunkPos, block: BlockPos) -> ChunkSnapshot {
     chunk
 }
 
-fn insert_raw_chunk(root: &std::path::Path, key: &str, bytes: &[u8]) {
-    const CHUNKS: TableDefinition<&str, &[u8]> = TableDefinition::new("chunk_overrides");
+fn insert_raw_section(root: &std::path::Path, key: &str, bytes: &[u8]) {
+    const SECTIONS: TableDefinition<&str, &[u8]> = TableDefinition::new("chunk_sections");
     fs::create_dir_all(root).unwrap();
     let db = Database::create(root.join("world.redb")).unwrap();
     let write = db.begin_write().unwrap();
     {
-        let mut table = write.open_table(CHUNKS).unwrap();
+        let mut table = write.open_table(SECTIONS).unwrap();
         table.insert(key, bytes).unwrap();
     }
     write.commit().unwrap();
 }
 
-fn chunk_value_exists(root: &std::path::Path, key: &str) -> bool {
-    const CHUNKS: TableDefinition<&str, &[u8]> = TableDefinition::new("chunk_overrides");
+fn section_value_exists(root: &std::path::Path, key: &str) -> bool {
+    const SECTIONS: TableDefinition<&str, &[u8]> = TableDefinition::new("chunk_sections");
     let db = Database::create(root.join("world.redb")).unwrap();
     let read = db.begin_read().unwrap();
-    let table = read.open_table(CHUNKS).unwrap();
+    let table = read.open_table(SECTIONS).unwrap();
     table.get(key).unwrap().is_some()
 }
 
 fn encoded_chunk(pos: ChunkPos, block: BlockPos) -> Vec<u8> {
-    let chunk = changed_chunk(pos, block);
-    StoredChunk::from_snapshot(&chunk).encode().unwrap()
+    StoredSection::from_entries(pos, section_y(block.y), vec![(block, BlockState::Stone)])
+        .encode()
+        .unwrap()
 }
 
 fn temp_root() -> PathBuf {

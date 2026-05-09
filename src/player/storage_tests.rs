@@ -39,6 +39,7 @@ async fn creates_survival_profile_with_empty_inventory() {
             "Survival".to_string(),
             PlayerDefaults {
                 game_mode: GameMode::Survival,
+                position: crate::player::PlayerPosition::default(),
             },
         )
         .await

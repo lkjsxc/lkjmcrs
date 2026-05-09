@@ -40,10 +40,6 @@ impl StoredChunk {
         }
     }
 
-    pub(super) fn is_empty(&self) -> bool {
-        self.overrides.is_empty()
-    }
-
     pub(super) fn encode(&self) -> Result<Vec<u8>, WorldStorageError> {
         let count = u16::try_from(self.overrides.len())
             .map_err(|_| WorldStorageError::InvalidFormat("too many overrides"))?;

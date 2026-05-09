@@ -1,18 +1,18 @@
 use crate::player::PlayerProfile;
 use crate::protocol::block_interaction::BlockInteraction;
-use crate::protocol::chat::{self, PlayChat};
+use crate::protocol::chat;
 use crate::protocol::client_command;
 use crate::protocol::codec::{self, Packet};
 use crate::protocol::ids;
 use crate::protocol::movement::Movement;
 use crate::session::SessionState;
 use crate::session::block_actions::handle_block_interaction;
-use crate::session::chat::send_system_chat;
 use crate::session::chunk_stream::{ChunkStream, StreamContext};
-use crate::session::command_dispatch::{self, CommandDispatchContext};
 use crate::session::error::ConnectionError;
-use crate::session::inventory_sync;
 use crate::session::io::codec_error;
+use crate::session::movement_authority;
+use crate::session::movement_correction::send_position_correction;
+use crate::session::play_chat::handle_play_chat;
 use crate::session::play_packet_context::PlayPacketContext;
 use crate::session::play_state::PlaySession;
 use crate::session::vitals;
@@ -31,6 +31,16 @@ where
     if let Some(movement) = Movement::decode(packet.id, packet.data.clone())
         .map_err(|error| codec_error(phase, error))?
     {
+        if let Err(rejection) = movement_authority::validate(session, movement) {
+            send_position_correction(context.writer, phase, context.max_players, profile, session)
+                .await?;
+            tracing::warn!(
+                phase = %phase,
+                reason = rejection.reason,
+                "movement rejected"
+            );
+            return Ok(());
+        }
         session.apply_movement(movement);
         let stream_context = StreamContext {
             region: context.region,
@@ -79,7 +89,7 @@ where
     if let Some(chat) =
         chat::decode(packet.id, packet.data.clone()).map_err(|error| codec_error(phase, error))?
     {
-        handle_chat(chat, phase, session, chunk_stream, profile, context).await?;
+        handle_play_chat(chat, phase, session, chunk_stream, profile, context).await?;
         return Ok(());
     }
 
@@ -108,8 +118,15 @@ where
             let action = client_command::decode_action(packet.data)
                 .map_err(|error| codec_error(phase, error))?;
             if action == 0 {
-                vitals::respawn(context.writer, phase, context.max_players, profile, session)
-                    .await?;
+                vitals::respawn(
+                    context.writer,
+                    phase,
+                    context.max_players,
+                    context.spawn_position,
+                    profile,
+                    session,
+                )
+                .await?;
             }
         }
         _ => {
@@ -117,65 +134,6 @@ where
         }
     }
     Ok(())
-}
-
-async fn handle_chat<W>(
-    chat: PlayChat,
-    phase: SessionState,
-    session: &mut PlaySession,
-    chunk_stream: &mut ChunkStream,
-    profile: &mut PlayerProfile,
-    context: PlayPacketContext<'_, W>,
-) -> Result<(), ConnectionError>
-where
-    W: tokio::io::AsyncWrite + Unpin,
-{
-    match chat {
-        PlayChat::Message(message) => {
-            context
-                .sessions
-                .broadcast_system_chat(format!("<{}> {message}", profile.name))
-                .await;
-            Ok(())
-        }
-        PlayChat::Command(command) => {
-            command_dispatch::dispatch(
-                &command,
-                session,
-                profile,
-                CommandDispatchContext {
-                    phase,
-                    max_players: context.max_players,
-                    region: context.region,
-                    chunk_stream,
-                    chunk_cache: context.chunk_cache,
-                    player_store: context.player_store,
-                    sessions: context.sessions,
-                    writer: context.writer,
-                },
-            )
-            .await
-        }
-        PlayChat::HeldSlot(slot) if (0..=8).contains(&slot) => {
-            profile.inventory.selected_hotbar_slot = slot as u8;
-            inventory_sync::send_held_item_slot(
-                context.writer,
-                phase,
-                profile.inventory.selected_hotbar_slot,
-            )
-            .await?;
-            Ok(())
-        }
-        PlayChat::HeldSlot(_) => {
-            inventory_sync::send_held_item_slot(
-                context.writer,
-                phase,
-                profile.inventory.selected_hotbar_slot,
-            )
-            .await?;
-            send_system_chat(context.writer, phase, "Invalid held item slot").await
-        }
-    }
 }
 
 pub(super) fn decode_keepalive(data: Vec<u8>) -> Result<i64, codec::CodecError> {

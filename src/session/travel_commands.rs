@@ -15,7 +15,7 @@ pub(super) async fn spawn<W>(
 where
     W: AsyncWrite + Unpin,
 {
-    teleport_to(session, profile, PlayerPosition::default(), context).await
+    teleport_to(session, profile, context.spawn_position, context).await
 }
 
 pub(super) async fn set_home<W>(

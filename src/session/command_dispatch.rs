@@ -17,6 +17,7 @@ where
 {
     pub phase: SessionState,
     pub max_players: usize,
+    pub spawn_position: crate::player::PlayerPosition,
     pub region: &'a crate::scheduler::RegionHandle,
     pub chunk_stream: &'a mut ChunkStream,
     pub chunk_cache: &'a mut ChunkPayloadCache,

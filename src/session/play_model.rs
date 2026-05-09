@@ -1,3 +1,4 @@
+use crate::player::PlayerPosition;
 use crate::session::outbound::PlayOutbound;
 use crate::session::registry::SessionId;
 
@@ -6,6 +7,7 @@ pub struct PlaySettings {
     pub max_players: usize,
     pub view_distance: i32,
     pub simulation_distance: i32,
+    pub spawn_position: PlayerPosition,
 }
 
 pub(super) struct RegisteredSession {

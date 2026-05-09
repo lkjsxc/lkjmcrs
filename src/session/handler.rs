@@ -1,5 +1,5 @@
 use crate::config::Config;
-use crate::player::{PlayerDefaults, PlayerStore};
+use crate::player::{PlayerPosition, PlayerStore};
 use crate::protocol::codec;
 use crate::protocol::ids;
 use crate::protocol::types::{Handshake, LoginStart, NextState};
@@ -7,10 +7,11 @@ use crate::protocol::{PROTOCOL_VERSION, login};
 use crate::scheduler::RegionActor;
 use crate::session::SessionState;
 use crate::session::configuration::handle_configuration;
+use crate::session::defaults::{play_settings, player_defaults, player_spawn};
 use crate::session::error::ConnectionError;
 use crate::session::io::{codec_error, expect_packet, protocol_error, read_packet, write_packet};
 use crate::session::online_login;
-use crate::session::play::{PlaySettings, handle_play};
+use crate::session::play::handle_play;
 use crate::session::profile::{offline_uuid, validate_name};
 use crate::session::registry::SessionRegistry;
 use crate::world::{RegionId, TerrainGenerator, WorldStorage};
@@ -28,6 +29,7 @@ pub struct ServerContext {
     pub region: crate::scheduler::RegionHandle,
     pub sessions: SessionRegistry,
     pub player_store: PlayerStore,
+    pub spawn_position: PlayerPosition,
     players: AtomicUsize,
 }
 
@@ -54,6 +56,7 @@ impl ServerContext {
         };
         let world_storage = WorldStorage::with_generator(&config.data_dir, generator.clone());
         world_storage.validate()?;
+        let spawn_position = player_spawn(generator.spawn());
         let region = RegionActor::spawn_with_generator(RegionId(0), world_storage, generator);
         Ok(Arc::new(Self {
             config,
@@ -61,6 +64,7 @@ impl ServerContext {
             region,
             sessions: SessionRegistry::default(),
             player_store,
+            spawn_position,
             players: AtomicUsize::new(0),
         }))
     }
@@ -142,7 +146,7 @@ where
     let phase = SessionState::Login;
     let profile = context
         .player_store
-        .load_or_create(uuid, name.clone(), player_defaults(&context.config))
+        .load_or_create(uuid, name.clone(), player_defaults(&context))
         .await
         .map_err(|source| ConnectionError::Player { phase, source })?;
     send_login_success(stream, &name, uuid).await?;
@@ -152,11 +156,7 @@ where
     let is_op = context.config.is_op(uuid);
     let play_result = handle_play(
         stream,
-        PlaySettings {
-            max_players: context.config.max_players,
-            view_distance: context.config.view_distance,
-            simulation_distance: context.config.simulation_distance,
-        },
+        play_settings(&context.config, context.spawn_position),
         context.region.clone(),
         context.sessions.clone(),
         profile,
@@ -166,12 +166,6 @@ where
     .await;
     context.players.fetch_sub(1, Ordering::Relaxed);
     play_result
-}
-
-fn player_defaults(config: &Config) -> PlayerDefaults {
-    PlayerDefaults {
-        game_mode: config.default_game_mode,
-    }
 }
 
 async fn send_disconnect<W>(stream: &mut W, reason: &str) -> Result<(), ConnectionError>

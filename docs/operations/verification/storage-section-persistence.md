@@ -16,10 +16,10 @@ block.
 
 ## Schema Assertions
 
-- `world.redb` contains the `chunk_overrides` table.
-- `meta` contains `world_override_format`.
-- The persisted marker is `lkjmcrs.chunk_overrides.v1`.
-- Chunk values use the binary record described in
+- `world.redb` contains the `chunk_sections` table.
+- `meta` contains `world_storage_schema`.
+- The persisted marker is `lkjmcrs.section_overrides.current`.
+- Section values use the binary record described in
   [../../architecture/world/section-storage.md](../../architecture/world/section-storage.md).
 
 ## Acceptance Rules

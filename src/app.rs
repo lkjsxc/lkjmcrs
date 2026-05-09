@@ -1,6 +1,9 @@
 use crate::config::Config;
 use crate::quality;
 use clap::{Parser, Subcommand};
+use tracing_subscriber::EnvFilter;
+
+const DEFAULT_LOG_FILTER: &str = "lkjmcrs=info";
 
 #[derive(Parser)]
 #[command(name = "lkjmcrs")]
@@ -127,8 +130,10 @@ enum FixtureCommand {
 
 #[tokio::main]
 pub async fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let filter =
+        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(DEFAULT_LOG_FILTER));
     tracing_subscriber::fmt()
-        .with_env_filter("lkjmcrs=info")
+        .with_env_filter(filter)
         .with_target(false)
         .init();
 

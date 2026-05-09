@@ -1,16 +1,18 @@
 use crate::world::storage::{WorldStore, redb_error};
-use crate::world::storage_codec::StoredChunk;
+use crate::world::storage_section_codec::{StoredSection, section_range, section_y};
 use crate::world::{ChunkPos, ChunkSnapshot, WorldStorageError};
 use redb::{Database, ReadableDatabase, TableDefinition};
+use std::collections::BTreeMap;
 use std::fs;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 const WORLD_DB: &str = "world.redb";
-const FORMAT_KEY: &str = "world_override_format";
-const FORMAT_VALUE: &[u8] = b"lkjmcrs.chunk_overrides.v1";
+const FORMAT_KEY: &str = "world_storage_schema";
+const FORMAT_VALUE: &[u8] = b"lkjmcrs.section_overrides.current";
 const META: TableDefinition<&str, &[u8]> = TableDefinition::new("meta");
-const CHUNK_OVERRIDES: TableDefinition<&str, &[u8]> = TableDefinition::new("chunk_overrides");
+const CHUNK_META: TableDefinition<&str, &[u8]> = TableDefinition::new("chunk_meta");
+const CHUNK_SECTIONS: TableDefinition<&str, &[u8]> = TableDefinition::new("chunk_sections");
 
 #[derive(Debug)]
 pub(super) struct RedbWorldStore {
@@ -44,7 +46,8 @@ impl RedbWorldStore {
                 let mut meta = write.open_table(META).map_err(redb_error)?;
                 meta.insert(FORMAT_KEY, FORMAT_VALUE).map_err(redb_error)?;
             }
-            write.open_table(CHUNK_OVERRIDES).map_err(redb_error)?;
+            write.open_table(CHUNK_META).map_err(redb_error)?;
+            write.open_table(CHUNK_SECTIONS).map_err(redb_error)?;
         }
         write.commit().map_err(redb_error)?;
         let database = Arc::new(database);
@@ -65,12 +68,15 @@ impl WorldStore for RedbWorldStore {
     ) -> Result<ChunkSnapshot, WorldStorageError> {
         let database = self.database()?;
         let read = database.begin_read().map_err(redb_error)?;
-        let table = read.open_table(CHUNK_OVERRIDES).map_err(redb_error)?;
-        let Some(bytes) = table.get(chunk_key(pos).as_str()).map_err(redb_error)? else {
-            return Ok(base);
-        };
-        let stored = StoredChunk::decode(bytes.value())?;
-        stored.apply_to(base)
+        let table = read.open_table(CHUNK_SECTIONS).map_err(redb_error)?;
+        let mut chunk = base;
+        for y in section_range() {
+            let key = section_key(pos, y);
+            if let Some(bytes) = table.get(key.as_str()).map_err(redb_error)? {
+                StoredSection::decode(bytes.value())?.apply_to(&mut chunk)?;
+            }
+        }
+        Ok(chunk)
     }
 
     fn save_chunk(&self, chunk: &ChunkSnapshot) -> Result<(), WorldStorageError> {
@@ -79,18 +85,22 @@ impl WorldStore for RedbWorldStore {
             .lock()
             .map_err(|_| std::io::Error::other("world storage write lock poisoned"))?;
         let database = self.database()?;
-        let key = chunk_key(chunk.pos);
-        let stored = StoredChunk::from_snapshot(chunk);
+        let sections = sections_from_snapshot(chunk);
         let write = database.begin_write().map_err(redb_error)?;
         {
-            let mut table = write.open_table(CHUNK_OVERRIDES).map_err(redb_error)?;
-            if stored.is_empty() {
-                table.remove(key.as_str()).map_err(redb_error)?;
-            } else {
-                let bytes = stored.encode()?;
+            let mut table = write.open_table(CHUNK_SECTIONS).map_err(redb_error)?;
+            for y in section_range() {
                 table
-                    .insert(key.as_str(), bytes.as_slice())
+                    .remove(section_key(chunk.pos, y).as_str())
                     .map_err(redb_error)?;
+            }
+            for (y, stored) in sections {
+                if !stored.is_empty() {
+                    let bytes = stored.encode()?;
+                    table
+                        .insert(section_key(chunk.pos, y).as_str(), bytes.as_slice())
+                        .map_err(redb_error)?;
+                }
             }
         }
         write.commit().map_err(redb_error)?;
@@ -98,6 +108,20 @@ impl WorldStore for RedbWorldStore {
     }
 }
 
-fn chunk_key(pos: ChunkPos) -> String {
-    format!("overworld/{}/{}", pos.x, pos.z)
+fn sections_from_snapshot(chunk: &ChunkSnapshot) -> BTreeMap<i32, StoredSection> {
+    let mut grouped = BTreeMap::<i32, Vec<_>>::new();
+    for (pos, state) in chunk.override_entries() {
+        grouped
+            .entry(section_y(pos.y))
+            .or_default()
+            .push((pos, state));
+    }
+    grouped
+        .into_iter()
+        .map(|(y, entries)| (y, StoredSection::from_entries(chunk.pos, y, entries)))
+        .collect()
+}
+
+fn section_key(pos: ChunkPos, section_y: i32) -> String {
+    format!("overworld/{}/{}/{}", pos.x, pos.z, section_y)
 }

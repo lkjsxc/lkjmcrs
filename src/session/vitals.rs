@@ -63,6 +63,7 @@ pub async fn respawn<W>(
     writer: &mut W,
     phase: SessionState,
     max_players: usize,
+    spawn_position: crate::player::PlayerPosition,
     profile: &mut PlayerProfile,
     session: &mut PlaySession,
 ) -> Result<(), ConnectionError>
@@ -74,7 +75,7 @@ where
     }
     profile.vitals.reset();
     session.dead = false;
-    session.move_to_spawn();
+    session.move_to(spawn_position);
     session.copy_position_to_profile(profile);
     let bootstrap = bootstrap_from_profile(max_players, profile);
     write_packet(

@@ -154,12 +154,12 @@ impl PlaySession {
         };
     }
 
-    pub fn move_to_spawn(&mut self) {
-        self.x = 0.5;
-        self.y = 80.0;
-        self.z = 0.5;
-        self.yaw = 0.0;
-        self.pitch = 0.0;
+    pub fn move_to(&mut self, position: PlayerPosition) {
+        self.x = position.x;
+        self.y = position.y;
+        self.z = position.z;
+        self.yaw = position.yaw;
+        self.pitch = position.pitch;
     }
 
     fn update_position(

@@ -1,3 +1,4 @@
+use crate::player::PlayerPosition;
 use crate::player::PlayerStore;
 use crate::scheduler::RegionHandle;
 use crate::session::chunk_payload_cache::ChunkPayloadCache;
@@ -10,6 +11,7 @@ where
     pub region: &'a RegionHandle,
     pub sessions: &'a SessionRegistry,
     pub max_players: usize,
+    pub spawn_position: PlayerPosition,
     pub player_store: &'a PlayerStore,
     pub writer: &'a mut W,
     pub chunk_cache: &'a mut ChunkPayloadCache,

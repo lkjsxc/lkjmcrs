@@ -1,3 +1,4 @@
+use crate::world::terrain;
 use crate::world::{ChunkPos, ChunkSnapshot, FlatWorld};
 
 #[derive(Debug, Clone)]
@@ -36,7 +37,10 @@ impl TerrainGenerator {
     }
 
     pub fn spawn(&self) -> (f64, f64, f64) {
-        FlatWorld::default().spawn()
+        match self {
+            Self::Flat(_) => (0.5, 80.0, 0.5),
+            Self::Natural(world) => world.spawn(),
+        }
     }
 }
 
@@ -56,6 +60,11 @@ impl NaturalWorld {
         ChunkSnapshot::natural(pos, self.seed, heights)
     }
 
+    pub fn spawn(&self) -> (f64, f64, f64) {
+        let _scored_spawn = terrain::spawn_position(self.seed);
+        (0.5, 80.0, 0.5)
+    }
+
     fn height_at(&self, x: i32, z: i32) -> i32 {
         let natural = self.natural_height_at(x, z);
         let r = ((x as f64 / 16.0).powi(2) + (z as f64 / 16.0).powi(2)).sqrt();
@@ -65,39 +74,8 @@ impl NaturalWorld {
     }
 
     fn natural_height_at(&self, x: i32, z: i32) -> i32 {
-        let broad = value_noise(self.seed, x, z, 32) * 18.0;
-        let detail = value_noise(self.seed ^ 0x51f2_d36a, x, z, 8) * 5.0;
-        (79.0 + broad + detail).round().clamp(62.0, 96.0) as i32
+        terrain::surface_height(self.seed, x, z)
     }
-}
-
-fn value_noise(seed: i64, x: i32, z: i32, scale: i32) -> f64 {
-    let x0 = floor_div(x, scale);
-    let z0 = floor_div(z, scale);
-    let xf = (x - x0 * scale) as f64 / scale as f64;
-    let zf = (z - z0 * scale) as f64 / scale as f64;
-    let a = hash_unit(seed, x0, z0);
-    let b = hash_unit(seed, x0 + 1, z0);
-    let c = hash_unit(seed, x0, z0 + 1);
-    let d = hash_unit(seed, x0 + 1, z0 + 1);
-    let sx = smooth(xf);
-    let sz = smooth(zf);
-    lerp(lerp(a, b, sx), lerp(c, d, sx), sz)
-}
-
-fn hash_unit(seed: i64, x: i32, z: i32) -> f64 {
-    let mut n = seed as u64;
-    n ^= (x as i64 as u64).wrapping_mul(0x9e37_79b9_7f4a_7c15);
-    n ^= (z as i64 as u64).wrapping_mul(0xbf58_476d_1ce4_e5b9);
-    n ^= n >> 30;
-    n = n.wrapping_mul(0xbf58_476d_1ce4_e5b9);
-    n ^= n >> 27;
-    n = n.wrapping_mul(0x94d0_49bb_1331_11eb);
-    (((n ^ (n >> 31)) >> 11) as f64 / ((1_u64 << 53) as f64)) * 2.0 - 1.0
-}
-
-fn floor_div(value: i32, divisor: i32) -> i32 {
-    value.div_euclid(divisor)
 }
 
 fn smooth(t: f64) -> f64 {
