@@ -1,6 +1,8 @@
+mod column;
 mod noise;
+mod river;
 mod spawn;
 mod surface;
 
+pub(in crate::world) use column::{TerrainColumn, terrain_column};
 pub(in crate::world) use spawn::spawn_position;
-pub(in crate::world) use surface::surface_height;

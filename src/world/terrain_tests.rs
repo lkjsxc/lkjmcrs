@@ -12,11 +12,43 @@ fn worldgen_golden_samples_stay_stable() {
     assert_eq!(
         samples,
         [
-            (82, BlockState::GrassBlock),
+            (81, BlockState::GrassBlock),
             (80, BlockState::GrassBlock),
             (84, BlockState::GrassBlock),
         ]
     );
+}
+
+#[test]
+fn fixed_seed_generates_static_water_near_spawn() {
+    let world = TerrainGenerator::natural(8675309);
+    let mut water_columns = 0;
+
+    for chunk_z in -2..=2 {
+        for chunk_x in -2..=2 {
+            let chunk = world.chunk_snapshot(ChunkPos::new(chunk_x, chunk_z));
+            water_columns += water_column_count(&chunk);
+        }
+    }
+
+    assert!(water_columns > 0);
+}
+
+#[test]
+fn natural_spawn_resolves_to_dry_column() {
+    let world = TerrainGenerator::natural(8675309);
+    let spawn = world.spawn();
+    let chunk = world.chunk_snapshot(ChunkPos::new(
+        (spawn.0.floor() as i32).div_euclid(16),
+        (spawn.2.floor() as i32).div_euclid(16),
+    ));
+    let x = (spawn.0.floor() as i32).rem_euclid(16) as usize;
+    let z = (spawn.2.floor() as i32).rem_euclid(16) as usize;
+    let ground_y = spawn.1.floor() as i32 - 1;
+
+    assert_ne!(chunk.block_at_local(x, ground_y, z), BlockState::Water);
+    assert_eq!(chunk.block_at_local(x, ground_y + 1, z), BlockState::Air);
+    assert_eq!(chunk.block_at_local(x, ground_y + 2, z), BlockState::Air);
 }
 
 #[test]
@@ -42,4 +74,14 @@ fn flat_generator_remains_selectable() {
 fn column(chunk: &super::ChunkSnapshot, x: usize, z: usize) -> (u16, BlockState) {
     let height = chunk.heightmap_at_local(x, z);
     (height, chunk.block_at_local(x, i32::from(height) - 1, z))
+}
+
+fn water_column_count(chunk: &super::ChunkSnapshot) -> usize {
+    (0..16)
+        .flat_map(|z| (0..16).map(move |x| (x, z)))
+        .filter(|(x, z)| {
+            let height = chunk.heightmap_at_local(*x, *z);
+            chunk.block_at_local(*x, i32::from(height) - 1, *z) == BlockState::Water
+        })
+        .count()
 }

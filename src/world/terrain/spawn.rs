@@ -1,4 +1,4 @@
-use super::surface::surface_height;
+use super::column::terrain_column;
 
 const SEARCH_RADIUS: i32 = 16;
 const SEARCH_STEP: usize = 4;
@@ -10,11 +10,15 @@ pub(in crate::world) fn spawn_position(seed: i64) -> (f64, f64, f64) {
 }
 
 fn best_column(seed: i64) -> (i32, i32, i32) {
-    let mut best = (0, 0, surface_height(seed, 0, 0));
+    let mut best = (0, 0, terrain_column(seed, 0, 0).surface_y);
     let mut best_score = i32::MIN;
     for z in (-SEARCH_RADIUS..=SEARCH_RADIUS).step_by(SEARCH_STEP) {
         for x in (-SEARCH_RADIUS..=SEARCH_RADIUS).step_by(SEARCH_STEP) {
-            let y = surface_height(seed, x, z);
+            let column = terrain_column(seed, x, z);
+            if column.is_water() {
+                continue;
+            }
+            let y = column.surface_y;
             let slope = max_neighbor_delta(seed, x, z);
             if slope > MAX_SPAWN_SLOPE {
                 continue;
@@ -33,14 +37,17 @@ fn best_column(seed: i64) -> (i32, i32, i32) {
 fn max_neighbor_delta(seed: i64, x: i32, z: i32) -> i32 {
     [(-1, 0), (1, 0), (0, -1), (0, 1)]
         .into_iter()
-        .map(|(dx, dz)| (surface_height(seed, x + dx, z + dz) - surface_height(seed, x, z)).abs())
+        .map(|(dx, dz)| {
+            (terrain_column(seed, x + dx, z + dz).surface_y - terrain_column(seed, x, z).surface_y)
+                .abs()
+        })
         .max()
         .unwrap_or(0)
 }
 
 #[cfg(test)]
 mod tests {
-    use super::{MAX_SPAWN_SLOPE, max_neighbor_delta, spawn_position, surface_height};
+    use super::{MAX_SPAWN_SLOPE, max_neighbor_delta, spawn_position, terrain_column};
 
     #[test]
     fn spawn_position_is_seed_stable_and_safe() {
@@ -51,7 +58,9 @@ mod tests {
         let x = first.0.floor() as i32;
         let y = first.1.floor() as i32 - 1;
         let z = first.2.floor() as i32;
-        assert_eq!(surface_height(9001, x, z), y);
+        let column = terrain_column(9001, x, z);
+        assert_eq!(column.surface_y, y);
+        assert!(!column.is_water());
         assert!(max_neighbor_delta(9001, x, z) <= MAX_SPAWN_SLOPE);
     }
 }

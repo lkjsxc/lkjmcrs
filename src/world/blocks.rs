@@ -51,11 +51,15 @@ impl ChunkSnapshot {
         }
     }
 
-    pub fn natural(pos: ChunkPos, world_seed: i64, heights: [i32; 256]) -> Self {
+    pub(super) fn natural(
+        pos: ChunkPos,
+        world_seed: i64,
+        columns: [chunk_layers::TerrainColumn; 256],
+    ) -> Self {
         Self {
             pos,
             palette: chunk_layers::palette(),
-            layers: chunk_layers::terrain_layers(&heights),
+            layers: chunk_layers::terrain_layers(&columns),
             overrides: HashMap::new(),
             shared_flat_base: false,
             generated_key: Some(GeneratedChunkKey {

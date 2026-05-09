@@ -42,27 +42,26 @@ impl TerrainGenerator {
 
 impl NaturalWorld {
     pub fn chunk_snapshot(&self, pos: ChunkPos) -> ChunkSnapshot {
-        let mut heights = [79; 256];
+        let mut columns = [terrain::TerrainColumn {
+            surface_y: 79,
+            water_y: None,
+        }; 256];
         for z in 0..16 {
             for x in 0..16 {
                 let gx = pos.x * 16 + x as i32;
                 let gz = pos.z * 16 + z as i32;
-                heights[z * 16 + x] = self.height_at(gx, gz);
+                columns[z * 16 + x] = self.column_at(gx, gz);
             }
         }
-        ChunkSnapshot::natural(pos, self.seed, heights)
+        ChunkSnapshot::natural(pos, self.seed, columns)
     }
 
     pub fn spawn(&self) -> (f64, f64, f64) {
         terrain::spawn_position(self.seed)
     }
 
-    fn height_at(&self, x: i32, z: i32) -> i32 {
-        self.natural_height_at(x, z)
-    }
-
-    fn natural_height_at(&self, x: i32, z: i32) -> i32 {
-        terrain::surface_height(self.seed, x, z)
+    fn column_at(&self, x: i32, z: i32) -> terrain::TerrainColumn {
+        terrain::terrain_column(self.seed, x, z)
     }
 }
 

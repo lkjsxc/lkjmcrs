@@ -1,4 +1,5 @@
 use crate::world::blocks::{BlockState, CHUNK_HEIGHT, CHUNK_WIDTH, MIN_Y};
+pub(super) use crate::world::terrain::TerrainColumn;
 
 const PALETTE: [BlockState; 6] = [
     BlockState::Air,
@@ -23,25 +24,30 @@ pub(super) fn flat_layers() -> Vec<u8> {
     layers
 }
 
-pub(super) fn terrain_layers(heights: &[i32; 256]) -> Vec<u8> {
+pub(super) fn terrain_layers(columns: &[TerrainColumn; 256]) -> Vec<u8> {
     let mut layers = vec![0; CHUNK_WIDTH * CHUNK_WIDTH * CHUNK_HEIGHT];
     for z in 0..CHUNK_WIDTH {
         for x in 0..CHUNK_WIDTH {
-            write_column(&mut layers, x, z, heights[z * CHUNK_WIDTH + x]);
+            write_column(&mut layers, x, z, columns[z * CHUNK_WIDTH + x]);
         }
     }
     layers
 }
 
-fn write_column(layers: &mut [u8], x: usize, z: usize, surface_y: i32) {
-    for y in 0..=surface_y {
+fn write_column(layers: &mut [u8], x: usize, z: usize, column: TerrainColumn) {
+    for y in 0..=column.surface_y {
         let state = match y {
             0 => 1,
-            y if y == surface_y => 4,
-            y if y >= surface_y - 3 => 3,
+            y if y == column.surface_y && column.water_y.is_none() => 4,
+            y if y >= column.surface_y - 3 => 3,
             _ => 2,
         };
         layers[layer_index(x, y, z)] = state;
+    }
+    if let Some(water_y) = column.water_y {
+        for y in column.surface_y + 1..=water_y {
+            layers[layer_index(x, y, z)] = 5;
+        }
     }
 }
 
