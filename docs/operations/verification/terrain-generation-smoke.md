@@ -2,7 +2,7 @@
 
 ## Goal
 
-Verify the first natural-terrain lane through the public play protocol.
+Verify the baseline natural-terrain lane through the public play protocol.
 
 ## Command
 
@@ -22,5 +22,8 @@ docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-com
 ## Rules
 
 1. This probe does not require Terra config compatibility.
-2. Terrain evidence is about generated blocks only; caves, ores, biomes, trees,
-   mobs, weather, structures, and Anvil files remain out of scope.
+2. Terrain evidence is about generated blocks only; cave gameplay, ores,
+   biomes, trees, mobs, weather, structures, and Anvil files remain out of
+   scope.
+3. Cave-specific live evidence is owned by
+   [terrain-caves-smoke.md](terrain-caves-smoke.md).

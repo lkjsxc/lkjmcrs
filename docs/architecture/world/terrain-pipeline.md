@@ -20,11 +20,12 @@ fit together without making Anvil or plugin-pack compatibility promises.
    erosion-like smoothing, temperature, and humidity.
 4. Build the surface and river columns from staged fields with deterministic
    chunk-neighbor continuity.
-5. Apply cave, tree, ore, and decorator stages only after their owner docs and
+5. Apply the cave stage after surface and river columns.
+6. Apply tree, ore, and decorator stages only after their owner docs and
    verification exist.
-6. Load sparse persisted sections through `WorldStore`.
-7. Apply persisted sections above the generated base.
-8. Encode the final chunk through the protocol chunk contract.
+7. Load sparse persisted sections through `WorldStore`.
+8. Apply persisted sections above the generated base.
+9. Encode the final chunk through the protocol chunk contract.
 
 ## River And Water Slice
 
@@ -32,6 +33,14 @@ fit together without making Anvil or plugin-pack compatibility promises.
 - Rivers are static generated terrain blocks, not simulated fluids.
 - Water uses the block-state constant documented by the protocol chunk owner.
 - Spawn scoring must choose dry columns even when rivers generate near origin.
+
+## Cave Slice
+
+- Generated caves are owned by [caves.md](caves.md).
+- Caves carve only generated solid terrain into `Air`.
+- Cave output must be deterministic from `world_seed` and absolute block
+  coordinates.
+- Caves remain below the surface and must not modify static water columns.
 
 ## Spawn Resolution
 

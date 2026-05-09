@@ -33,6 +33,8 @@ the next work batch.
   timing evidence is landed.
 - Radius `32` natural-terrain implementation and probes are compose-verified
   in the latest recorded full result.
+- Static water and deterministic river terrain are implemented as generated
+  natural terrain and compose-verified through decoded chunk packets.
 - Stateful persistence, survival-item, inventory-sync, and item-pickup probes
   use isolated compose data volumes.
 - Play keepalive timeout is implemented and compose-verified.
@@ -43,17 +45,17 @@ the next work batch.
 
 - Manual stock-client evidence still needs a fresh raw client log or explicit
   success artifact after the latest packet-shape fixes.
-- Normal survival is incomplete: tools, crafting, mobs, weather, caves,
+- Normal survival is incomplete: tools, crafting, mobs, weather, cave gameplay,
   structures, ores, and decorations are not gameplay systems yet.
 
 ## Next Implementation Target
 
-Natural terrain beauty is the active target:
+Air-only cave terrain is the active target:
 
-- add static water and deterministic river columns,
-- keep water separate from fluid simulation and item gameplay,
-- broaden terrain golden and chunk-border property coverage,
-- add live river terrain smoke coverage through decoded chunk packets.
+- carve deterministic underground `Air` pockets inside generated solid terrain,
+- keep caves below the surface and away from bedrock, grass, and static water,
+- preserve flat terrain for scale probes,
+- prove cave output through golden, border, and live decoded-chunk coverage.
 
 ## Rules
 

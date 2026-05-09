@@ -14,6 +14,7 @@ Use this subtree for chunk, region, and world-data contracts.
   and chunk encoding.
 - [terrain-generation.md](terrain-generation.md): current generator behavior.
 - [water-and-rivers.md](water-and-rivers.md): static water and river terrain.
+- [caves.md](caves.md): generated underground cave terrain.
 - [spawn-resolution.md](spawn-resolution.md): default spawn, respawn, `/spawn`,
   and teleport safety.
 - [flat-world.md](flat-world.md): controlled flat generator.

@@ -11,6 +11,7 @@ For any generated neighboring chunks with the same generator and seed:
 
 - shared border columns must agree on absolute coordinates,
 - height sampling must not depend on which chunk requested the column,
+- cave decisions must not depend on which chunk requested the block,
 - block state at a border world position must be stable across regeneration,
 - persisted overrides must apply only to their owning chunk-local coordinate.
 
@@ -20,6 +21,7 @@ For any generated neighboring chunks with the same generator and seed:
 - Positive and negative chunk coordinates.
 - Chunks adjacent to the resolved spawn.
 - At least one natural-terrain outer pair.
+- At least one natural-terrain pair with cave air near a border.
 - At least one persisted override near a border.
 
 ## Acceptance Rules
@@ -32,4 +34,5 @@ For any generated neighboring chunks with the same generator and seed:
 ## Gate Command
 
 - Static gate: `cargo test adjacent_chunks_share_border_heights`.
+- Cave gate: `cargo test cave_decisions_are_stable_at_chunk_borders`.
 - Compose terrain probes remain responsible for protocol-level chunk delivery.

@@ -16,6 +16,8 @@ docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-com
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T terrain-generation
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml up -d --build --quiet-build --quiet-pull river-terrain-server
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T river-terrain
+docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml up -d --build --quiet-build --quiet-pull cave-terrain-server
+docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T terrain-caves
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml up -d --build --quiet-build --quiet-pull scale-load-server
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T scale-load-metrics
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T scale-moving-pending
@@ -63,42 +65,44 @@ docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-com
 11. `terrain-generation` verifies natural terrain around resolved spawn and
     embedded chunk light without `update_light`.
 12. `river-terrain` verifies decoded static water in generated natural chunks.
-13. `scale-load-metrics` verifies radius `8` total chunks, follow-up batch
+13. `terrain-caves` verifies enclosed underground cave air in generated natural
+    chunks.
+14. `scale-load-metrics` verifies radius `8` total chunks, follow-up batch
     sizes, payload bytes, and scale counter emission.
-14. `scale-moving-pending` verifies stale pending chunks are replaced when a
+15. `scale-moving-pending` verifies stale pending chunks are replaced when a
     player moves before radius `8` far streaming completes.
-15. `render-distance` verifies natural terrain at radius `32`: advertised
+16. `render-distance` verifies natural terrain at radius `32`: advertised
     radius `32`, `25` initial chunks, `4225` eventual chunks, no duplicates,
     embedded light, non-flat outer terrain, and follow-up budgets.
-16. `render-moving-pending` verifies stale pending chunks are replaced when a
+17. `render-moving-pending` verifies stale pending chunks are replaced when a
     player moves before radius `32` far streaming completes.
-17. `persistence-server` uses a dedicated data volume for the persistence
+18. `persistence-server` uses a dedicated data volume for the persistence
     restart pair.
-18. `persist-place` writes a mutation through the public wire path.
-19. `persist-check` verifies that mutation after restart.
-20. `storage-section-persistence` verifies multi-section overrides and
+19. `persist-place` writes a mutation through the public wire path.
+20. `persist-check` verifies that mutation after restart.
+21. `storage-section-persistence` verifies multi-section overrides and
     reset-to-generated-base behavior.
-21. `survival-item-server` uses a dedicated data volume for item persistence.
-22. `survival-item` verifies survival profile defaults and item persistence.
-23. `inventory-sync-server` uses a dedicated data volume for inventory sync.
-24. `inventory-sync` verifies client-visible hotbar and player inventory sync.
-25. `item-pickup-server` uses a dedicated data volume for pickup behavior.
-26. `item-pickup` verifies dropped item entity spawn, pickup, and inventory
+22. `survival-item-server` uses a dedicated data volume for item persistence.
+23. `survival-item` verifies survival profile defaults and item persistence.
+24. `inventory-sync-server` uses a dedicated data volume for inventory sync.
+25. `inventory-sync` verifies client-visible hotbar and player inventory sync.
+26. `item-pickup-server` uses a dedicated data volume for pickup behavior.
+27. `item-pickup` verifies dropped item entity spawn, pickup, and inventory
     delta sync.
-27. `survival-vitals-server` mounts `config/verify/smp-server.json` so the
+28. `survival-vitals-server` mounts `config/verify/smp-server.json` so the
     vitals probe can use disposable operator damage.
-28. `survival-vitals` verifies visible health, lethal damage, death, respawn,
+29. `survival-vitals` verifies visible health, lethal damage, death, respawn,
     regeneration, and starvation.
-29. `smp-commands` verifies offline chat, permissions, travel commands, and
+30. `smp-commands` verifies offline chat, permissions, travel commands, and
     kick.
-30. `online-auth` verifies encrypted login and fixture-authenticated UUIDs.
-31. Non-zero from any step blocks acceptance.
-32. Initial `down -v` removes stale named volumes before stateful probes.
-33. Final `down -v` removes disposable compose state.
-34. Quiet flags are part of the contract for routine acceptance runs.
-35. `smp-server` mounts `config/verify/smp-server.json` so disposable operator
+31. `online-auth` verifies encrypted login and fixture-authenticated UUIDs.
+32. Non-zero from any step blocks acceptance.
+33. Initial `down -v` removes stale named volumes before stateful probes.
+34. Final `down -v` removes disposable compose state.
+35. Quiet flags are part of the contract for routine acceptance runs.
+36. `smp-server` mounts `config/verify/smp-server.json` so disposable operator
     checks do not require operator UUIDs in normal runtime config.
-36. `online-server` mounts `config/verify/online-server.json` and may use the
+37. `online-server` mounts `config/verify/online-server.json` and may use the
     HTTP session fixture only with explicit insecure-fixture allowance.
 
 ## Readiness

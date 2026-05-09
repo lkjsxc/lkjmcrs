@@ -11,6 +11,8 @@ private runtime state.
 - Verify `flat` terrain remains selectable for scale regression probes.
 - Cover spawn-near chunks and representative outer chunks.
 - Cover final generated blocks before sparse persisted overrides are applied.
+- Cover static water, riverbeds, and underground cave air when those features
+  are active generated terrain.
 
 ## Golden Inputs
 
@@ -19,6 +21,7 @@ private runtime state.
 - Chunk coordinate.
 - Expected sampled block states or column heights.
 - Expected result for at least one chunk adjacent to a sampled golden chunk.
+- Expected enclosed underground `Air` for cave-enabled natural terrain.
 
 ## Acceptance Rules
 
@@ -31,6 +34,8 @@ private runtime state.
 
 - Static gate: `cargo test world::terrain`.
 - Live evidence stays with [terrain-generation-smoke.md](terrain-generation-smoke.md)
-  and [render-distance-smoke.md](render-distance-smoke.md).
-- A future compose service may wrap the same golden assertions, but the
-  required gate is active when the Rust golden test exists.
+  [terrain-rivers-smoke.md](terrain-rivers-smoke.md),
+  [terrain-caves-smoke.md](terrain-caves-smoke.md), and
+  [render-distance-smoke.md](render-distance-smoke.md).
+- Compose services may wrap the same golden assertions, but the required gate
+  is active when the Rust golden test exists.

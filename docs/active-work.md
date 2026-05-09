@@ -13,13 +13,14 @@ Give automation agents one short map before reading detailed docs.
 - Active implementation target:
   [product/normal-survival.md](product/normal-survival.md).
 - Active world target:
-  [architecture/world/water-and-rivers.md](architecture/world/water-and-rivers.md).
+  [architecture/world/caves.md](architecture/world/caves.md).
 - Active verification targets:
   [operations/verification/worldgen-golden.md](operations/verification/worldgen-golden.md),
   [operations/verification/chunk-border-property.md](operations/verification/chunk-border-property.md),
   [operations/verification/storage-section-persistence.md](operations/verification/storage-section-persistence.md),
   [operations/verification/movement-authority-smoke.md](operations/verification/movement-authority-smoke.md),
-  and [operations/verification/terrain-rivers-smoke.md](operations/verification/terrain-rivers-smoke.md).
+  [operations/verification/terrain-rivers-smoke.md](operations/verification/terrain-rivers-smoke.md),
+  and [operations/verification/terrain-caves-smoke.md](operations/verification/terrain-caves-smoke.md).
 - Canonical compose pipeline:
   [operations/verification/compose-pipeline.md](operations/verification/compose-pipeline.md).
 

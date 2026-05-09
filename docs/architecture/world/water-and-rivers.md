@@ -2,13 +2,15 @@
 
 ## Goal
 
-Define the first static water and river generation slice for natural terrain.
+Define static water and river generation for natural terrain.
 
-## Current Target
+## Current Behavior
 
-- Add `minecraft:water[level=0]` as a generated block state.
-- Use protocol block-state ID `86` for the current Minecraft `1.21.11` target.
-- Use internal section-storage code `5` for water.
+- Generate `minecraft:water[level=0]` as a static natural-terrain block state.
+- Protocol block-state IDs are owned by
+  [../protocol/chunk-packets.md](../protocol/chunk-packets.md).
+- Internal override storage codes are owned by
+  [section-storage.md](section-storage.md).
 - Keep water static: no spread, flow updates, buckets, swimming rules, boats,
   aquatic mobs, or underwater gameplay changes.
 - Keep rivers deterministic from `world_seed` and absolute block coordinates.
@@ -23,6 +25,7 @@ Define the first static water and river generation slice for natural terrain.
 - Heightmaps may treat static water as the top non-air block for this slice.
 - Spawn resolution must reject water columns and keep solid floor plus
   headroom.
+- Caves must not carve through static water columns.
 
 ## Verification
 
