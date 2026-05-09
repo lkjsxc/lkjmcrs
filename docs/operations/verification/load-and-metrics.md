@@ -44,4 +44,3 @@ docker compose -f docker-compose.yml -f docker-compose.verify.yml logs scale-loa
    counters.
 6. `scale-moving-pending` and `render-moving-pending` prove movement replaces
    old queued chunks before far streaming finishes.
-   far streaming finishes.

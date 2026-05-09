@@ -15,6 +15,8 @@ lifecycle, and play-session visibility contracts.
 
 - [authentication.md](authentication.md): offline and online identity.
 - [inventory.md](inventory.md): selected hotbar and first item-loop rules.
+- [mining-lifecycle.md](mining-lifecycle.md): survival block breaking
+  lifecycle.
 - [player-locations.md](player-locations.md): persisted homes and global warps.
 - [player-state.md](player-state.md): persistent profile, gamemode, inventory,
   and vitals.

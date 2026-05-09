@@ -13,3 +13,5 @@ Use this subtree for process, module, and lifecycle contracts.
 - [process-model.md](process-model.md): async runtime and service model.
 - [module-map.md](module-map.md): Rust module ownership.
 - [lifecycle.md](lifecycle.md): startup, connection, shutdown lifecycle.
+- [storage-direction.md](storage-direction.md): persistence ownership and
+  generated-first storage direction.

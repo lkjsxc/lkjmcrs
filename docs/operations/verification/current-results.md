@@ -2,9 +2,14 @@
 
 ## 2026-05-08 Terra-Inspired Terrain Slice
 
-Implementation tested: working tree on `1170851`, with natural terrain
+Latest recorded full compose result: working tree on `1170851`, with natural terrain
 generation, flat spawn plateau preservation, generator-backed sparse override
 loads, terrain probe coverage, and flat scale verification configs.
+
+This evidence predates the radius `32` render-distance probes added after
+`4072fc0` and the radius `32` implementation at `ab11632`. Do not treat this
+file as radius `32` acceptance evidence until a fresh canonical compose run is
+recorded here.
 
 Command owner:
 

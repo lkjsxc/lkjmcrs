@@ -13,7 +13,7 @@
 - `world`: chunk, region, and flat-world data.
 - `scheduler`: region actor and task ownership primitives.
 - `quality`: docs topology and line-limit checks.
-- `probe`: status and login/play smoke probes.
+- `probe`: status and login/play smoke probes over the public wire path.
 
 ## Dependency Rules
 
@@ -22,7 +22,8 @@
 3. `player` does not depend on protocol, scheduler, session, or world modules.
 4. `session` coordinates protocol, player state, and world access.
 5. `scheduler` owns mutation entrypoints for region state.
-6. `probe` may depend on protocol but not on server internals.
+6. `probe` may depend on protocol and documented acceptance constants, but it
+   must not call server runtime paths instead of the public wire.
 
 ## Notable Submodules
 

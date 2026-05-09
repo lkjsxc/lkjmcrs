@@ -14,6 +14,8 @@ Terra config packs, plugins, or compatibility.
 - Store player mutations as overrides above generated terrain.
 - Keep chunks within Chebyshev radius `1` of spawn equivalent to the flat
   spawn surface.
+- Blend terrain outside the protected spawn plateau before adding new
+  large-scale terrain features.
 
 ## Pipeline Target
 
@@ -23,6 +25,17 @@ Terra config packs, plugins, or compatibility.
 4. Sample deterministic smoothed value noise for outer-column height.
 5. Build bedrock, stone, dirt, grass, and air columns.
 6. Apply sparse stored overrides above the generated base.
+
+## Spawn Blending Target
+
+- Chunks within Chebyshev radius `1` of spawn remain flat and safe.
+- Blending starts outside the protected plateau and must not alter spawn chunk
+  block states.
+- Blended heights remain deterministic by world seed and absolute column
+  coordinate.
+- Blending smooths height differences at the plateau edge before caves,
+  structures, ores, or decorations are added.
+- Terrain probes own acceptance for the flat core and non-flat outer terrain.
 
 ## Rules
 

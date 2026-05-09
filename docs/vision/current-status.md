@@ -25,11 +25,12 @@ the next work batch.
 - Chunk batches send embedded light through `level_chunk_with_light` without
   per-chunk `update_light` packets.
 - Progressive chunk streaming is implemented: radius `2` bootstraps eagerly,
-  configured radii through `8` stream farther chunks under chunk and byte
-  budgets. Radius `32` natural-terrain streaming is the active acceptance
-  batch.
+  configured radii through `32` stream farther chunks under chunk and byte
+  budgets.
 - Radius `8` automated flat load, moving-pending, scale-counter, and storage
   timing evidence is landed.
+- Radius `32` natural-terrain implementation and probes are present; the
+  latest recorded full compose result still predates that work.
 - Play keepalive timeout is implemented and compose-verified.
 - Public runtime exposure requires `online_mode=true` with session
   verification.
@@ -40,18 +41,19 @@ the next work batch.
   success artifact after the latest packet-shape fixes.
 - Normal survival is incomplete: tools, crafting, mobs, weather, caves,
   structures, ores, and decorations are not gameplay systems yet.
-- Radius `32` still needs implementation and compose evidence before it is
+- Radius `32` still needs fresh current-results compose evidence before it is
   considered landed.
 
 ## Next Implementation Target
 
-Radius `32` natural-terrain streaming is the active target:
+Radius `32` evidence closure is the active target:
 
+- record a fresh canonical compose run in current results,
 - keep the radius `2` near bootstrap at `25` chunks,
-- converge progressively to `4225` unique chunks,
-- replace stale pending chunks after movement,
+- prove convergence to `4225` unique chunks,
+- prove stale pending chunks are replaced after movement,
 - keep flat radius `4` and `8` probes as regression evidence,
-- defer compression and radius `128` exposure.
+- keep compression and radius `128` exposure deferred.
 
 ## Rules
 

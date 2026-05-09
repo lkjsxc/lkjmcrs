@@ -17,7 +17,7 @@ blocking play bootstrap on the full visible square.
 1. Login advertises view distance `4`.
 2. `chunk_cache_radius` advertises radius `4`.
 3. Initial bootstrap sends only `25` chunks.
-4. Follow-up chunk batches contain at most `8` chunks.
+4. Follow-up chunk batches contain at most `16` chunks.
 5. The client eventually receives `81` unique chunks for the initial center.
 6. Movement refreshes the target window and continues budgeted streaming.
 7. Every streamed chunk validates as `level_chunk_with_light`.
