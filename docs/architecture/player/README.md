@@ -25,6 +25,8 @@ lifecycle, and play-session visibility contracts.
 - [player-storage.md](player-storage.md): `redb` profile storage contract.
 - [session-lifecycle.md](session-lifecycle.md): player session states.
 - [play-loop.md](play-loop.md): movement, keepalive, and time behavior in play.
+- [movement-authority.md](movement-authority.md): current movement trust
+  boundary.
 - [chunk-observers.md](chunk-observers.md): chunk subscriptions and block
   update fanout.
 - [smp-commands.md](smp-commands.md): chat, commands, and operator rules.

@@ -12,7 +12,7 @@ Target protocol: `774` for Minecraft Java Edition `1.21.11`.
 
 ## Configuration
 
-- `0x0e select_known_packs`: sends `minecraft:core` version `1.21.11`.
+- `0x0e select_known_packs`: sends `minecraft:core` release `1.21.11`.
 - `0x07 registry_data`: one packet per required dynamic registry.
 - `0x0d tags`: tag groups for required dynamic registries.
 - `0x0c feature_flags`: sends `minecraft:vanilla`.

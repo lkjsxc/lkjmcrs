@@ -13,7 +13,7 @@ Capture both:
 
 ## Expected Boundary
 
-Server-list ping should show version `1.21.11` and protocol `774`.
+Server-list ping should show Minecraft release `1.21.11` and protocol `774`.
 The reported client error that `minecraft:login_finished` had `1 bytes extra`
 must be gone.
 

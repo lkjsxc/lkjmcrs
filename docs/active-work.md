@@ -11,7 +11,12 @@ Give automation agents one short map before reading detailed docs.
 - Manual client boundary:
   [operations/verification/manual-client-boundary.md](operations/verification/manual-client-boundary.md).
 - Active implementation target:
-  [architecture/world/section-storage.md](architecture/world/section-storage.md).
+  [product/survival-target.md](product/survival-target.md).
+- Active verification targets:
+  [operations/verification/worldgen-golden.md](operations/verification/worldgen-golden.md),
+  [operations/verification/chunk-border-property.md](operations/verification/chunk-border-property.md),
+  [operations/verification/storage-section-persistence.md](operations/verification/storage-section-persistence.md),
+  and [operations/verification/movement-authority-smoke.md](operations/verification/movement-authority-smoke.md).
 - Canonical compose pipeline:
   [operations/verification/compose-pipeline.md](operations/verification/compose-pipeline.md).
 

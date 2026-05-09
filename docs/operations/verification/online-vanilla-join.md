@@ -22,7 +22,7 @@ Capture:
 - Server-list ping advertises `1.21.11` and protocol `774`.
 - Login performs encryption and session verification.
 - The joined profile UUID is the authenticated UUID.
-- The client reaches play state and renders the flat spawn terrain.
+- The client reaches play state and renders the protected spawn terrain.
 - A normal client close must not produce a server warning.
 
 ## Rules

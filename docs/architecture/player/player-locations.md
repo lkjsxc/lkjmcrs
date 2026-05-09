@@ -36,7 +36,8 @@ Every stored location has:
 2. Command dispatch performs location reads and writes from the play loop.
 3. Storage failures disconnect the affected play session.
 4. Teleport writes update the caller's in-memory profile before the next save.
-5. No safety scan runs in this slice because the flat spawn world is stable.
+5. No safety scan runs in this slice because teleport targets are trusted
+   command outputs.
 
 ## Out of Scope
 

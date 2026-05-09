@@ -56,7 +56,7 @@
 The server-list status path is vanilla-shaped for `1.21.11`.
 Offline login and online encrypted login both reach configuration, negotiate the
 vanilla core pack, load the required non-empty registries, enter play, send game
-event `13`, and send a deterministic flat spawn chunk batch for the advertised
+event `13`, and send a deterministic spawn safety-core chunk batch for the advertised
 view distance. Online login verifies the session profile before login success.
 A player join was reported on `2026-05-05` after the `0x26` fix. Treat that as
 manual success evidence without raw logs attached.

@@ -18,6 +18,8 @@ Use this subtree for chunk, region, and world-data contracts.
   chunk delivery for larger configured radii.
 - [terrain-generation.md](terrain-generation.md): terrain pipeline direction
   after the flat world.
+- [terrain-pipeline.md](terrain-pipeline.md): current terrain, override, and
+  chunk-encoding pipeline.
 - [item-entities.md](item-entities.md): dropped item entity ownership and
   pickup.
 - [mutable-chunks.md](mutable-chunks.md): sparse in-memory block overrides.
@@ -25,6 +27,7 @@ Use this subtree for chunk, region, and world-data contracts.
   chunk overrides.
 - [section-storage.md](section-storage.md): binary world override value format
   and section-storage direction.
+- [storage-schema.md](storage-schema.md): `redb` world table and key schema.
 - [storage-migration.md](storage-migration.md): unsupported early storage
   formats and future migration requirements.
 - [region-index.md](region-index.md): compact coordinate and ownership index.

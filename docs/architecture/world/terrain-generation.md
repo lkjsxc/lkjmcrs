@@ -12,16 +12,16 @@ Terra config packs, plugins, or compatibility.
 - Keep generation deterministic by world seed and chunk coordinate.
 - Keep hot-path generation bounded to local chunk neighborhoods.
 - Store player mutations as overrides above generated terrain.
-- Keep chunks within Chebyshev radius `1` of spawn equivalent to the flat
+- Keep chunks within Chebyshev radius `1` of spawn equivalent to the safe
   spawn surface.
-- Blend terrain outside the protected spawn plateau before adding new
-  large-scale terrain features.
+- Keep the protected spawn safety core stable before adding new large-scale
+  terrain features.
 
 ## Pipeline Target
 
 1. Choose `terrain_generator` as `natural` or `flat`.
 2. Seed generation from `world_seed`.
-3. Return flat spawn plateau chunks near `0,0`.
+3. Return protected spawn safety-core chunks near `0,0`.
 4. Sample deterministic smoothed value noise for outer-column height.
 5. Build bedrock, stone, dirt, grass, and air columns.
 6. Apply sparse stored overrides above the generated base.
@@ -29,11 +29,11 @@ Terra config packs, plugins, or compatibility.
 ## Spawn Blending Target
 
 - Chunks within Chebyshev radius `1` of spawn remain flat and safe.
-- Blending starts outside the protected plateau and must not alter spawn chunk
-  block states.
+- Blending starts outside the protected safety core and must not alter spawn
+  chunk block states.
 - Blended heights remain deterministic by world seed and absolute column
   coordinate.
-- Blending smooths height differences at the plateau edge before caves,
+- Blending smooths height differences at the safety-core edge before caves,
   structures, ores, or decorations are added.
 - Terrain probes own acceptance for the flat core and non-flat outer terrain.
 

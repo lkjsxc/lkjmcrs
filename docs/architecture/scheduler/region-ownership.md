@@ -15,7 +15,7 @@ or region section.
 
 ## Current Slice
 
-- Use static region ownership for the flat spawn area.
+- Use static region ownership for the initial loaded world area.
 - Prove actor/mailbox scheduling with tests.
 - Defer dynamic split and merge until persistent chunk loading exists.
 

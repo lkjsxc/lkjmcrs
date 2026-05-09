@@ -55,7 +55,7 @@ a full square of chunks.
 
 1. Radius `2` behavior stays wire-identical unless this doc changes first.
 2. Do not raise the configured cap above `32` until progressive streaming is
-   compose-verified with load evidence for the next target.
+   compose-verified with load evidence for the later scale gate.
 3. Do not full-square bootstrap for larger radii.
 4. Packet compression is future work and is not part of this acceptance batch.
 5. Radius `128` is not exposed or verified in this batch.

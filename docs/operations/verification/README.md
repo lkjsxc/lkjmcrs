@@ -32,7 +32,11 @@ Use this subtree for required compose verification contracts.
 - [scale-chunk-stream-smoke.md](scale-chunk-stream-smoke.md): progressive
   larger-radius chunk streaming smoke.
 - [terrain-generation-smoke.md](terrain-generation-smoke.md): natural terrain
-  and spawn plateau smoke.
+  and spawn safety-core smoke.
+- [worldgen-golden.md](worldgen-golden.md): deterministic terrain golden
+  target.
+- [chunk-border-property.md](chunk-border-property.md): generated chunk border
+  property target.
 - [render-distance-smoke.md](render-distance-smoke.md): radius `32`
   natural-terrain render-distance smoke.
 - [load-and-metrics.md](load-and-metrics.md): scale verification and metric
@@ -47,6 +51,10 @@ Use this subtree for required compose verification contracts.
   respawn smoke.
 - [persistence-smoke.md](persistence-smoke.md): restart behavior for persisted
   block overrides.
+- [storage-section-persistence.md](storage-section-persistence.md): broader
+  binary override persistence target.
+- [movement-authority-smoke.md](movement-authority-smoke.md): movement trust
+  boundary smoke target.
 - [join-boundary.md](join-boundary.md): latest known manual client boundary.
 - [evidence-policy.md](evidence-policy.md): how reports become active
   protocol evidence.

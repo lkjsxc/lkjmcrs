@@ -53,7 +53,7 @@ docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-com
 7. `profile-reconnect` verifies player profile persistence.
 8. `chunk-stream` verifies bounded movement-driven chunk streaming.
 9. `scale-chunk-stream` verifies progressive radius `4` chunk streaming.
-10. `terrain-generation` verifies natural terrain outside the spawn plateau and
+10. `terrain-generation` verifies natural terrain outside the spawn safety core and
     embedded chunk light without `update_light`.
 11. `scale-load-metrics` verifies radius `8` total chunks, follow-up batch
     sizes, payload bytes, and scale counter emission.

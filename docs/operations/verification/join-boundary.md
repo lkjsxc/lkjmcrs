@@ -13,7 +13,7 @@ The latest stock-client report by filename/report time is
 `tmp/disconnect-2026-05-05_15.15.50-client.txt`. It is now historical packet-ID
 evidence:
 
-- vanilla client version: `1.21.11`,
+- vanilla client release: `1.21.11`,
 - protocol state: play,
 - clientbound packet decoded by the client:
   `clientbound/minecraft:disguised_chat`,

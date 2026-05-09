@@ -12,13 +12,12 @@ the next work batch.
 - Offline-mode login, online-mode encrypted login, configuration, play entry,
   chunks, light, position, time, keepalive, and command declaration are
   implemented.
-- The product config uses deterministic natural terrain with a flat spawn
-  plateau and sparse persisted block overrides stored in `redb`.
+- The product config uses deterministic natural terrain with a protected spawn
+  safety core and sparse persisted block overrides stored in `redb`.
 - Player profiles and online identity use the current `redb` storage
   foundation; earlier SQLite storage is not supported.
-- World overrides are owned by `WorldStore`; the active implementation target
-  is moving chunk override values from JSON to the current binary `redb`
-  format.
+- World overrides are owned by `WorldStore`; chunk override values use the
+  current binary `redb` format.
 - Survival placement, breaking, simple drops, pickup, inventory projection, and
   reconnect persistence are compose-verified.
 - Health, operator damage, death state, and respawn restoration are
@@ -34,6 +33,8 @@ the next work batch.
   timing evidence is landed.
 - Radius `32` natural-terrain implementation and probes are compose-verified
   in the latest recorded full result.
+- Stateful persistence, survival-item, inventory-sync, and item-pickup probes
+  use isolated compose data volumes.
 - Play keepalive timeout is implemented and compose-verified.
 - Public runtime exposure requires `online_mode=true` with session
   verification.
@@ -44,19 +45,19 @@ the next work batch.
   success artifact after the latest packet-shape fixes.
 - Normal survival is incomplete: tools, crafting, mobs, weather, caves,
   structures, ores, and decorations are not gameplay systems yet.
-- Stateful probe services still share some compose state; repeat runs should
-  isolate persistence, survival-item, inventory-sync, and item-pickup data.
 
 ## Next Implementation Target
 
-Storage format and stateful probe isolation are the active target:
+World foundation and verification hardening are the active target:
 
-- document the binary world override value format,
-- store chunk overrides as validated binary records in `redb`,
-- keep `WorldStore` as the public storage boundary,
-- keep old JSON chunk values unsupported,
-- split stateful compose probes onto separate server data volumes,
-- record fresh canonical compose evidence after implementation.
+- replace the plateau-first natural generator with staged deterministic terrain,
+- add a spawn resolver instead of hardcoded player spawn coordinates,
+- move world persistence toward section-oriented `redb` records,
+- add deterministic worldgen golden coverage,
+- add generated chunk-border property coverage,
+- broaden storage persistence coverage across multiple overrides and vertical
+  sections,
+- add dedicated movement-authority smoke coverage before deeper SMP hardening.
 
 ## Rules
 

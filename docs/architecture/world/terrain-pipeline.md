@@ -1,0 +1,53 @@
+# Terrain Pipeline
+
+## Goal
+
+Define how generated terrain, persisted overrides, and protocol chunk encoding
+fit together without making Anvil or plugin-pack compatibility promises.
+
+## Inputs
+
+- `terrain_generator`: `natural` or `flat`.
+- `world_seed`: signed integer seed for deterministic generated terrain.
+- Chunk coordinate: signed `x,z`.
+- Persisted sparse overrides loaded through `WorldStore`.
+
+## Target Pipeline
+
+1. Select `flat` or `natural` at runtime construction.
+2. Resolve a deterministic world spawn from `world_seed`.
+3. For `natural`, sample staged fields for continentalness, ridge/valley shape,
+   erosion-like smoothing, temperature, and humidity.
+4. Build the surface from the staged fields with deterministic chunk-neighbor
+   continuity.
+5. Apply river, cave, tree, ore, and decorator stages only after their owner
+   docs and verification exist.
+6. Load sparse persisted sections through `WorldStore`.
+7. Apply persisted sections above the generated base.
+8. Encode the final chunk through the protocol chunk contract.
+
+## Spawn Resolution
+
+- New profiles, `/spawn`, and respawn use one server-owned spawn resolver.
+- The resolver scores candidate columns for solid ground, safe headroom, modest
+  slope, nearby usable terrain, and deterministic seed stability.
+- A tiny safety adjustment may clear headroom or place the player on the first
+  safe surface; it must not create a visible flat plateau.
+- The current protected spawn core is accepted behavior only until the resolver
+  is implemented.
+
+## Boundaries
+
+- Generated terrain is disposable and may be rebuilt from config inputs.
+- Persisted block changes are section records only once the storage schema
+  target lands.
+- `WorldStore` is the persistence boundary for override reads and writes.
+- Protocol chunk encoding must not know whether a block came from generation
+  or persistence.
+
+## Out of Scope
+
+- Anvil import or export.
+- Terra config-pack compatibility.
+- Biomes beyond minimal registry-safe values.
+- Mobs and weather-driven terrain changes.

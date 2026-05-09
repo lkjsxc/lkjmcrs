@@ -7,7 +7,7 @@ Define the next benchmark lanes before adding broader scale features.
 ## Initial Targets
 
 - World storage load and save latency for sparse override chunks.
-- Chunk generation latency for flat, plateau, blended, and outer natural
+- Chunk generation latency for flat, spawn-core, blended, and outer natural
   terrain.
 - Encoded chunk payload cache hit rate for generated chunks.
 - Region actor command latency under mixed movement and mutation load.

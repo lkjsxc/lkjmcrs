@@ -15,3 +15,5 @@ Use this subtree for process, module, and lifecycle contracts.
 - [lifecycle.md](lifecycle.md): startup, connection, shutdown lifecycle.
 - [storage-direction.md](storage-direction.md): persistence ownership and
   generated-first storage direction.
+- [observability.md](observability.md): logs, counters, and evidence
+  boundaries.
