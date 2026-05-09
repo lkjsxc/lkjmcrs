@@ -1,11 +1,10 @@
 # Current Results
 
-## 2026-05-10 Terrain Spawn And Section Metadata
+## 2026-05-10 Static Rivers And Water
 
-Latest full recorded compose result: implementation commit `c26fe1e`, with
-natural spawn scoring, no flat natural spawn plateau, chunk metadata records,
-targeted section removal, storage-section persistence probe, and
-movement-authority probe.
+Latest full recorded compose result: implementation commit `334dbec`, with
+static generated water, deterministic river terrain, dry spawn scoring, water
+storage and protocol mapping, and live river-terrain probe coverage.
 
 Command owner:
 
@@ -23,6 +22,7 @@ Result:
 - `chunk-stream`: pass, `chunk-stream probe ok`.
 - `scale-chunk-stream`: pass, `scale-chunk-stream probe ok`.
 - `terrain-generation`: pass, `terrain-generation probe ok`.
+- `river-terrain`: pass, `terrain-rivers probe ok`.
 - `scale-load-metrics`: pass,
   `scale-load-metrics counters radius=8 initial=25 total=289
   followup_batches=17 max_followup_batch=16
@@ -32,7 +32,7 @@ Result:
 - `render-distance`: pass,
   `render-distance counters radius=32 initial=25 total=4225
   followup_batches=263 max_followup_batch=16
-  max_followup_payload_bytes=963882`, then `render-distance probe ok`.
+  max_followup_payload_bytes=1015151`, then `render-distance probe ok`.
 - `render-moving-pending`: pass, `render-moving-pending probe ok`.
 - `persist-place`: pass, `persist-place probe ok`.
 - `persistence-server` restart: pass.
