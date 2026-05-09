@@ -32,6 +32,7 @@ mod survival_item;
 mod survival_vitals;
 mod terrain_chunk;
 mod terrain_generation;
+mod terrain_rivers;
 mod validation;
 mod vitals_packets;
 
@@ -40,7 +41,7 @@ pub use commands::{
     multiplayer_mutation, online_auth, persist_check, persist_place, profile_reconnect,
     render_distance, render_moving_pending, scale_chunk_stream, scale_load_metrics,
     scale_moving_pending, smp_commands, storage_section_persistence, survival_item,
-    survival_vitals, terrain_generation,
+    survival_vitals, terrain_generation, terrain_rivers,
 };
 
 use crate::protocol::PROTOCOL_VERSION;

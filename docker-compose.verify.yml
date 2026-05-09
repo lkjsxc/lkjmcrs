@@ -98,6 +98,15 @@ services:
       - ./config/verify/terrain-server.json:/app/config/server.json:ro
       - terrain-server-data:/app/data
 
+  river-terrain-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["serve"]
+    volumes:
+      - ./config/verify/river-terrain-server.json:/app/config/server.json:ro
+      - river-terrain-server-data:/app/data
+
   chunk-stream-server:
     build:
       context: .
@@ -252,6 +261,21 @@ services:
     depends_on:
       - terrain-server
     entrypoint: ["cargo", "run", "--", "probe", "terrain-generation", "--host", "terrain-server:25565"]
+
+  river-terrain:
+    build:
+      context: .
+      dockerfile: Dockerfile.verify
+    working_dir: /workspace
+    environment:
+      CARGO_TARGET_DIR: /target
+    volumes:
+      - .:/workspace:ro
+      - cargo-registry:/usr/local/cargo/registry
+      - target-cache:/target
+    depends_on:
+      - river-terrain-server
+    entrypoint: ["cargo", "run", "--", "probe", "terrain-rivers", "--host", "river-terrain-server:25565"]
 
   scale-load-metrics:
     build:
@@ -461,6 +485,7 @@ volumes:
   survival-vitals-server-data:
   scale-server-data:
   terrain-server-data:
+  river-terrain-server-data:
   chunk-stream-server-data:
   scale-load-server-data:
   scale-moving-server-data:

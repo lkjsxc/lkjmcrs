@@ -42,6 +42,10 @@ pub(super) enum ProbeCommand {
         #[arg(long, default_value = "127.0.0.1:25565")]
         host: String,
     },
+    TerrainRivers {
+        #[arg(long, default_value = "127.0.0.1:25565")]
+        host: String,
+    },
     ScaleLoadMetrics {
         #[arg(long, default_value = "127.0.0.1:25565")]
         host: String,
@@ -100,6 +104,7 @@ pub(super) async fn run(command: ProbeCommand) -> Result<(), Box<dyn std::error:
         ProbeCommand::ChunkStream { host } => crate::probe::chunk_stream(&host).await?,
         ProbeCommand::ScaleChunkStream { host } => crate::probe::scale_chunk_stream(&host).await?,
         ProbeCommand::TerrainGeneration { host } => crate::probe::terrain_generation(&host).await?,
+        ProbeCommand::TerrainRivers { host } => crate::probe::terrain_rivers(&host).await?,
         ProbeCommand::ScaleLoadMetrics { host } => crate::probe::scale_load_metrics(&host).await?,
         ProbeCommand::ScaleMovingPending { host } => {
             crate::probe::scale_moving_pending(&host).await?

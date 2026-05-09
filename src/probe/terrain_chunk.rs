@@ -30,6 +30,10 @@ impl DecodedChunk {
         (0..16).any(|z| (0..16).any(|x| self.surface_y(x, z) != Some(79)))
     }
 
+    pub(super) fn contains_state(&self, state: i32) -> bool {
+        self.blocks.values().any(|value| *value == state)
+    }
+
     pub(super) fn surface_y(&self, x: usize, z: usize) -> Option<i32> {
         (-64..320).rev().find(|y| self.state(x, *y, z) != AIR)
     }

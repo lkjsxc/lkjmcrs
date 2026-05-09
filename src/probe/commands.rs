@@ -52,6 +52,12 @@ pub async fn terrain_generation(host: &str) -> Result<(), Box<dyn std::error::Er
     Ok(())
 }
 
+pub async fn terrain_rivers(host: &str) -> Result<(), Box<dyn std::error::Error>> {
+    super::terrain_rivers::run(host).await?;
+    println!("terrain-rivers probe ok");
+    Ok(())
+}
+
 pub async fn scale_chunk_stream(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     super::scale_chunk_stream::run(host).await?;
     println!("scale-chunk-stream probe ok");
