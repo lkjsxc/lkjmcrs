@@ -13,6 +13,8 @@
 
 Persistent override ownership lives in
 [persistent-overrides.md](persistent-overrides.md).
+The current redb value format is owned by
+[section-storage.md](section-storage.md).
 
 ## Future Persistence
 

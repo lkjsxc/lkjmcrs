@@ -23,4 +23,8 @@ Use this subtree for chunk, region, and world-data contracts.
 - [mutable-chunks.md](mutable-chunks.md): sparse in-memory block overrides.
 - [persistent-overrides.md](persistent-overrides.md): `redb` storage for sparse
   chunk overrides.
+- [section-storage.md](section-storage.md): binary world override value format
+  and section-storage direction.
+- [storage-migration.md](storage-migration.md): unsupported early storage
+  formats and future migration requirements.
 - [region-index.md](region-index.md): compact coordinate and ownership index.

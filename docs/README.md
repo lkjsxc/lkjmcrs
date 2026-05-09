@@ -46,4 +46,6 @@ operations, and repository rules.
 8. [architecture/world/region-index.md](architecture/world/region-index.md)
 9. [product/playable-server.md](product/playable-server.md)
 10. [operations/verification/compose-pipeline.md](operations/verification/compose-pipeline.md)
-11. [repository/workflow/change-sequence.md](repository/workflow/change-sequence.md)
+11. [operations/verification/benchmark-plan.md](operations/verification/benchmark-plan.md)
+12. [operations/verification/soak-plan.md](operations/verification/soak-plan.md)
+13. [repository/workflow/change-sequence.md](repository/workflow/change-sequence.md)

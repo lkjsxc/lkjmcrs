@@ -38,21 +38,17 @@ inventory.
 
 ## Pickup
 
-- Pickup radius is `1.5` blocks from player position to item position.
+- New dropped items have a pickup delay of `500ms` after spawn.
+- Delayed items remain visible and cannot be collected until the delay expires.
+- Pickup uses AABB intersection, not center-distance checks.
+- Player pickup AABB uses player feet position, width `0.6`, and height `1.8`.
+- Item pickup AABB is centered on the item position with width `0.25` and
+  height `0.25`.
 - A pickup succeeds only when the player inventory has stack or empty-slot
   capacity in synced slots `0..35`.
 - A successful pickup removes the entity, sends collect and destroy packets,
   and then sends matching player-inventory deltas.
 - A failed pickup leaves the entity alive.
-
-## Pickup Refinement Target
-
-- New dropped items have a pickup delay of `500ms` after spawn.
-- Delayed items remain visible and cannot be collected until the delay expires.
-- Pickup should move from center-distance checks to AABB intersection.
-- Player pickup AABB uses player feet position, width `0.6`, and height `1.8`.
-- Item pickup AABB is centered on the item position with width `0.25` and
-  height `0.25`.
 - Delay and AABB checks belong to region-owned item collection, not probe-only
   logic.
 

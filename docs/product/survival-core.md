@@ -51,8 +51,8 @@ region-ownership architecture.
 - The selected hotbar slot and canonical player inventory slots `0..35` are
   projected to the client during play bootstrap and after accepted survival
   inventory mutations.
-- Survival mining speed, recipes, and item durability are not validated in this
-  slice.
+- Tool-specific mining speed, recipes, and item durability are not validated in
+  this slice.
 - Block interactions outside loaded chunks are acknowledged and reconciled
   without mutating chunks or inventory.
 

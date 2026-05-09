@@ -12,7 +12,7 @@
 
 - Region-owned block mutation.
 - Creative placement, breaking, and multiplayer observer smoke coverage.
-- `redb` JSON storage for sparse chunk overrides and player data.
+- `redb` storage for sparse chunk overrides and player data.
 - Basic block interaction and player movement validation.
 - Persistent player profiles, gamemode, inventory shell, and vitals shell.
 - Inventory and item stack model.
@@ -22,7 +22,7 @@
 
 ## Storage And Identity Foundation
 
-- Storage abstraction centered on `redb` tables and JSON values.
+- Storage abstraction centered on `WorldStore` and `redb` backends.
 - No compatibility with earlier SQLite files.
 - Online-mode login, encryption, and session verification outside tick paths.
 - UUID-owned permission model backed by online identity when enabled.
@@ -31,7 +31,7 @@
 ## Normal Survival
 
 - Health, hunger, damage, death, and respawn effects.
-- Minimal crafting, recipes, tools, durability, and mining speed.
+- Tools, durability, crafting recipes, and tool-specific mining speed.
 - Passive and hostile mob smoke behavior.
 - Day-night gameplay effects.
 
@@ -39,6 +39,7 @@
 
 - Radius `32` load evidence for initial `25` and eventual `4225` chunks.
 - Stale-pending movement evidence before raising distance caps.
+- Benchmark and soak plans for storage, streaming, and region pressure.
 - Region splitting and merging.
 - Region-local task queues.
 - Broader async chunk generation and storage pipeline.

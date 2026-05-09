@@ -50,6 +50,8 @@ Use this subtree for required compose verification contracts.
 - [join-boundary.md](join-boundary.md): latest known manual client boundary.
 - [evidence-policy.md](evidence-policy.md): how reports become active
   protocol evidence.
+- [benchmark-plan.md](benchmark-plan.md): benchmark lanes before scale gates.
+- [soak-plan.md](soak-plan.md): long-running verification lanes.
 - [vanilla-join.md](vanilla-join.md): manual stock-client join checks.
 - [client-reports/README.md](client-reports/README.md): captured client
   disconnect evidence.

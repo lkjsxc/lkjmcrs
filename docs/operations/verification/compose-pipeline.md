@@ -19,12 +19,15 @@ docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-com
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml up -d --build --quiet-build --quiet-pull render32-server
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T render-distance
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T render-moving-pending
+docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml up -d --build --quiet-build --quiet-pull persistence-server
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T persist-place
-docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml restart server
+docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml restart persistence-server
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T persist-check
-docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml up -d --build --quiet-build --quiet-pull survival-server
+docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml up -d --build --quiet-build --quiet-pull survival-item-server
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T survival-item
+docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml up -d --build --quiet-build --quiet-pull inventory-sync-server
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T inventory-sync
+docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml up -d --build --quiet-build --quiet-pull item-pickup-server
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T item-pickup
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml up -d --build --quiet-build --quiet-pull survival-vitals-server
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T survival-vitals
@@ -61,26 +64,31 @@ docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-com
     embedded light, non-flat outer terrain, and follow-up budgets.
 14. `render-moving-pending` verifies stale pending chunks are replaced when a
     player moves before radius `32` far streaming completes.
-15. `persist-place` writes a mutation through the public wire path.
-16. `persist-check` verifies that mutation after restart.
-17. `survival-item` verifies survival profile defaults and item persistence.
-18. `inventory-sync` verifies client-visible hotbar and player inventory sync.
-19. `item-pickup` verifies dropped item entity spawn, pickup, and inventory
+15. `persistence-server` uses a dedicated data volume for the persistence
+    restart pair.
+16. `persist-place` writes a mutation through the public wire path.
+17. `persist-check` verifies that mutation after restart.
+18. `survival-item-server` uses a dedicated data volume for item persistence.
+19. `survival-item` verifies survival profile defaults and item persistence.
+20. `inventory-sync-server` uses a dedicated data volume for inventory sync.
+21. `inventory-sync` verifies client-visible hotbar and player inventory sync.
+22. `item-pickup-server` uses a dedicated data volume for pickup behavior.
+23. `item-pickup` verifies dropped item entity spawn, pickup, and inventory
     delta sync.
-20. `survival-vitals-server` mounts `config/verify/smp-server.json` so the
+24. `survival-vitals-server` mounts `config/verify/smp-server.json` so the
     vitals probe can use disposable operator damage.
-21. `survival-vitals` verifies visible health, lethal damage, death, respawn,
+25. `survival-vitals` verifies visible health, lethal damage, death, respawn,
     regeneration, and starvation.
-22. `smp-commands` verifies offline chat, permissions, travel commands, and
+26. `smp-commands` verifies offline chat, permissions, travel commands, and
     kick.
-23. `online-auth` verifies encrypted login and fixture-authenticated UUIDs.
-24. Non-zero from any step blocks acceptance.
-25. Initial `down -v` removes stale named volumes before stateful probes.
-26. Final `down -v` removes disposable compose state.
-27. Quiet flags are part of the contract for routine acceptance runs.
-28. `smp-server` mounts `config/verify/smp-server.json` so disposable operator
+27. `online-auth` verifies encrypted login and fixture-authenticated UUIDs.
+28. Non-zero from any step blocks acceptance.
+29. Initial `down -v` removes stale named volumes before stateful probes.
+30. Final `down -v` removes disposable compose state.
+31. Quiet flags are part of the contract for routine acceptance runs.
+32. `smp-server` mounts `config/verify/smp-server.json` so disposable operator
     checks do not require operator UUIDs in normal runtime config.
-29. `online-server` mounts `config/verify/online-server.json` and may use the
+33. `online-server` mounts `config/verify/online-server.json` and may use the
     HTTP session fixture only with explicit insecure-fixture allowance.
 
 ## Readiness

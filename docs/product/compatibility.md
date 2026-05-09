@@ -27,7 +27,7 @@ The status response advertises:
 
 ## Compatibility Non-Goals
 
-- No ViaVersion-style multi-version support.
+- No ViaVersion-style multi-release support.
 - No Bedrock support.
 - No Bukkit/Paper/Folia plugin compatibility.
 - No migration promises for early internal files.

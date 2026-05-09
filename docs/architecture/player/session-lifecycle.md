@@ -4,7 +4,7 @@
 
 - `Handshake`: first packet decides status or login.
 - `Status`: server-list response and ping.
-- `Login`: version validation and profile creation.
+- `Login`: protocol target validation and profile creation.
 - `Configuration`: registry and feature setup.
 - `Play`: world entry, movement, keepalive, ticks.
 - `Closed`: disconnected or failed.

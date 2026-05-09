@@ -14,8 +14,11 @@ the next work batch.
   implemented.
 - The product config uses deterministic natural terrain with a flat spawn
   plateau and sparse persisted block overrides stored in `redb`.
-- Player profiles, online identity, and world overrides use the current
-  `redb` storage foundation; earlier SQLite storage is not supported.
+- Player profiles and online identity use the current `redb` storage
+  foundation; earlier SQLite storage is not supported.
+- World overrides are owned by `WorldStore`; the active implementation target
+  is moving chunk override values from JSON to the current binary `redb`
+  format.
 - Survival placement, breaking, simple drops, pickup, inventory projection, and
   reconnect persistence are compose-verified.
 - Health, operator damage, death state, and respawn restoration are
@@ -29,8 +32,8 @@ the next work batch.
   budgets.
 - Radius `8` automated flat load, moving-pending, scale-counter, and storage
   timing evidence is landed.
-- Radius `32` natural-terrain implementation and probes are present; the
-  latest recorded full compose result still predates that work.
+- Radius `32` natural-terrain implementation and probes are compose-verified
+  in the latest recorded full result.
 - Play keepalive timeout is implemented and compose-verified.
 - Public runtime exposure requires `online_mode=true` with session
   verification.
@@ -41,19 +44,19 @@ the next work batch.
   success artifact after the latest packet-shape fixes.
 - Normal survival is incomplete: tools, crafting, mobs, weather, caves,
   structures, ores, and decorations are not gameplay systems yet.
-- Radius `32` still needs fresh current-results compose evidence before it is
-  considered landed.
+- Stateful probe services still share some compose state; repeat runs should
+  isolate persistence, survival-item, inventory-sync, and item-pickup data.
 
 ## Next Implementation Target
 
-Radius `32` evidence closure is the active target:
+Storage format and stateful probe isolation are the active target:
 
-- record a fresh canonical compose run in current results,
-- keep the radius `2` near bootstrap at `25` chunks,
-- prove convergence to `4225` unique chunks,
-- prove stale pending chunks are replaced after movement,
-- keep flat radius `4` and `8` probes as regression evidence,
-- keep compression and radius `128` exposure deferred.
+- document the binary world override value format,
+- store chunk overrides as validated binary records in `redb`,
+- keep `WorldStore` as the public storage boundary,
+- keep old JSON chunk values unsupported,
+- split stateful compose probes onto separate server data volumes,
+- record fresh canonical compose evidence after implementation.
 
 ## Rules
 

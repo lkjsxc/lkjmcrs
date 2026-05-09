@@ -10,7 +10,7 @@
   storage.
 - `session`: login, configuration, play state, keepalive, commands, and travel
   command dispatch.
-- `world`: chunk, region, and flat-world data.
+- `world`: chunk, region, terrain, and `WorldStore` storage data.
 - `scheduler`: region actor and task ownership primitives.
 - `quality`: docs topology and line-limit checks.
 - `probe`: status and login/play smoke probes over the public wire path.
@@ -29,6 +29,7 @@
 
 - `player::store_json`: profile and inventory JSON mapping.
 - `player::location_json`: home and warp JSON mapping.
+- `world::storage_codec`: binary sparse override value mapping.
 - `session::command_dispatch`: command permission and routing entrypoint.
 - `session::travel_commands`: `/spawn`, homes, and warps.
 

@@ -11,7 +11,7 @@ Give automation agents one short map before reading detailed docs.
 - Manual client boundary:
   [operations/verification/manual-client-boundary.md](operations/verification/manual-client-boundary.md).
 - Active implementation target:
-  [architecture/world/large-distance-streaming.md](architecture/world/large-distance-streaming.md).
+  [architecture/world/section-storage.md](architecture/world/section-storage.md).
 - Canonical compose pipeline:
   [operations/verification/compose-pipeline.md](operations/verification/compose-pipeline.md).
 
