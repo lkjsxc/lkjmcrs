@@ -34,12 +34,34 @@ impl DecodedChunk {
         self.blocks.values().any(|value| *value == state)
     }
 
+    pub(super) fn has_enclosed_underground_air(&self) -> bool {
+        (0..16).any(|z| {
+            (0..16).any(|x| {
+                let Some(surface_y) = self.surface_y(x, z) else {
+                    return false;
+                };
+                if surface_y < 17 {
+                    return false;
+                }
+                (8..=surface_y - 8).any(|y| {
+                    self.state(x, y, z) == AIR
+                        && self.has_solid_between(x, y + 1, surface_y, z)
+                        && self.has_solid_between(x, 8, y - 1, z)
+                })
+            })
+        })
+    }
+
     pub(super) fn surface_y(&self, x: usize, z: usize) -> Option<i32> {
         (-64..320).rev().find(|y| self.state(x, *y, z) != AIR)
     }
 
     fn state(&self, x: usize, y: i32, z: usize) -> i32 {
         self.blocks.get(&(x, y, z)).copied().unwrap_or(AIR)
+    }
+
+    fn has_solid_between(&self, x: usize, min_y: i32, max_y: i32, z: usize) -> bool {
+        min_y <= max_y && (min_y..=max_y).any(|y| self.state(x, y, z) != AIR)
     }
 }
 

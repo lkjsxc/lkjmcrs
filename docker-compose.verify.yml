@@ -107,6 +107,15 @@ services:
       - ./config/verify/river-terrain-server.json:/app/config/server.json:ro
       - river-terrain-server-data:/app/data
 
+  cave-terrain-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["serve"]
+    volumes:
+      - ./config/verify/cave-terrain-server.json:/app/config/server.json:ro
+      - cave-terrain-server-data:/app/data
+
   chunk-stream-server:
     build:
       context: .
@@ -276,6 +285,21 @@ services:
     depends_on:
       - river-terrain-server
     entrypoint: ["cargo", "run", "--", "probe", "terrain-rivers", "--host", "river-terrain-server:25565"]
+
+  terrain-caves:
+    build:
+      context: .
+      dockerfile: Dockerfile.verify
+    working_dir: /workspace
+    environment:
+      CARGO_TARGET_DIR: /target
+    volumes:
+      - .:/workspace:ro
+      - cargo-registry:/usr/local/cargo/registry
+      - target-cache:/target
+    depends_on:
+      - cave-terrain-server
+    entrypoint: ["cargo", "run", "--", "probe", "terrain-caves", "--host", "cave-terrain-server:25565"]
 
   scale-load-metrics:
     build:
@@ -486,6 +510,7 @@ volumes:
   scale-server-data:
   terrain-server-data:
   river-terrain-server-data:
+  cave-terrain-server-data:
   chunk-stream-server-data:
   scale-load-server-data:
   scale-moving-server-data:
