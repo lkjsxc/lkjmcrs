@@ -29,8 +29,8 @@ block.
 3. Invalid binary fixture tests may be unit tests instead of compose probes.
 4. Old JSON chunk values remain unsupported.
 
-## Deferred Command
+## Gate Command
 
-The current compose pipeline covers single-block persistence through
-[persistence-smoke.md](persistence-smoke.md). A broader section-persistence
-command is not active yet.
+- Compose service: `storage-section-persistence`.
+- It complements [persistence-smoke.md](persistence-smoke.md), which remains
+  the single-block restart smoke.

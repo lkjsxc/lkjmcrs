@@ -20,6 +20,8 @@ Use this subtree for chunk, region, and world-data contracts.
   after the flat world.
 - [terrain-pipeline.md](terrain-pipeline.md): current terrain, override, and
   chunk-encoding pipeline.
+- [spawn-resolution.md](spawn-resolution.md): default spawn, respawn, `/spawn`,
+  and teleport safety owner.
 - [item-entities.md](item-entities.md): dropped item entity ownership and
   pickup.
 - [mutable-chunks.md](mutable-chunks.md): sparse in-memory block overrides.

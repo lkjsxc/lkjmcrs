@@ -2,7 +2,7 @@
 
 ## Goal
 
-Document the target server-owned world storage schema for section-oriented
+Document the active server-owned world storage schema for section-oriented
 `redb` persistence.
 
 ## Database Files
@@ -15,16 +15,11 @@ Document the target server-owned world storage schema for section-oriented
 ## World Tables
 
 - `meta`: string keys with byte values.
-- `chunk_meta`: one record per generated or mutated chunk.
 - `chunk_sections`: one record per dirty vertical section.
-- `chunk_entities`: persisted non-player entity records after entity storage is
-  documented.
 
 ## Meta Keys
 
-- `world_storage_schema`: stores a documented schema marker.
-- Existing literal marker `lkjmcrs.chunk_overrides.v1` is only an old persisted
-  string and must not name new Rust APIs or docs.
+- `world_storage_schema`: stores `lkjmcrs.section_overrides.current`.
 
 ## Section Keys
 
@@ -35,19 +30,24 @@ Document the target server-owned world storage schema for section-oriented
 
 ## Values
 
-- `chunk_meta` stores terrain hash, dirty-section bitmap, last save tick,
-  feature mask, and lighting state.
 - `chunk_sections` stores compact block states plus optional biome and light
   payloads.
 - A missing section means the generated base has no persisted changes there.
 - A chunk with no dirty sections must not keep empty section records.
 - Old JSON chunk override values are unsupported.
 
+## Queued Tables
+
+- `chunk_meta`: dirty-section bitmap, generated content hash, last save tick,
+  and feature bookkeeping.
+- `chunk_entities`: persisted non-player entity records after entity storage is
+  documented.
+
 ## Rules
 
 1. `WorldStore` remains the public storage boundary.
 2. Region actors request world loads and saves through storage jobs.
 3. Generated terrain is not persisted as whole chunks.
-4. Storage schema changes need an owner doc and verification fixture before
-   implementation.
+4. Storage schema changes need this owner doc and verification fixture updates
+   before implementation.
 5. Player profiles, homes, and warps stay outside world section tables.

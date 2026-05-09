@@ -28,19 +28,14 @@ fit together without making Anvil or plugin-pack compatibility promises.
 
 ## Spawn Resolution
 
-- New profiles, `/spawn`, and respawn use one server-owned spawn resolver.
-- The resolver scores candidate columns for solid ground, safe headroom, modest
-  slope, nearby usable terrain, and deterministic seed stability.
-- A tiny safety adjustment may clear headroom or place the player on the first
-  safe surface; it must not create a visible flat plateau.
-- The current protected spawn core is accepted behavior only until the resolver
-  is implemented.
+- New profiles, `/spawn`, and respawn use the owner rules in
+  [spawn-resolution.md](spawn-resolution.md).
+- The natural generator must not create a visible flat plateau around spawn.
 
 ## Boundaries
 
 - Generated terrain is disposable and may be rebuilt from config inputs.
-- Persisted block changes are section records only once the storage schema
-  target lands.
+- Persisted block changes are section records in the active `redb` schema.
 - `WorldStore` is the persistence boundary for override reads and writes.
 - Protocol chunk encoding must not know whether a block came from generation
   or persistence.

@@ -5,37 +5,19 @@
 Provide a first-party terrain lane inspired by Terra concepts without adopting
 Terra config packs, plugins, or compatibility.
 
-## Direction
+## Current Behavior
 
 - Keep flat terrain selectable for scale probes.
 - Use an internal generator boundary with `flat` and `natural` providers.
 - Keep generation deterministic by world seed and chunk coordinate.
 - Keep hot-path generation bounded to local chunk neighborhoods.
 - Store player mutations as overrides above generated terrain.
-- Keep chunks within Chebyshev radius `1` of spawn equivalent to the safe
-  spawn surface.
-- Keep the protected spawn safety core stable before adding new large-scale
-  terrain features.
-
-## Pipeline Target
-
-1. Choose `terrain_generator` as `natural` or `flat`.
-2. Seed generation from `world_seed`.
-3. Return protected spawn safety-core chunks near `0,0`.
-4. Sample deterministic smoothed value noise for outer-column height.
-5. Build bedrock, stone, dirt, grass, and air columns.
-6. Apply sparse stored overrides above the generated base.
-
-## Spawn Blending Target
-
-- Chunks within Chebyshev radius `1` of spawn remain flat and safe.
-- Blending starts outside the protected safety core and must not alter spawn
-  chunk block states.
-- Blended heights remain deterministic by world seed and absolute column
-  coordinate.
-- Blending smooths height differences at the safety-core edge before caves,
-  structures, ores, or decorations are added.
-- Terrain probes own acceptance for the flat core and non-flat outer terrain.
+- `natural` currently builds bedrock, stone, dirt, grass, and air columns from
+  deterministic smoothed value-noise surface heights.
+- `flat` remains the controlled generator for scale and cache regression
+  probes.
+- Spawn selection is owned by [spawn-resolution.md](spawn-resolution.md).
+- The staged target pipeline is owned by [terrain-pipeline.md](terrain-pipeline.md).
 
 ## Rules
 

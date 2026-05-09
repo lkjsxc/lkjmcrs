@@ -11,7 +11,7 @@ Give automation agents one short map before reading detailed docs.
 - Manual client boundary:
   [operations/verification/manual-client-boundary.md](operations/verification/manual-client-boundary.md).
 - Active implementation target:
-  [product/survival-target.md](product/survival-target.md).
+  [product/normal-survival.md](product/normal-survival.md).
 - Active verification targets:
   [operations/verification/worldgen-golden.md](operations/verification/worldgen-golden.md),
   [operations/verification/chunk-border-property.md](operations/verification/chunk-border-property.md),

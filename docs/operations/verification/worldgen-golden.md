@@ -27,8 +27,10 @@ private runtime state.
 3. Formula changes must update this doc or a linked result note before code.
 4. Golden checks do not prove client rendering; wire probes still own that.
 
-## Deferred Command
+## Gate Command
 
-No dedicated compose command is active yet. Until one exists, terrain coverage
-comes from [terrain-generation-smoke.md](terrain-generation-smoke.md) and
-[render-distance-smoke.md](render-distance-smoke.md).
+- Static gate: `cargo test world::terrain`.
+- Live evidence stays with [terrain-generation-smoke.md](terrain-generation-smoke.md)
+  and [render-distance-smoke.md](render-distance-smoke.md).
+- A future compose service may wrap the same golden assertions, but the
+  required gate is active when the Rust golden test exists.

@@ -16,7 +16,7 @@ gameplay direction.
 - [smp-core.md](smp-core.md): first multiplayer chat and command behavior.
 - [smp-travel.md](smp-travel.md): homes, warps, and teleport rules.
 - [survival-core.md](survival-core.md): first block mutation behavior.
-- [normal-survival.md](normal-survival.md): next vanilla survival target.
-- [survival-target.md](survival-target.md): near normal-survival product
-  target.
+- [normal-survival.md](normal-survival.md): canonical vanilla survival target.
+- [survival-target.md](survival-target.md): compatibility pointer to the
+  normal-survival target.
 - [original-elements.md](original-elements.md): later `lkjmcsmp`-style systems.

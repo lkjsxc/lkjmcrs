@@ -24,10 +24,10 @@ Verify the current movement trust boundary over the public play protocol.
 - Final position persists across reconnect when the reconnect probe covers the
   same movement shape.
 
-## Deferred Command
+## Gate Command
 
-Current movement coverage is split across
-[smoke-probe.md](smoke-probe.md), [profile-reconnect-smoke.md](profile-reconnect-smoke.md),
-[chunk-stream-smoke.md](chunk-stream-smoke.md), and
-[render-distance-smoke.md](render-distance-smoke.md). A single movement
-authority command is not active yet.
+- Compose service: `movement-authority`.
+- It complements [smoke-probe.md](smoke-probe.md),
+  [profile-reconnect-smoke.md](profile-reconnect-smoke.md),
+  [chunk-stream-smoke.md](chunk-stream-smoke.md), and
+  [render-distance-smoke.md](render-distance-smoke.md).

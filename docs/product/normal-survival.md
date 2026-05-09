@@ -6,17 +6,23 @@ Define the next vanilla-survival target after the current survival sandbox.
 
 ## Current Verified Behavior
 
+- New player profiles default to survival unless config overrides gamemode.
+- Placement requires a selected held item in survival.
+- Breaking supported blocks can create simple drops.
+- Nearby dropped items can be collected into inventory.
 - Health affects whether the player remains alive.
 - Hunger and saturation affect regeneration and starvation.
 - Damage can reduce health.
 - Death moves the player into a respawn flow.
 - Respawn returns the player to spawn with restored baseline vitals.
+- Sparse block overrides and profile state persist through `redb`.
 
 ## Future Required Behavior
 
 - Tools affect mining speed for the first supported block set.
 - Durability decreases when supported tools are used.
 - Minimal recipes transform inventory inputs into outputs.
+- Spawn and teleport safety checks before broader terrain hazards matter.
 
 ## First Vitals Slice
 
