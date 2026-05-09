@@ -1,15 +1,12 @@
 # Current Results
 
-## 2026-05-08 Terra-Inspired Terrain Slice
+## 2026-05-09 Survival Timing And Radius 32 Stream Acceptance
 
-Latest recorded full compose result: working tree on `1170851`, with natural terrain
-generation, flat spawn plateau preservation, generator-backed sparse override
-loads, terrain probe coverage, and flat scale verification configs.
-
-This evidence predates the radius `32` render-distance probes added after
-`4072fc0` and the radius `32` implementation at `ab11632`. Do not treat this
-file as radius `32` acceptance evidence until a fresh canonical compose run is
-recorded here.
+Latest recorded compose result: implementation commit `383cd26`, with the
+documentation refresh, `WorldStore` redb facade, survival mining timing,
+pickup-delay AABB checks, spawn-to-natural terrain blending, isolated
+streaming verification services, and probe readers that tolerate live packet
+interleaving.
 
 Command owner:
 
@@ -17,49 +14,44 @@ Command owner:
 
 Result:
 
-- initial `down -v`: pass.
+- data cleanup: pass. Test data volumes were removed where a clean world was
+  required; cargo and target caches were preserved between probe runs.
 - `verify`: pass with compact output:
   `verify fmt ... ok`, `verify clippy ... ok`, `verify test ... ok`,
   `verify docs-topology ... ok`, `verify line-limits ... ok`, `verify pass`.
-- `server` startup: pass.
 - `smoke`: pass, `login-play probe ok`.
 - `profile-reconnect`: pass, `profile-reconnect probe ok`.
-- `chunk-stream`: pass, `chunk-stream probe ok`.
-- `scale-server` startup: pass.
+- `chunk-stream`: pass against isolated `chunk-stream-server`,
+  `chunk-stream probe ok`.
 - `scale-chunk-stream`: pass, `scale-chunk-stream probe ok`.
-- `terrain-server` startup: pass.
 - `terrain-generation`: pass, `terrain-generation probe ok`.
-- `scale-load-server` startup: pass.
 - `scale-load-metrics`: pass,
   `scale-load-metrics counters radius=8 initial=25 total=289
-  followup_batches=33 max_followup_batch=8
-  max_followup_payload_bytes=481920`, then
+  followup_batches=17 max_followup_batch=16
+  max_followup_payload_bytes=963840`, then
   `scale-load-metrics probe ok`.
-- `scale-moving-pending`: pass, `scale-moving-pending probe ok`.
-- server-side scale counter log check: pass, latest line included
-  `followup_batches=33`, `followup_chunks=264`,
-  `pending_queue_len=0`, `active_sessions=1`,
-  `region_mailbox_depth=0`, and `flat_cache_hits=289`.
+- `scale-moving-pending`: pass against isolated `scale-moving-server`,
+  `scale-moving-pending probe ok`.
+- `render-distance`: pass,
+  `render-distance counters radius=32 initial=25 total=4225
+  followup_batches=263 max_followup_batch=16
+  max_followup_payload_bytes=982351`, then `render-distance probe ok`.
+- `render-moving-pending`: pass, `render-moving-pending probe ok`.
 - `persist-place`: pass, `persist-place probe ok`.
 - server restart: pass.
 - `persist-check`: pass, `persist-check probe ok`.
-- `survival-server` startup: pass.
 - `survival-item`: pass, `survival-item probe ok`.
 - `inventory-sync`: pass, `inventory-sync probe ok`.
 - `item-pickup`: pass, `item-pickup probe ok`.
-- `survival-vitals-server` startup: pass.
 - `survival-vitals`: pass, `survival-vitals probe ok`.
-- `smp-server` startup: pass.
 - `smp-commands`: pass, `smp-commands probe ok`.
-- `online-server` startup with session fixture: pass.
 - `online-auth`: pass, `online-auth probe ok`.
-- final `down -v`: pass.
 
 ## Manual Boundary
 
-No active stock-client disconnect boundary is known after the dropped item
-`add_entity` tail fix. The latest user-reported successful join has no raw
-client log attached, so fresh manual evidence is still needed.
+No active stock-client disconnect boundary is known. Fresh manual stock-client
+evidence is still useful because this compose run validates protocol behavior
+through probes rather than a graphical client.
 
 ## History
 
