@@ -59,7 +59,7 @@ impl ChunkSnapshot {
         Self {
             pos,
             palette: chunk_layers::palette(),
-            layers: chunk_layers::terrain_layers(&columns),
+            layers: chunk_layers::terrain_layers(pos, world_seed, &columns),
             overrides: HashMap::new(),
             shared_flat_base: false,
             generated_key: Some(GeneratedChunkKey {
