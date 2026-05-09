@@ -1,8 +1,36 @@
 # Current Results
 
+## 2026-05-10 World Foundation Focused Verification
+
+Latest focused result: implementation commit `757994d`, with staged natural
+terrain modules, section-keyed `redb` world overrides, centralized spawn
+settings, first movement-authority rejection, and `RUST_LOG`-driven tracing.
+
+Command owner:
+
+- [compose-pipeline.md](compose-pipeline.md)
+
+Result:
+
+- `verify`: pass with compact output:
+  `verify fmt ... ok`, `verify clippy ... ok`, `verify test ... ok`,
+  `verify docs-topology ... ok`, `verify line-limits ... ok`, `verify pass`.
+- initial data cleanup: pass with `down -v`.
+- `terrain-generation`: pass, `terrain-generation probe ok`.
+- `persist-place`: pass against `persistence-server`,
+  `persist-place probe ok`.
+- `persistence-server` restart: pass.
+- `persist-check`: pass against `persistence-server`,
+  `persist-check probe ok`.
+- `smoke`: pass, `login-play probe ok`.
+- final data cleanup: pass with `down -v`.
+
+The full compose pipeline was not rerun for this focused result. The latest
+full recorded result remains below.
+
 ## 2026-05-10 Binary Storage And Isolated Stateful Probes
 
-Latest recorded compose result: implementation commit `cb269a9`, with binary
+Latest full recorded compose result: implementation commit `cb269a9`, with binary
 `redb` world override values, `WorldStore` codec validation, and isolated data
 volumes for persistence, survival-item, inventory-sync, and item-pickup probes.
 
