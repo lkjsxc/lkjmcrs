@@ -1,5 +1,6 @@
+use crate::world::storage_codec::StoredChunk;
 use crate::world::{BlockPos, BlockState, ChunkPos, ChunkSnapshot, TerrainGenerator, WorldStorage};
-use redb::{Database, TableDefinition};
+use redb::{Database, ReadableDatabase, TableDefinition};
 use std::fs;
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -75,6 +76,8 @@ fn reset_to_base_deletes_override_value() {
 
     let loaded = storage.load_chunk(pos).unwrap();
     assert_eq!(loaded.block_at_pos(block), BlockState::Air);
+    drop(storage);
+    assert!(!chunk_value_exists(&root, "overworld/0/0"));
     cleanup(root);
 }
 
@@ -138,11 +141,9 @@ fn cloned_storage_serializes_concurrent_saves() {
 #[test]
 fn rejects_invalid_stored_block_state() {
     let root = temp_root();
-    insert_raw_chunk(
-        &root,
-        "overworld/0/0",
-        br#"{"chunk_x":0,"chunk_z":0,"overrides":[{"local_x":0,"y":80,"local_z":0,"state":"minecraft:void"}]}"#,
-    );
+    let mut bytes = encoded_chunk(ChunkPos::new(0, 0), BlockPos::new(0, 80, 0));
+    bytes[26..28].copy_from_slice(&99_u16.to_le_bytes());
+    insert_raw_chunk(&root, "overworld/0/0", &bytes);
     let storage = WorldStorage::new(&root);
 
     let error = storage
@@ -160,7 +161,7 @@ fn changed_chunk(pos: ChunkPos, block: BlockPos) -> ChunkSnapshot {
 }
 
 fn insert_raw_chunk(root: &std::path::Path, key: &str, bytes: &[u8]) {
-    const CHUNKS: TableDefinition<&str, &[u8]> = TableDefinition::new("chunks");
+    const CHUNKS: TableDefinition<&str, &[u8]> = TableDefinition::new("chunk_overrides");
     fs::create_dir_all(root).unwrap();
     let db = Database::create(root.join("world.redb")).unwrap();
     let write = db.begin_write().unwrap();
@@ -169,6 +170,19 @@ fn insert_raw_chunk(root: &std::path::Path, key: &str, bytes: &[u8]) {
         table.insert(key, bytes).unwrap();
     }
     write.commit().unwrap();
+}
+
+fn chunk_value_exists(root: &std::path::Path, key: &str) -> bool {
+    const CHUNKS: TableDefinition<&str, &[u8]> = TableDefinition::new("chunk_overrides");
+    let db = Database::create(root.join("world.redb")).unwrap();
+    let read = db.begin_read().unwrap();
+    let table = read.open_table(CHUNKS).unwrap();
+    table.get(key).unwrap().is_some()
+}
+
+fn encoded_chunk(pos: ChunkPos, block: BlockPos) -> Vec<u8> {
+    let chunk = changed_chunk(pos, block);
+    StoredChunk::from_snapshot(&chunk).encode().unwrap()
 }
 
 fn temp_root() -> PathBuf {

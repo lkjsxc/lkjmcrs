@@ -7,7 +7,9 @@ pub mod position;
 pub mod region;
 pub mod storage;
 mod storage_blocks;
-mod storage_json;
+mod storage_codec;
+#[cfg(test)]
+mod storage_codec_tests;
 mod storage_redb;
 #[cfg(test)]
 mod storage_tests;

@@ -1,5 +1,5 @@
 use crate::world::storage::{WorldStore, redb_error};
-use crate::world::storage_json::StoredChunk;
+use crate::world::storage_codec::StoredChunk;
 use crate::world::{ChunkPos, ChunkSnapshot, WorldStorageError};
 use redb::{Database, ReadableDatabase, TableDefinition};
 use std::fs;
@@ -7,8 +7,10 @@ use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
 const WORLD_DB: &str = "world.redb";
+const FORMAT_KEY: &str = "world_override_format";
+const FORMAT_VALUE: &[u8] = b"lkjmcrs.chunk_overrides.v1";
 const META: TableDefinition<&str, &[u8]> = TableDefinition::new("meta");
-const CHUNKS: TableDefinition<&str, &[u8]> = TableDefinition::new("chunks");
+const CHUNK_OVERRIDES: TableDefinition<&str, &[u8]> = TableDefinition::new("chunk_overrides");
 
 #[derive(Debug)]
 pub(super) struct RedbWorldStore {
@@ -38,8 +40,11 @@ impl RedbWorldStore {
         let database = Database::create(self.root.join(WORLD_DB)).map_err(redb_error)?;
         let write = database.begin_write().map_err(redb_error)?;
         {
-            write.open_table(META).map_err(redb_error)?;
-            write.open_table(CHUNKS).map_err(redb_error)?;
+            {
+                let mut meta = write.open_table(META).map_err(redb_error)?;
+                meta.insert(FORMAT_KEY, FORMAT_VALUE).map_err(redb_error)?;
+            }
+            write.open_table(CHUNK_OVERRIDES).map_err(redb_error)?;
         }
         write.commit().map_err(redb_error)?;
         let database = Arc::new(database);
@@ -60,11 +65,11 @@ impl WorldStore for RedbWorldStore {
     ) -> Result<ChunkSnapshot, WorldStorageError> {
         let database = self.database()?;
         let read = database.begin_read().map_err(redb_error)?;
-        let table = read.open_table(CHUNKS).map_err(redb_error)?;
+        let table = read.open_table(CHUNK_OVERRIDES).map_err(redb_error)?;
         let Some(bytes) = table.get(chunk_key(pos).as_str()).map_err(redb_error)? else {
             return Ok(base);
         };
-        let stored: StoredChunk = serde_json::from_slice(bytes.value())?;
+        let stored = StoredChunk::decode(bytes.value())?;
         stored.apply_to(base)
     }
 
@@ -78,11 +83,11 @@ impl WorldStore for RedbWorldStore {
         let stored = StoredChunk::from_snapshot(chunk);
         let write = database.begin_write().map_err(redb_error)?;
         {
-            let mut table = write.open_table(CHUNKS).map_err(redb_error)?;
+            let mut table = write.open_table(CHUNK_OVERRIDES).map_err(redb_error)?;
             if stored.is_empty() {
                 table.remove(key.as_str()).map_err(redb_error)?;
             } else {
-                let bytes = serde_json::to_vec(&stored)?;
+                let bytes = stored.encode()?;
                 table
                     .insert(key.as_str(), bytes.as_slice())
                     .map_err(redb_error)?;

@@ -27,8 +27,8 @@ pub enum WorldStorageError {
     Io(#[from] std::io::Error),
     #[error("storage redb failed: {0}")]
     Redb(String),
-    #[error("storage JSON failed: {0}")]
-    Json(#[from] serde_json::Error),
+    #[error("invalid world storage format: {0}")]
+    InvalidFormat(&'static str),
     #[error("invalid stored chunk key")]
     InvalidChunkKey,
     #[error("invalid block state {0}")]
