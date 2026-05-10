@@ -100,7 +100,8 @@ docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-com
     regeneration, and starvation.
 30. `smp-commands` verifies offline chat, permissions, travel commands, and
     kick.
-31. `online-auth` verifies encrypted login and fixture-authenticated UUIDs.
+31. `online-auth` verifies encrypted login and fixture-authenticated UUIDs on
+    fixed flat terrain.
 32. Non-zero from any step blocks acceptance.
 33. Initial `down -v` removes stale named volumes before stateful probes.
 34. Final `down -v` removes disposable compose state.
@@ -108,8 +109,9 @@ docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-com
 36. `smp-server` mounts `config/verify/smp-server.json` so disposable operator
     checks use fixed flat terrain and do not require operator UUIDs in normal
     runtime config.
-37. `online-server` mounts `config/verify/online-server.json` and may use the
-    HTTP session fixture only with explicit insecure-fixture allowance.
+37. `online-server` mounts `config/verify/online-server.json` for fixed flat
+    terrain and may use the HTTP session fixture only with explicit
+    insecure-fixture allowance.
 
 ## Readiness
 
