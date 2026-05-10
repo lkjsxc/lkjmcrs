@@ -95,7 +95,7 @@ docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-com
 27. `item-pickup` verifies dropped item entity spawn, pickup, and inventory
     delta sync.
 28. `survival-vitals-server` mounts `config/verify/smp-server.json` so the
-    vitals probe can use disposable operator damage.
+    vitals probe can use disposable operator damage on fixed flat terrain.
 29. `survival-vitals` verifies visible health, lethal damage, death, respawn,
     regeneration, and starvation.
 30. `smp-commands` verifies offline chat, permissions, travel commands, and
@@ -106,7 +106,8 @@ docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-com
 34. Final `down -v` removes disposable compose state.
 35. Quiet flags are part of the contract for routine acceptance runs.
 36. `smp-server` mounts `config/verify/smp-server.json` so disposable operator
-    checks do not require operator UUIDs in normal runtime config.
+    checks use fixed flat terrain and do not require operator UUIDs in normal
+    runtime config.
 37. `online-server` mounts `config/verify/online-server.json` and may use the
     HTTP session fixture only with explicit insecure-fixture allowance.
 
