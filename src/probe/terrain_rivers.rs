@@ -13,7 +13,10 @@ use uuid::Uuid;
 type ErrorBox = Box<dyn std::error::Error>;
 
 pub(super) async fn run(host: &str) -> Result<(), ErrorBox> {
-    let mut stream = TcpStream::connect(host).await?;
+    let mut stream = super::retry_connect(|| async move {
+        Ok::<TcpStream, ErrorBox>(TcpStream::connect(host).await?)
+    })
+    .await?;
     super::send_handshake(&mut stream, host, NextState::Login).await?;
     let login = LoginStart::encode("RiverProbe", Uuid::from_u128(0));
     codec::write_packet(&mut stream, ids::login::START, &login).await?;
