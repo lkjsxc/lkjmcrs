@@ -4,7 +4,8 @@ use crate::probe::live_play;
 use crate::probe::play_bootstrap::complete_configuration;
 use crate::probe::scale_chunk_stream_packets as packets;
 use crate::probe::validation::{
-    decode_login_packet, decode_position_packet, validate_game_state_change, validate_login_success,
+    PositionPacket, decode_login_packet, decode_position_packet, validate_game_state_change,
+    validate_login_success,
 };
 use crate::protocol::types::{LoginStart, NextState};
 use crate::protocol::{codec, ids};
@@ -46,6 +47,15 @@ pub(super) async fn read_bootstrap(
     stream: &mut TcpStream,
     expected_radius: i32,
 ) -> Result<HashSet<(i32, i32)>, Box<dyn std::error::Error>> {
+    Ok(read_bootstrap_with_position(stream, expected_radius)
+        .await?
+        .0)
+}
+
+pub(super) async fn read_bootstrap_with_position(
+    stream: &mut TcpStream,
+    expected_radius: i32,
+) -> Result<(HashSet<(i32, i32)>, PositionPacket), Box<dyn std::error::Error>> {
     let login = super::expect(stream, ids::play::LOGIN, "play login").await?;
     let login = decode_login_packet(login.data)?;
     if login.view_distance != expected_radius {
@@ -67,9 +77,9 @@ pub(super) async fn read_bootstrap(
         .await?
         .positions;
     let position = super::expect(stream, ids::play::PLAYER_POSITION, "position").await?;
-    decode_position_packet(position.data)?;
+    let position = decode_position_packet(position.data)?;
     packets::confirm_and_ack_keepalive(stream).await?;
-    Ok(seen)
+    Ok((seen, position))
 }
 
 async fn collect_until(

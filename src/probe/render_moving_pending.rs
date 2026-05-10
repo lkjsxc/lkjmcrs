@@ -11,11 +11,20 @@ const TOTAL_CHUNKS: usize = 4225;
 
 pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut stream = scale_chunk_stream::connect(host).await?;
-    let mut seen = scale_chunk_stream::read_bootstrap(&mut stream, RADIUS).await?;
+    let (mut seen, position) =
+        scale_chunk_stream::read_bootstrap_with_position(&mut stream, RADIUS).await?;
     if seen.len() != INITIAL_CHUNKS {
         return Err(Box::new(ProbeError::Phase("render moving initial")));
     }
-    live_play::send_position_look_at(&mut stream, 16.5, 80.0, 0.5, 0.0, 0.0).await?;
+    live_play::send_position_look_at(
+        &mut stream,
+        position.x + 16.0,
+        position.y,
+        position.z,
+        position.yaw,
+        position.pitch,
+    )
+    .await?;
     let expected = window(1, 0, RADIUS);
     for batch in packets::expect_cache_center_collecting_batches(&mut stream, 1, 0).await? {
         accept_batch(&mut seen, &expected, batch.positions)?;
