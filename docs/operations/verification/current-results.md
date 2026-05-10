@@ -1,11 +1,11 @@
 # Current Results
 
-## 2026-05-10 Surface Terrain
+## 2026-05-10 Surface Wood Terrain
 
-Latest full recorded compose result: implementation commit `2cc8b06`, with
-surface terrain fields, biome-aware surface material selection, ocean and coast
-shaping, broader dry-spawn scoring, deterministic flat gameplay fixtures, and
-natural terrain probe coverage.
+Latest full recorded compose result: implementation commit `dcd1e26`, with
+canonical research disposition, owned spruce log and leaves block states,
+deterministic spruce-style surface decorators, generated-wood spawn scoring,
+terrain-quality probing, and natural render-movement probe hardening.
 
 Command owner:
 
@@ -23,6 +23,7 @@ Result:
 - `chunk-stream`: pass, `chunk-stream probe ok`.
 - `scale-chunk-stream`: pass, `scale-chunk-stream probe ok`.
 - `terrain-generation`: pass, `terrain-generation probe ok`.
+- `terrain-quality`: pass, `terrain-quality probe ok`.
 - `river-terrain`: pass, `terrain-rivers probe ok`.
 - `terrain-caves`: pass, `terrain-caves probe ok`.
 - `scale-load-metrics`: pass,
@@ -34,7 +35,7 @@ Result:
 - `render-distance`: pass,
   `render-distance counters radius=32 initial=25 total=4225
   followup_batches=263 max_followup_batch=16
-  max_followup_payload_bytes=1041807`, then `render-distance probe ok`.
+  max_followup_payload_bytes=1031544`, then `render-distance probe ok`.
 - `render-moving-pending`: pass, `render-moving-pending probe ok`.
 - `persist-place`: pass, `persist-place probe ok`.
 - `persistence-server` restart: pass.
