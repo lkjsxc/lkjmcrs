@@ -16,6 +16,10 @@ pub(super) fn ridge(seed: i64, x: i32, z: i32, scale: i32) -> f64 {
     1.0 - fbm(seed, x, z, scale, 4).abs()
 }
 
+pub(super) fn unit(seed: i64, x: i32, z: i32) -> f64 {
+    hash_unit(seed, x, z)
+}
+
 fn value_noise(seed: i64, x: i32, z: i32, scale: i32) -> f64 {
     let x0 = x.div_euclid(scale);
     let z0 = z.div_euclid(scale);

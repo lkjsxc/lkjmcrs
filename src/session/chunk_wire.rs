@@ -28,5 +28,7 @@ pub(crate) fn block_state_id(state: BlockState) -> i32 {
         BlockState::Dirt => chunk::DIRT_ID,
         BlockState::GrassBlock => chunk::GRASS_BLOCK_ID,
         BlockState::Water => chunk::WATER_ID,
+        BlockState::SpruceLog => chunk::SPRUCE_LOG_ID,
+        BlockState::SpruceLeaves => chunk::SPRUCE_LEAVES_ID,
     }
 }

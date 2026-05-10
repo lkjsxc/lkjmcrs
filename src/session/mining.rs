@@ -38,7 +38,7 @@ pub(super) fn required_break_time(state: BlockState, game_mode: GameMode) -> Dur
     }
     match state {
         BlockState::Dirt | BlockState::GrassBlock => DIRT_BREAK_TIME,
-        BlockState::Stone => STONE_BREAK_TIME,
+        BlockState::Stone | BlockState::SpruceLog | BlockState::SpruceLeaves => STONE_BREAK_TIME,
         BlockState::Air | BlockState::Bedrock | BlockState::Water => Duration::ZERO,
     }
 }

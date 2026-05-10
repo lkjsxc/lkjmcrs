@@ -33,7 +33,7 @@ water, biome, and surface palette stages have completed.
 - Spruce-style wood terrain is the first promoted decorator family.
 - Candidate trunks use `minecraft:spruce_log[axis=y]`.
 - Candidate leaf blocks use
-  `minecraft:spruce_leaves[distance=1,persistent=true,waterlogged=false]`.
+  `minecraft:spruce_leaves[distance=7,persistent=true,waterlogged=false]`.
 - Candidate roots are deterministic from `world_seed` and absolute
   coordinates.
 - Placement requires dry grass surface, moderate local slope, and enough

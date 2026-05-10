@@ -1,4 +1,4 @@
-use super::{BiomeKind, terrain_column};
+use super::{decorator_block_at, nearby_wood, terrain_column};
 
 const COARSE_RADIUS: i32 = 256;
 const COARSE_STEP: usize = 8;
@@ -56,11 +56,16 @@ fn spawn_score(seed: i64, x: i32, z: i32) -> Option<i32> {
         return None;
     }
     let y = column.surface_y;
+    if decorator_block_at(seed, x, y + 1, z).is_some()
+        || decorator_block_at(seed, x, y + 2, z).is_some()
+    {
+        return None;
+    }
     let distance = x.abs() + z.abs();
     Some(
         180 - slope * 12 - distance / 16 - (y - 76).abs() * 2
             + nearby_water_bonus(seed, x, z)
-            + nearby_forest_bonus(seed, x, z)
+            + nearby_wood_bonus(seed, x, z)
             + openness_bonus(seed, x, z),
     )
 }
@@ -87,15 +92,8 @@ fn nearby_water_bonus(seed: i64, x: i32, z: i32) -> i32 {
     0
 }
 
-fn nearby_forest_bonus(seed: i64, x: i32, z: i32) -> i32 {
-    for dz in (-32..=32).step_by(8) {
-        for dx in (-32..=32).step_by(8) {
-            if terrain_column(seed, x + dx, z + dz).biome == BiomeKind::Forest {
-                return 32;
-            }
-        }
-    }
-    0
+fn nearby_wood_bonus(seed: i64, x: i32, z: i32) -> i32 {
+    if nearby_wood(seed, x, z) { 32 } else { 0 }
 }
 
 fn openness_bonus(seed: i64, x: i32, z: i32) -> i32 {

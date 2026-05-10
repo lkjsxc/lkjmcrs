@@ -3,16 +3,18 @@ use crate::world::terrain::SurfaceKind;
 pub(super) use crate::world::terrain::TerrainColumn;
 use crate::world::{ChunkPos, terrain};
 
-const PALETTE: [BlockState; 6] = [
+const PALETTE: [BlockState; 8] = [
     BlockState::Air,
     BlockState::Bedrock,
     BlockState::Stone,
     BlockState::Dirt,
     BlockState::GrassBlock,
     BlockState::Water,
+    BlockState::SpruceLog,
+    BlockState::SpruceLeaves,
 ];
 
-pub(super) fn palette() -> [BlockState; 6] {
+pub(super) fn palette() -> [BlockState; 8] {
     PALETTE
 }
 
@@ -75,6 +77,8 @@ fn write_column(
         for y in column.surface_y + 1..=water_y {
             layers[layer_index(x, y, z)] = 5;
         }
+    } else {
+        write_decorators(layers, world_seed, global_x, global_z, x, z, column);
     }
 }
 
@@ -83,6 +87,35 @@ fn surface_state(surface: SurfaceKind) -> u8 {
         SurfaceKind::Grass => 4,
         SurfaceKind::Dirt => 3,
         SurfaceKind::Stone => 2,
+    }
+}
+
+fn write_decorators(
+    layers: &mut [u8],
+    world_seed: i64,
+    global_x: i32,
+    global_z: i32,
+    x: usize,
+    z: usize,
+    column: TerrainColumn,
+) {
+    for y in column.surface_y + 1..=column.surface_y + 10 {
+        if let Some(state) = terrain::decorator_block_at(world_seed, global_x, y, global_z) {
+            layers[layer_index(x, y, z)] = state_index(state);
+        }
+    }
+}
+
+fn state_index(state: BlockState) -> u8 {
+    match state {
+        BlockState::Air => 0,
+        BlockState::Bedrock => 1,
+        BlockState::Stone => 2,
+        BlockState::Dirt => 3,
+        BlockState::GrassBlock => 4,
+        BlockState::Water => 5,
+        BlockState::SpruceLog => 6,
+        BlockState::SpruceLeaves => 7,
     }
 }
 

@@ -11,6 +11,7 @@ pub enum TerrainKind {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 pub struct GeneratedChunkKey {
     pub kind: TerrainKind,
+    pub formula_marker: &'static str,
     pub world_seed: i64,
     pub pos: ChunkPos,
 }
@@ -18,7 +19,7 @@ pub struct GeneratedChunkKey {
 #[derive(Debug, Clone)]
 pub struct ChunkSnapshot {
     pub pos: ChunkPos,
-    palette: [BlockState; 6],
+    palette: [BlockState; 8],
     layers: Vec<u8>,
     overrides: HashMap<u16, BlockState>,
     shared_flat_base: bool,
@@ -50,6 +51,7 @@ impl ChunkSnapshot {
             shared_flat_base: false,
             generated_key: Some(GeneratedChunkKey {
                 kind: TerrainKind::Natural,
+                formula_marker: crate::world::terrain::FORMULA_MARKER,
                 world_seed,
                 pos,
             }),

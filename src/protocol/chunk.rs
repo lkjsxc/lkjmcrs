@@ -12,6 +12,8 @@ pub const GRASS_BLOCK_ID: i32 = 9;
 pub const DIRT_ID: i32 = 10;
 pub const BEDROCK_ID: i32 = 85;
 pub const WATER_ID: i32 = 86;
+pub const SPRUCE_LOG_ID: i32 = 140;
+pub const SPRUCE_LEAVES_ID: i32 = 305;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct ChunkPosition {
