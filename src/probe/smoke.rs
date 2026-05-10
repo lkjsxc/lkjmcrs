@@ -1,6 +1,7 @@
 use crate::probe::play_client::PlayClient;
+use crate::probe::position::BlockPos;
+use crate::probe::retry_connect;
 use crate::probe::{ProbeError, block_mutation, item_entities, live_play, multiplayer_mutation};
-use crate::probe::{position, retry_connect};
 use crate::protocol::types::NextState;
 use crate::protocol::{PROTOCOL_VERSION, codec, ids};
 use serde::Deserialize;
@@ -9,32 +10,50 @@ use tokio::net::TcpStream;
 pub async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     status_ping(host).await?;
     let mut actor = PlayClient::connect(host, "SmokeA").await?;
-    block_mutation::acquire_dirt(
+    let ground = spawn_ground(&actor);
+    let placed = BlockPos::new(ground.x, ground.y + 1, ground.z);
+    move_to_spawn(&mut actor).await?;
+    block_mutation::acquire_dirt_from(&mut actor.stream, ground, 9, "smoke dirt").await?;
+    let mut observer = PlayClient::connect_with_block(host, "SmokeB", None).await?;
+    block_mutation::send_use_item_on_at(&mut actor.stream, 20, ground).await?;
+    block_mutation::expect_ack_and_update_at(&mut actor.stream, 20, placed, 10).await?;
+    multiplayer_mutation::expect_observer_update_at(&mut observer, placed, 10).await?;
+    block_mutation::mine_dirt_like_at(&mut actor.stream, 21, placed, 10, 0).await?;
+    multiplayer_mutation::expect_observer_update_at(&mut observer, placed, 0).await?;
+    item_entities::collect_drop_at(
         &mut actor.stream,
-        position::BlockPos::new(0, 79, 0),
-        "smoke dirt",
+        28,
+        "smoke dirt cleanup",
+        f64::from(actor.spawn_block.x) + 0.5,
+        f64::from(actor.spawn_block.y),
+        f64::from(actor.spawn_block.z) + 0.5,
     )
     .await?;
-    let mut observer = PlayClient::connect_with_block(host, "SmokeB", Some(0)).await?;
-    block_mutation::send_use_item_on_at(&mut actor.stream, 20, position::BlockPos::new(0, 79, 0))
-        .await?;
-    block_mutation::expect_ack_and_update(&mut actor.stream, 20, 10).await?;
-    multiplayer_mutation::expect_observer_update(&mut observer, 10).await?;
-    block_mutation::mine_dirt_like_at(
-        &mut actor.stream,
-        21,
-        position::BlockPos::new(0, 80, 0),
-        10,
-        0,
-    )
-    .await?;
-    multiplayer_mutation::expect_observer_update(&mut observer, 0).await?;
-    item_entities::collect_drop(&mut actor.stream, 28, "smoke dirt cleanup").await?;
     let next_keepalive = live_play::expect_keepalive_after_time(&mut actor.stream).await?;
     if next_keepalive != 2 {
         return Err(Box::new(ProbeError::Phase("periodic keepalive id")));
     }
     Ok(())
+}
+
+fn spawn_ground(client: &PlayClient) -> BlockPos {
+    BlockPos::new(
+        client.spawn_block.x,
+        client.spawn_block.y - 1,
+        client.spawn_block.z,
+    )
+}
+
+async fn move_to_spawn(client: &mut PlayClient) -> Result<(), Box<dyn std::error::Error>> {
+    live_play::send_position_look_at(
+        &mut client.stream,
+        f64::from(client.spawn_block.x) + 0.5,
+        f64::from(client.spawn_block.y),
+        f64::from(client.spawn_block.z) + 0.5,
+        0.0,
+        0.0,
+    )
+    .await
 }
 
 #[derive(Deserialize)]

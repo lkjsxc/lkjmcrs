@@ -9,19 +9,27 @@ use tokio::time::{Duration, sleep};
 
 const DIRT_BREAK_WAIT: Duration = Duration::from_millis(850);
 
-pub(super) async fn acquire_dirt(
+pub(super) async fn acquire_dirt_from(
     stream: &mut TcpStream,
-    grass: BlockPos,
+    pos: BlockPos,
+    current_state: i32,
     phase: &'static str,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    mine_dirt_like_at(stream, 1000 + grass.x.abs() + grass.z.abs(), grass, 9, 0).await?;
+    mine_dirt_like_at(
+        stream,
+        1000 + pos.x.abs() + pos.z.abs(),
+        pos,
+        current_state,
+        0,
+    )
+    .await?;
     item_entities::collect_drop_at(
         stream,
         28,
         phase,
-        f64::from(grass.x) + 0.5,
-        f64::from(grass.y) + 1.0,
-        f64::from(grass.z) + 0.5,
+        f64::from(pos.x) + 0.5,
+        f64::from(pos.y) + 1.0,
+        f64::from(pos.z) + 0.5,
     )
     .await?;
     Ok(())
@@ -107,24 +115,6 @@ async fn send_stop_destroy_at(
     Ok(())
 }
 
-pub(super) async fn expect_ack_and_update(
-    stream: &mut TcpStream,
-    sequence: i32,
-    block_state: i32,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let ack = survival_expect::read_next_material_packet(stream, "block mutation ack").await?;
-    if ack.id != ids::play::BLOCK_CHANGED_ACK {
-        return Err(Box::new(ProbeError::Phase("block mutation ack id")));
-    }
-    validate_ack(ack.data, sequence)?;
-    let update =
-        survival_expect::read_next_material_packet(stream, "block mutation update").await?;
-    if update.id != ids::play::BLOCK_UPDATE {
-        return Err(Box::new(ProbeError::Phase("block mutation update id")));
-    }
-    validate_update(update.data, block_state)
-}
-
 pub(super) async fn read_next_non_time(
     stream: &mut TcpStream,
     phase: &'static str,
@@ -141,10 +131,6 @@ pub(super) fn validate_ack(data: Vec<u8>, sequence: i32) -> Result<(), Box<dyn s
         return Err(Box::new(ProbeError::Phase("block mutation ack trailing")));
     }
     Ok(())
-}
-
-pub(super) fn validate_update(data: Vec<u8>, state: i32) -> Result<(), Box<dyn std::error::Error>> {
-    validate_update_at(data, BlockPos::new(0, 80, 0), state)
 }
 
 pub(super) fn validate_update_at(

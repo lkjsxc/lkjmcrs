@@ -13,8 +13,13 @@ const HEIGHTMAP_LONG_BYTES: usize = 37 * 8;
 
 pub(super) async fn place(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     let mut client = PlayClient::connect(host, "PersistA").await?;
-    block_mutation::acquire_dirt(&mut client.stream, BlockPos::new(1, 79, 0), "persist dirt")
-        .await?;
+    block_mutation::acquire_dirt_from(
+        &mut client.stream,
+        BlockPos::new(1, 79, 0),
+        9,
+        "persist dirt",
+    )
+    .await?;
     block_mutation::send_use_item_on_at(&mut client.stream, 30, BlockPos::new(3, 79, 0)).await?;
     block_mutation::expect_ack_and_update_at(
         &mut client.stream,

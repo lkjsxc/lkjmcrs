@@ -30,7 +30,7 @@ pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
 }
 
 async fn acquire_dirt(client: &mut PlayClient) -> Result<(), Box<dyn std::error::Error>> {
-    block_mutation::acquire_dirt(&mut client.stream, MINED, "section dirt").await
+    block_mutation::acquire_dirt_from(&mut client.stream, MINED, 9, "section dirt").await
 }
 
 async fn place_low(client: &mut PlayClient) -> Result<(), Box<dyn std::error::Error>> {

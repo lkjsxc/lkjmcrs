@@ -15,11 +15,12 @@ pub(super) struct PlayClient {
     pub selected_hotbar_slot: i32,
     pub inventory_slots: Vec<PlayerInventorySlot>,
     pub health: HealthState,
+    pub spawn_block: BlockPos,
 }
 
 impl PlayClient {
     pub async fn connect(host: &str, name: &str) -> Result<Self, Box<dyn std::error::Error>> {
-        Self::connect_with_block(host, name, Some(0)).await
+        Self::connect_with_block(host, name, None).await
     }
 
     pub async fn connect_with_block(
@@ -54,8 +55,14 @@ impl PlayClient {
                 validate_login_success(success.data, &name)?;
                 codec::write_packet(&mut stream, ids::login::ACKNOWLEDGED, &[]).await?;
                 complete_configuration(&mut stream).await?;
-                let (login, selected_hotbar_slot, inventory_slots, health, initial_position) =
-                    complete_play_bootstrap(&mut stream, &expected_blocks).await?;
+                let (
+                    login,
+                    selected_hotbar_slot,
+                    inventory_slots,
+                    health,
+                    initial_position,
+                    spawn_block,
+                ) = complete_play_bootstrap(&mut stream, &expected_blocks).await?;
                 Ok::<Self, Box<dyn std::error::Error>>(Self {
                     stream,
                     login,
@@ -63,6 +70,7 @@ impl PlayClient {
                     selected_hotbar_slot,
                     inventory_slots,
                     health,
+                    spawn_block,
                 })
             }
         })

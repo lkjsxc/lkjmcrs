@@ -54,7 +54,9 @@ docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-com
    `verify pass`, aside from unavoidable Compose lifecycle output.
 4. Failed `verify` output prints `verify <stage> ... failed`, then dumps only
    the captured stdout and stderr for that failed stage.
-5. `server` runs the product binary.
+5. `server` runs the product binary with `config/verify/basic-server.json` so
+   basic gameplay probes keep fixed flat terrain while natural terrain has
+   separate terrain-specific services.
 6. `smoke` connects to the live server over the compose network and runs the
    full status, ping, play bootstrap, mutation, observer, and keepalive path.
 7. `profile-reconnect` verifies player profile persistence.
@@ -82,11 +84,14 @@ docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-com
 20. `persist-check` verifies that mutation after restart.
 21. `storage-section-persistence` verifies multi-section overrides and
     reset-to-generated-base behavior.
-22. `survival-item-server` uses a dedicated data volume for item persistence.
+22. `survival-item-server` uses a dedicated data volume and the basic flat
+    verify config for item persistence.
 23. `survival-item` verifies survival profile defaults and item persistence.
-24. `inventory-sync-server` uses a dedicated data volume for inventory sync.
+24. `inventory-sync-server` uses a dedicated data volume and the basic flat
+    verify config for inventory sync.
 25. `inventory-sync` verifies client-visible hotbar and player inventory sync.
-26. `item-pickup-server` uses a dedicated data volume for pickup behavior.
+26. `item-pickup-server` uses a dedicated data volume and the basic flat
+    verify config for pickup behavior.
 27. `item-pickup` verifies dropped item entity spawn, pickup, and inventory
     delta sync.
 28. `survival-vitals-server` mounts `config/verify/smp-server.json` so the

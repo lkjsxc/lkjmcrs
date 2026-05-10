@@ -7,7 +7,7 @@ use crate::probe::position::BlockPos;
 const NAME: &str = "ItemPickup";
 
 pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let mut client = PlayClient::connect_with_block(host, NAME, Some(0)).await?;
+    let mut client = PlayClient::connect_with_block(host, NAME, None).await?;
     block_mutation::mine_dirt_like_at(&mut client.stream, 70, BlockPos::new(5, 79, 0), 9, 0)
         .await?;
     let slot =

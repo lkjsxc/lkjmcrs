@@ -12,7 +12,7 @@ use tokio::net::TcpStream;
 const NAME: &str = "InventorySync";
 
 pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
-    let mut client = PlayClient::connect_with_block(host, NAME, Some(0)).await?;
+    let mut client = PlayClient::connect_with_block(host, NAME, None).await?;
     assert_bootstrap_inventory(&client)?;
     assert_invalid_held_slot_resends_authority(&mut client.stream).await?;
     break_grass_adds_dirt(&mut client.stream).await?;

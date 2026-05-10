@@ -5,7 +5,7 @@ services:
       dockerfile: Dockerfile
     command: ["serve"]
     volumes:
-      - ./config:/app/config:ro
+      - ./config/verify/basic-server.json:/app/config/server.json:ro
       - server-data:/app/data
 
   persistence-server:
@@ -14,7 +14,7 @@ services:
       dockerfile: Dockerfile
     command: ["serve"]
     volumes:
-      - ./config:/app/config:ro
+      - ./config/verify/basic-server.json:/app/config/server.json:ro
       - persistence-server-data:/app/data
 
   storage-section-server:
@@ -32,7 +32,7 @@ services:
       dockerfile: Dockerfile
     command: ["serve"]
     volumes:
-      - ./config:/app/config:ro
+      - ./config/verify/basic-server.json:/app/config/server.json:ro
       - survival-item-server-data:/app/data
 
   inventory-sync-server:
@@ -41,7 +41,7 @@ services:
       dockerfile: Dockerfile
     command: ["serve"]
     volumes:
-      - ./config:/app/config:ro
+      - ./config/verify/basic-server.json:/app/config/server.json:ro
       - inventory-sync-server-data:/app/data
 
   item-pickup-server:
@@ -50,7 +50,7 @@ services:
       dockerfile: Dockerfile
     command: ["serve"]
     volumes:
-      - ./config:/app/config:ro
+      - ./config/verify/basic-server.json:/app/config/server.json:ro
       - item-pickup-server-data:/app/data
 
   movement-authority-server:
@@ -59,7 +59,7 @@ services:
       dockerfile: Dockerfile
     command: ["serve"]
     volumes:
-      - ./config:/app/config:ro
+      - ./config/verify/basic-server.json:/app/config/server.json:ro
       - movement-authority-server-data:/app/data
 
   smp-server:

@@ -22,6 +22,7 @@ type PlayBootstrap = (
     Vec<PlayerInventorySlot>,
     HealthState,
     PositionPacket,
+    BlockPos,
 );
 
 pub(super) async fn complete_configuration<S>(
@@ -62,7 +63,8 @@ where
 {
     let login = super::expect(stream, ids::play::LOGIN, "play login").await?;
     let login = decode_login_packet(login.data)?;
-    super::expect(stream, ids::play::DEFAULT_SPAWN_POSITION, "spawn").await?;
+    let spawn = super::expect(stream, ids::play::DEFAULT_SPAWN_POSITION, "spawn").await?;
+    let spawn = decode_default_spawn(spawn.data)?;
     super::expect(stream, ids::play::SET_TIME, "time").await?;
     super::expect(stream, ids::play::PLAYER_ABILITIES, "abilities").await?;
     let health = super::vitals_packets::expect_update_health(stream).await?;
@@ -85,7 +87,22 @@ where
         inventory_slots,
         health,
         initial_position,
+        spawn,
     ))
+}
+
+fn decode_default_spawn(data: Vec<u8>) -> Result<BlockPos, Box<dyn std::error::Error>> {
+    let mut cursor = std::io::Cursor::new(data);
+    if codec::read_string(&mut cursor)? != "minecraft:overworld" {
+        return Err(Box::new(ProbeError::Phase("spawn dimension")));
+    }
+    let (x, y, z) = codec::read_position(&mut cursor)?;
+    codec::read_f32(&mut cursor)?;
+    codec::read_f32(&mut cursor)?;
+    if cursor.position() != cursor.get_ref().len() as u64 {
+        return Err(Box::new(ProbeError::Phase("spawn trailing bytes")));
+    }
+    Ok(BlockPos::new(x, y, z))
 }
 
 async fn expect_chunks<S>(

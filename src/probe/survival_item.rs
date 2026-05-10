@@ -22,7 +22,7 @@ pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     drop(first);
     sleep(Duration::from_secs(2)).await;
 
-    let mut second = PlayClient::connect_with_block(host, NAME, Some(0)).await?;
+    let mut second = PlayClient::connect_with_block(host, NAME, None).await?;
     place_persisted_dirt(&mut second).await?;
     expect_empty_selected_slot(&mut second, 4, 38).await
 }
