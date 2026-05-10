@@ -13,4 +13,4 @@
 - Docs-only contract batches may land before code.
 - Code must not contradict current docs.
 - Verification docs must match real commands.
-- No backward compatibility work is required unless a doc reintroduces it.
+- No old-format support work is required unless a doc reintroduces it.

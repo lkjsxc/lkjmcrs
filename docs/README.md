@@ -6,7 +6,8 @@ operations, and repository rules.
 ## System Goal
 
 - Build a Rust Minecraft Java Edition server for `1.21.11`.
-- Scale toward a PaperMC/Folia-class server architecture.
+- Scale toward a region-owned server architecture inspired by PaperMC/Folia
+  runtime lessons without targeting their plugin APIs.
 - Keep gameplay mutation safe through region ownership and asynchronous handoff.
 - Support large redstone and entity contraptions without a single global tick
   thread becoming the permanent bottleneck.

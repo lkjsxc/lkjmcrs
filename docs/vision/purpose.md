@@ -33,8 +33,8 @@ The first useful state is a playable server:
 
 ## Non-Goals
 
-- No Bukkit, Paper, or Folia plugin compatibility promise.
-- No backward compatibility with early internal code.
+- No Bukkit, Paper, or Folia plugin support promise.
+- No migration promise for early internal code.
 - No copied Mojang server implementation.
 - No public plugin API in the current slice.
 - No original gameplay systems until the basic server loop is credible.

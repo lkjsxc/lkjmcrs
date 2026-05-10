@@ -2,8 +2,8 @@
 
 ## Goal
 
-Provide a first-party terrain lane inspired by Terra concepts without adopting
-Terra config packs, plugins, or compatibility.
+Provide a first-party terrain lane informed by external terrain systems without
+adopting config packs, plugins, or external runtime contracts.
 
 ## Current Behavior
 
@@ -28,8 +28,8 @@ Terra config packs, plugins, or compatibility.
 1. Generated chunks must be cheap to discard and rebuild.
 2. Generation must not block session packet I/O.
 3. Terrain docs must define new block IDs before protocol tests depend on them.
-4. Direct Bukkit, Paper, Folia, Terra, or worldgen-plugin compatibility is not
-   a current target.
+4. Direct Bukkit, Paper, Folia, Terra, or worldgen-plugin support is not a
+   current target.
 5. Surface biomes, forests, coasts, rivers, and scenic spawn quality are in
    scope for the normal survival terrain target.
 6. Ores, mobs, weather, structures, fluid simulation, and Anvil files remain

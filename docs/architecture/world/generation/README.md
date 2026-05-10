@@ -26,6 +26,8 @@ Use this subtree for staged natural-terrain generation ownership.
 - [generated-content-markers.md](generated-content-markers.md): internal
   markers that describe generated-origin content without changing persistence
   ownership.
+- [research-disposition.md](research-disposition.md): accepted and rejected
+  lessons from external terrain research.
 
 ## Existing Boundaries
 

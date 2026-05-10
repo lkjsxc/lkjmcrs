@@ -8,7 +8,7 @@ inventory.
 ## Compose Command
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build survival-server
+docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build item-pickup-server
 docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm item-pickup
 docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
 ```

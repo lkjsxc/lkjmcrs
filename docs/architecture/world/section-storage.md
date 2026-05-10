@@ -45,6 +45,8 @@ All integers are little-endian.
 - `3`: `minecraft:dirt`.
 - `4`: `minecraft:grass_block`.
 - `5`: `minecraft:water`.
+- `6`: `minecraft:spruce_log[axis=y]`.
+- `7`: `minecraft:spruce_leaves[distance=1,persistent=true,waterlogged=false]`.
 
 ## Rules
 

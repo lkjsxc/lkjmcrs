@@ -6,11 +6,11 @@
 docker compose up --build server
 ```
 
-Default bind:
+Default network boundary:
 
-- Host: `0.0.0.0`
+- Container bind: `0.0.0.0:25565`
 - Container port: `25565`
-- Host port: `${HOST_PORT:-25565}`
+- Host publish: `127.0.0.1:${HOST_PORT:-25565}`
 
 ## Try the Wire Probes
 

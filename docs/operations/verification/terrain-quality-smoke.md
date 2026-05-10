@@ -13,7 +13,7 @@ public chunk stream.
 4. Decode initial and nearby streamed `level_chunk_with_light` packets.
 5. Require dry spawn footing with two-block headroom.
 6. Require nearby static water access.
-7. Require nearby tree or wood-bearing decorator output after decorators land.
+7. Require nearby generated spruce-style wood output.
 8. Require non-flat terrain outside the near spawn area.
 
 ## Assertions
@@ -25,6 +25,6 @@ public chunk stream.
 
 ## Gate Command
 
-- Compose service: `terrain-quality` after the probe exists.
-- Until then, `terrain-generation`, `river-terrain`, and `render-distance`
-  remain the live coverage for this target.
+- Compose service: `terrain-quality`.
+- Supporting coverage remains `terrain-generation`, `river-terrain`,
+  `terrain-caves`, and `render-distance`.

@@ -28,6 +28,19 @@ water, biome, and surface palette stages have completed.
 - Additional generated block states above or near the surface.
 - Optional generated-content markers for later inspection.
 
+## First Decorator Family
+
+- Spruce-style wood terrain is the first promoted decorator family.
+- Candidate trunks use `minecraft:spruce_log[axis=y]`.
+- Candidate leaf blocks use
+  `minecraft:spruce_leaves[distance=1,persistent=true,waterlogged=false]`.
+- Candidate roots are deterministic from `world_seed` and absolute
+  coordinates.
+- Placement requires dry grass surface, moderate local slope, and enough
+  vertical headroom for a compact tree form.
+- Placement skips ocean, river, beach, static water, stone highlands, and a
+  small exclusion area around the resolved spawn column.
+
 ## Rules
 
 1. Decorators run after base terrain and before persisted overrides are applied.
@@ -36,8 +49,8 @@ water, biome, and surface palette stages have completed.
 4. Decorators must check support blocks and headroom before placement.
 5. New decoration block states require protocol and storage ownership before
    use.
-6. Tree, ore, plant, and structure families need their own owner docs before
-   they become broad systems.
+6. Broad tree, ore, plant, and structure systems need their own owner docs
+   before they replace the first compact spruce-style decorator family.
 
 ## Verification
 

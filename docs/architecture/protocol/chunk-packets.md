@@ -79,6 +79,9 @@ The current join sequence uses one biome value: `minecraft:plains` registry ID
 - `minecraft:dirt`: `10`.
 - `minecraft:bedrock`: `85`.
 - `minecraft:water[level=0]`: `86`.
+- `minecraft:spruce_log[axis=y]`: `140`.
+- `minecraft:spruce_leaves[distance=1,persistent=true,waterlogged=false]`:
+  `281`.
 
 These are protocol block-state IDs, not section-storage codes.
 

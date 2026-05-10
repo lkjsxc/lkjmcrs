@@ -10,7 +10,7 @@ play wire path.
 Run the dedicated survival server:
 
 ```bash
-docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build survival-server
+docker compose -f docker-compose.yml -f docker-compose.verify.yml up -d --build inventory-sync-server
 docker compose -f docker-compose.yml -f docker-compose.verify.yml run --rm inventory-sync
 docker compose -f docker-compose.yml -f docker-compose.verify.yml down -v
 ```

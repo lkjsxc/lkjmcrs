@@ -21,8 +21,8 @@ teleport safety checks.
    limited to promising areas.
 3. Solid floor, two-block headroom, dry footing, modest local slope, and
    distance from the origin affect the safety score.
-4. Nearby wood, nearby water access, moderate openness, and readable terrain
-   affect the survival-quality score.
+4. Nearby generated wood, nearby water access, moderate openness, and readable
+   terrain affect the survival-quality score.
 5. The resolver may make small deterministic safety adjustments to the selected
    column.
 6. Safety adjustment must not stamp a visible flat plateau into generated
@@ -41,7 +41,7 @@ teleport safety checks.
 ## Verification
 
 - Unit tests cover deterministic seed stability, headroom, and slope bounds.
-- Unit tests cover water rejection, scenic resource scoring, and broad search
+- Unit tests cover water rejection, generated wood scoring, and broad search
   stability for fixed seeds.
 - `terrain-generation` proves the spawn packet and first chunk delivery still
   work through the live protocol.
