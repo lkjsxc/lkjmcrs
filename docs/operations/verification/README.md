@@ -32,6 +32,8 @@ Use this subtree for required compose verification contracts.
 
 - [terrain-generation-smoke.md](terrain-generation-smoke.md): natural terrain
   and spawn smoke.
+- [terrain-quality-smoke.md](terrain-quality-smoke.md): survival-useful
+  surface terrain smoke.
 - [terrain-rivers-smoke.md](terrain-rivers-smoke.md): static water and river
   chunk smoke.
 - [terrain-caves-smoke.md](terrain-caves-smoke.md): generated underground cave

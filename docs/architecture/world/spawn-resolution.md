@@ -15,14 +15,19 @@ teleport safety checks.
 
 ## Natural Spawn Rules
 
-1. Candidate columns are scored near the configured seed's origin.
-2. Solid floor, two-block headroom, modest local slope, and distance from the
-   origin affect the score.
-3. The resolver may make small deterministic safety adjustments to the selected
+1. Candidate columns are scored through deterministic broad-area search around
+   the configured seed origin.
+2. The search may use coarse-to-fine rings so expensive local checks are
+   limited to promising areas.
+3. Solid floor, two-block headroom, dry footing, modest local slope, and
+   distance from the origin affect the safety score.
+4. Nearby wood, nearby water access, moderate openness, and readable terrain
+   affect the survival-quality score.
+5. The resolver may make small deterministic safety adjustments to the selected
    column.
-4. Safety adjustment must not stamp a visible flat plateau into generated
+6. Safety adjustment must not stamp a visible flat plateau into generated
    natural terrain.
-5. The same seed and generator marker must resolve the same spawn.
+7. The same seed and generator marker must resolve the same spawn.
 
 ## Teleport Safety
 
@@ -36,6 +41,8 @@ teleport safety checks.
 ## Verification
 
 - Unit tests cover deterministic seed stability, headroom, and slope bounds.
+- Unit tests cover water rejection, scenic resource scoring, and broad search
+  stability for fixed seeds.
 - `terrain-generation` proves the spawn packet and first chunk delivery still
   work through the live protocol.
 - Movement and persistence probes own post-teleport position persistence.

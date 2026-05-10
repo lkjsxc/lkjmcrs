@@ -36,9 +36,16 @@ Define static water and river generation for natural terrain.
 - Live river terrain smoke decodes chunk data and requires at least one water
   block near spawn.
 
+## Relationship To Richer Terrain
+
+- Rivers remain static generated blocks until fluid simulation is documented.
+- River corridors should shape nearby terrain before surface palettes and
+  decorators run.
+- Ocean, coast, and beach terrain is owned by
+  [generation/oceans-and-coasts.md](generation/oceans-and-coasts.md).
+
 ## Out Of Scope
 
 - Fluid physics.
-- River graph drainage or erosion simulation.
-- Aquifers, oceans, beaches, and underwater light behavior.
+- Aquifers and underwater light behavior.
 - Placement or breaking behavior specific to water.

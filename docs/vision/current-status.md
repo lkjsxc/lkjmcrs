@@ -50,12 +50,16 @@ the next work batch.
 
 ## Next Implementation Target
 
-Air-only cave terrain is the active target:
+Surface-first normal survival terrain is the active target:
 
-- carve deterministic underground `Air` pockets inside generated solid terrain,
-- keep caves below the surface and away from bedrock, grass, and static water,
+- make the overworld readable as landforms, water routes, forests, and safe
+  resource areas instead of a single generic height surface,
+- keep generated terrain deterministic from `world_seed` and absolute
+  coordinates,
 - preserve flat terrain for scale probes,
-- prove cave output through golden, border, and live decoded-chunk coverage.
+- keep generated caves as retained terrain while prioritizing surface quality,
+- prove terrain, spawn, border, persistence, and radius `32` streaming through
+  Docker Compose gates.
 
 ## Rules
 

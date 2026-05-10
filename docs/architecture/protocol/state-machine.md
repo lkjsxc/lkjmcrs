@@ -31,7 +31,7 @@
 - Server sends initial play state and spawn position.
 - Server sends game event `13`, start waiting for level chunks.
 - Server advertises the configured chunk-cache radius.
-- Server sends a matching flat chunk and light batch around spawn.
+- Server sends a matching generated chunk and light batch around spawn.
 - Server sends an initial keepalive, then sends another keepalive every `10`
   seconds while the play session remains open.
 - Server sends observable time updates every `1` second after bootstrap.

@@ -19,7 +19,7 @@ gameplay systems.
 All players may use:
 
 - `/help`: list supported commands.
-- `/spawn`: teleport the caller to `0.5, 80.0, 0.5`.
+- `/spawn`: teleport the caller to the server-resolved world spawn.
 - `/sethome [name]`: save a personal home at the caller's current position.
 - `/home [name]`: teleport to a personal home.
 - `/homes`: list personal homes.

@@ -15,17 +15,20 @@ fit together without making Anvil or plugin-pack compatibility promises.
 ## Target Pipeline
 
 1. Select `flat` or `natural` at runtime construction.
-2. Resolve a deterministic world spawn from `world_seed`.
-3. For `natural`, sample staged fields for continentalness, ridge/valley shape,
-   erosion-like smoothing, temperature, and humidity.
-4. Build the surface and river columns from staged fields with deterministic
-   chunk-neighbor continuity.
-5. Apply the cave stage after surface and river columns.
-6. Apply tree, ore, and decorator stages only after their owner docs and
-   verification exist.
-7. Load sparse persisted sections through `WorldStore`.
-8. Apply persisted sections above the generated base.
-9. Encode the final chunk through the protocol chunk contract.
+2. For `natural`, sample macro fields for land, coast, uplift, erosion,
+   temperature, moisture, and river potential.
+3. Shape terrain from macro fields so landforms, coasts, river corridors, and
+   mountain belts are decided before local block painting.
+4. Assign biome and surface palette from elevation, slope, moisture,
+   temperature, coast influence, and water adjacency.
+5. Write solid terrain, static water, riverbeds, beaches, and surface blocks.
+6. Apply deterministic decorators such as trees only through owner-documented
+   stages.
+7. Apply retained cave carving below surface and away from static water.
+8. Resolve a deterministic scenic spawn from generated terrain.
+9. Load sparse persisted sections through `WorldStore`.
+10. Apply persisted sections above the generated base.
+11. Encode the final chunk through the protocol chunk contract.
 
 ## River And Water Slice
 
@@ -33,6 +36,8 @@ fit together without making Anvil or plugin-pack compatibility promises.
 - Rivers are static generated terrain blocks, not simulated fluids.
 - Water uses the block-state constant documented by the protocol chunk owner.
 - Spawn scoring must choose dry columns even when rivers generate near origin.
+- Ocean, coast, and beach rules are owned by
+  [generation/oceans-and-coasts.md](generation/oceans-and-coasts.md).
 
 ## Cave Slice
 
@@ -47,6 +52,8 @@ fit together without making Anvil or plugin-pack compatibility promises.
 - New profiles, `/spawn`, and respawn use the owner rules in
   [spawn-resolution.md](spawn-resolution.md).
 - The natural generator must not create a visible flat plateau around spawn.
+- Spawn scoring must favor dry footing, modest slope, headroom, nearby wood,
+  nearby water access, and enough open ground for orientation.
 
 ## Boundaries
 
@@ -60,5 +67,4 @@ fit together without making Anvil or plugin-pack compatibility promises.
 
 - Anvil import or export.
 - Terra config-pack compatibility.
-- Biomes beyond minimal registry-safe values.
 - Mobs and weather-driven terrain changes.

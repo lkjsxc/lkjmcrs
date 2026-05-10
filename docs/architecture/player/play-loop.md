@@ -18,9 +18,9 @@ Each play session starts from the loaded player profile and tracks:
 - pending keepalive deadline,
 - current world age and day time.
 
-New profiles start at position `0.5, 80.0, 0.5`, yaw `0.0`, pitch `0.0`,
-and both flags set to `false`. Returning profiles start from saved position
-and look values.
+New profiles start at the server-resolved world spawn with yaw `0.0`, pitch
+`0.0`, and both flags set to `false`. Returning profiles start from saved
+position and look values.
 
 ## Movement
 

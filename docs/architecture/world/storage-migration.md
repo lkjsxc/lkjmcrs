@@ -8,7 +8,7 @@ Avoid accidental compatibility promises for early internal storage files.
 
 - `WorldStore` is the public behavior boundary.
 - The current world override backend is `redb` with binary
-  `chunk_overrides` values.
+  `chunk_sections` values.
 - Earlier `world.redb` JSON chunk values are unsupported and may be ignored.
 - Earlier `world.sqlite3` and `chunks/*.json` files are unsupported and ignored.
 - Acceptance runs use clean Compose volumes unless a probe explicitly verifies

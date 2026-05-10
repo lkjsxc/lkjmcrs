@@ -19,6 +19,10 @@ Define the next vanilla-survival target after the current survival sandbox.
 
 ## Future Required Behavior
 
+- New players spawn into a dry, readable natural area with nearby wood, water
+  access, and enough open ground to orient safely.
+- Natural terrain provides ordinary survival starts: surface ground, forests,
+  river or coast access, and visible travel routes.
 - Tools affect mining speed for the first supported block set.
 - Durability decreases when supported tools are used.
 - Minimal recipes transform inventory inputs into outputs.
@@ -41,7 +45,7 @@ Define the next vanilla-survival target after the current survival sandbox.
 
 - Full vanilla recipe book.
 - Full enchantments.
-- Full natural terrain generation.
+- Underground cave gameplay beyond retained generated cave terrain.
 - Complete passive and hostile mob ecology.
 - Weather effects beyond documented smoke behavior.
 

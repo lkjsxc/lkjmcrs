@@ -23,7 +23,7 @@ Each player profile stores:
 New profiles use:
 
 - game mode: `survival`,
-- position: `0.5, 80.0, 0.5`,
+- position: server-resolved world spawn,
 - yaw: `0.0`,
 - pitch: `0.0`,
 - selected hotbar slot: `0`,
