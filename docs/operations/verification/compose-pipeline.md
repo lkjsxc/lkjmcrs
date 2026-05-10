@@ -14,6 +14,7 @@ docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-com
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T scale-chunk-stream
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml up -d --build --quiet-build --quiet-pull terrain-server
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T terrain-generation
+docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T terrain-quality
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml up -d --build --quiet-build --quiet-pull river-terrain-server
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml run --rm --quiet-pull -T river-terrain
 docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-compose.verify.yml up -d --build --quiet-build --quiet-pull cave-terrain-server
@@ -66,50 +67,52 @@ docker compose --ansi never --progress quiet -f docker-compose.yml -f docker-com
 10. `scale-chunk-stream` verifies progressive radius `4` chunk streaming.
 11. `terrain-generation` verifies natural terrain around resolved spawn and
     embedded chunk light without `update_light`.
-12. `river-terrain` verifies decoded static water in generated natural chunks.
-13. `terrain-caves` verifies enclosed underground cave air in generated natural
+12. `terrain-quality` verifies dry spawn footing, nearby static water,
+    generated spruce-style wood, and non-flat natural terrain.
+13. `river-terrain` verifies decoded static water in generated natural chunks.
+14. `terrain-caves` verifies enclosed underground cave air in generated natural
     chunks.
-14. `scale-load-metrics` verifies radius `8` total chunks, follow-up batch
+15. `scale-load-metrics` verifies radius `8` total chunks, follow-up batch
     sizes, payload bytes, and scale counter emission.
-15. `scale-moving-pending` verifies stale pending chunks are replaced when a
+16. `scale-moving-pending` verifies stale pending chunks are replaced when a
     player moves before radius `8` far streaming completes.
-16. `render-distance` verifies natural terrain at radius `32`: advertised
+17. `render-distance` verifies natural terrain at radius `32`: advertised
     radius `32`, `25` initial chunks, `4225` eventual chunks, no duplicates,
     embedded light, non-flat outer terrain, and follow-up budgets.
-17. `render-moving-pending` verifies stale pending chunks are replaced when a
+18. `render-moving-pending` verifies stale pending chunks are replaced when a
     player moves before radius `32` far streaming completes.
-18. `persistence-server` uses a dedicated data volume for the persistence
+19. `persistence-server` uses a dedicated data volume for the persistence
     restart pair.
-19. `persist-place` writes a mutation through the public wire path.
-20. `persist-check` verifies that mutation after restart.
-21. `storage-section-persistence` verifies multi-section overrides and
+20. `persist-place` writes a mutation through the public wire path.
+21. `persist-check` verifies that mutation after restart.
+22. `storage-section-persistence` verifies multi-section overrides and
     reset-to-generated-base behavior.
-22. `survival-item-server` uses a dedicated data volume and the basic flat
+23. `survival-item-server` uses a dedicated data volume and the basic flat
     verify config for item persistence.
-23. `survival-item` verifies survival profile defaults and item persistence.
-24. `inventory-sync-server` uses a dedicated data volume and the basic flat
+24. `survival-item` verifies survival profile defaults and item persistence.
+25. `inventory-sync-server` uses a dedicated data volume and the basic flat
     verify config for inventory sync.
-25. `inventory-sync` verifies client-visible hotbar and player inventory sync.
-26. `item-pickup-server` uses a dedicated data volume and the basic flat
+26. `inventory-sync` verifies client-visible hotbar and player inventory sync.
+27. `item-pickup-server` uses a dedicated data volume and the basic flat
     verify config for pickup behavior.
-27. `item-pickup` verifies dropped item entity spawn, pickup, and inventory
+28. `item-pickup` verifies dropped item entity spawn, pickup, and inventory
     delta sync.
-28. `survival-vitals-server` mounts `config/verify/smp-server.json` so the
+29. `survival-vitals-server` mounts `config/verify/smp-server.json` so the
     vitals probe can use disposable operator damage on fixed flat terrain.
-29. `survival-vitals` verifies visible health, lethal damage, death, respawn,
+30. `survival-vitals` verifies visible health, lethal damage, death, respawn,
     regeneration, and starvation.
-30. `smp-commands` verifies offline chat, permissions, travel commands, and
+31. `smp-commands` verifies offline chat, permissions, travel commands, and
     kick.
-31. `online-auth` verifies encrypted login and fixture-authenticated UUIDs on
+32. `online-auth` verifies encrypted login and fixture-authenticated UUIDs on
     fixed flat terrain.
-32. Non-zero from any step blocks acceptance.
-33. Initial `down -v` removes stale named volumes before stateful probes.
-34. Final `down -v` removes disposable compose state.
-35. Quiet flags are part of the contract for routine acceptance runs.
-36. `smp-server` mounts `config/verify/smp-server.json` so disposable operator
+33. Non-zero from any step blocks acceptance.
+34. Initial `down -v` removes stale named volumes before stateful probes.
+35. Final `down -v` removes disposable compose state.
+36. Quiet flags are part of the contract for routine acceptance runs.
+37. `smp-server` mounts `config/verify/smp-server.json` so disposable operator
     checks use fixed flat terrain and do not require operator UUIDs in normal
     runtime config.
-37. `online-server` mounts `config/verify/online-server.json` for fixed flat
+38. `online-server` mounts `config/verify/online-server.json` for fixed flat
     terrain and may use the HTTP session fixture only with explicit
     insecure-fixture allowance.
 

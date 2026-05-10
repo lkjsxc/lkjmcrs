@@ -271,6 +271,21 @@ services:
       - terrain-server
     entrypoint: ["cargo", "run", "--", "probe", "terrain-generation", "--host", "terrain-server:25565"]
 
+  terrain-quality:
+    build:
+      context: .
+      dockerfile: Dockerfile.verify
+    working_dir: /workspace
+    environment:
+      CARGO_TARGET_DIR: /target
+    volumes:
+      - .:/workspace:ro
+      - cargo-registry:/usr/local/cargo/registry
+      - target-cache:/target
+    depends_on:
+      - terrain-server
+    entrypoint: ["cargo", "run", "--", "probe", "terrain-quality", "--host", "terrain-server:25565"]
+
   river-terrain:
     build:
       context: .
