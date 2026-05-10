@@ -42,10 +42,7 @@ impl TerrainGenerator {
 
 impl NaturalWorld {
     pub fn chunk_snapshot(&self, pos: ChunkPos) -> ChunkSnapshot {
-        let mut columns = [terrain::TerrainColumn {
-            surface_y: 79,
-            water_y: None,
-        }; 256];
+        let mut columns = [terrain::TerrainColumn::new(79, None); 256];
         for z in 0..16 {
             for x in 0..16 {
                 let gx = pos.x * 16 + x as i32;
@@ -81,8 +78,8 @@ mod tests {
     fn natural_spawn_uses_scored_column() {
         let spawn = TerrainGenerator::natural(7).spawn();
         assert_ne!(spawn, (0.5, 80.0, 0.5));
-        assert_eq!(spawn.0.fract(), 0.5);
-        assert_eq!(spawn.2.fract(), 0.5);
+        assert_eq!(spawn.0.rem_euclid(1.0), 0.5);
+        assert_eq!(spawn.2.rem_euclid(1.0), 0.5);
     }
 
     #[test]
@@ -92,7 +89,7 @@ mod tests {
         assert!(
             entries
                 .iter()
-                .any(|(_, y, _, state)| *y != 79 && *state == BlockState::GrassBlock)
+                .any(|(_, y, _, state)| *y != 79 && *state != BlockState::Air)
         );
     }
 

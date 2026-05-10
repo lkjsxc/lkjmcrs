@@ -90,8 +90,8 @@ fn natural_override_resets_to_generated_base() {
     let target = base
         .base_entries_for_tests()
         .into_iter()
-        .find(|(x, _, z, state)| *x == 0 && *z == 0 && *state == BlockState::GrassBlock)
-        .map(|(_, y, _, state)| (BlockPos::new(32, y, 0), state))
+        .find(|(_, _, _, state)| *state != BlockState::Bedrock && *state != BlockState::Water)
+        .map(|(x, y, z, state)| (BlockPos::new(32 + x as i32, y, z as i32), state))
         .unwrap();
     let mut changed = storage.load_chunk(pos).unwrap();
     changed.set_block(target.0, BlockState::Stone);

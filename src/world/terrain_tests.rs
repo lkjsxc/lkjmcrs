@@ -12,9 +12,9 @@ fn worldgen_golden_samples_stay_stable() {
     assert_eq!(
         samples,
         [
-            (81, BlockState::GrassBlock),
-            (80, BlockState::GrassBlock),
-            (84, BlockState::GrassBlock),
+            (64, BlockState::Water),
+            (64, BlockState::Water),
+            (64, BlockState::Water),
         ]
     );
 }

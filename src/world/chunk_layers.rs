@@ -1,4 +1,5 @@
 use crate::world::blocks::{BlockState, CHUNK_HEIGHT, CHUNK_WIDTH, MIN_Y};
+use crate::world::terrain::SurfaceKind;
 pub(super) use crate::world::terrain::TerrainColumn;
 use crate::world::{ChunkPos, terrain};
 
@@ -59,7 +60,7 @@ fn write_column(
     for y in 0..=column.surface_y {
         let mut state = match y {
             0 => 1,
-            y if y == column.surface_y && column.water_y.is_none() => 4,
+            y if y == column.surface_y && column.water_y.is_none() => surface_state(column.surface),
             y if y >= column.surface_y - 3 => 3,
             _ => 2,
         };
@@ -74,6 +75,14 @@ fn write_column(
         for y in column.surface_y + 1..=water_y {
             layers[layer_index(x, y, z)] = 5;
         }
+    }
+}
+
+fn surface_state(surface: SurfaceKind) -> u8 {
+    match surface {
+        SurfaceKind::Grass => 4,
+        SurfaceKind::Dirt => 3,
+        SurfaceKind::Stone => 2,
     }
 }
 

@@ -1,8 +1,9 @@
-use super::column::terrain_column;
+use super::{BiomeKind, terrain_column};
 
-const SEARCH_RADIUS: i32 = 16;
-const SEARCH_STEP: usize = 4;
-const MAX_SPAWN_SLOPE: i32 = 4;
+const COARSE_RADIUS: i32 = 256;
+const COARSE_STEP: usize = 8;
+const REFINE_RADIUS: i32 = 8;
+const MAX_SPAWN_SLOPE: i32 = 5;
 
 pub(in crate::world) fn spawn_position(seed: i64) -> (f64, f64, f64) {
     let (x, z, y) = best_column(seed);
@@ -10,28 +11,58 @@ pub(in crate::world) fn spawn_position(seed: i64) -> (f64, f64, f64) {
 }
 
 fn best_column(seed: i64) -> (i32, i32, i32) {
-    let mut best = (0, 0, terrain_column(seed, 0, 0).surface_y);
+    let mut best = coarse_best_column(seed);
     let mut best_score = i32::MIN;
-    for z in (-SEARCH_RADIUS..=SEARCH_RADIUS).step_by(SEARCH_STEP) {
-        for x in (-SEARCH_RADIUS..=SEARCH_RADIUS).step_by(SEARCH_STEP) {
-            let column = terrain_column(seed, x, z);
-            if column.is_water() {
+    for z in best.1 - REFINE_RADIUS..=best.1 + REFINE_RADIUS {
+        for x in best.0 - REFINE_RADIUS..=best.0 + REFINE_RADIUS {
+            let Some(score) = spawn_score(seed, x, z) else {
+                continue;
+            };
+            if score <= best_score {
                 continue;
             }
-            let y = column.surface_y;
-            let slope = max_neighbor_delta(seed, x, z);
-            if slope > MAX_SPAWN_SLOPE {
-                continue;
-            }
-            let distance = x.abs() + z.abs();
-            let score = 120 - slope * 8 - distance / 4 - (y - 80).abs();
-            if score > best_score {
-                best_score = score;
-                best = (x, z, y);
-            }
+            best_score = score;
+            best = (x, z, terrain_column(seed, x, z).surface_y);
         }
     }
     best
+}
+
+fn coarse_best_column(seed: i64) -> (i32, i32, i32) {
+    let mut best = (0, 0, terrain_column(seed, 0, 0).surface_y);
+    let mut best_score = i32::MIN;
+    for z in (-COARSE_RADIUS..=COARSE_RADIUS).step_by(COARSE_STEP) {
+        for x in (-COARSE_RADIUS..=COARSE_RADIUS).step_by(COARSE_STEP) {
+            let Some(score) = spawn_score(seed, x, z) else {
+                continue;
+            };
+            if score <= best_score {
+                continue;
+            }
+            best_score = score;
+            best = (x, z, terrain_column(seed, x, z).surface_y);
+        }
+    }
+    best
+}
+
+fn spawn_score(seed: i64, x: i32, z: i32) -> Option<i32> {
+    let column = terrain_column(seed, x, z);
+    if column.is_water() {
+        return None;
+    }
+    let slope = max_neighbor_delta(seed, x, z);
+    if slope > MAX_SPAWN_SLOPE {
+        return None;
+    }
+    let y = column.surface_y;
+    let distance = x.abs() + z.abs();
+    Some(
+        180 - slope * 12 - distance / 16 - (y - 76).abs() * 2
+            + nearby_water_bonus(seed, x, z)
+            + nearby_forest_bonus(seed, x, z)
+            + openness_bonus(seed, x, z),
+    )
 }
 
 fn max_neighbor_delta(seed: i64, x: i32, z: i32) -> i32 {
@@ -43,6 +74,41 @@ fn max_neighbor_delta(seed: i64, x: i32, z: i32) -> i32 {
         })
         .max()
         .unwrap_or(0)
+}
+
+fn nearby_water_bonus(seed: i64, x: i32, z: i32) -> i32 {
+    for dz in (-24..=24).step_by(4) {
+        for dx in (-24..=24).step_by(4) {
+            if terrain_column(seed, x + dx, z + dz).is_water() {
+                return 28;
+            }
+        }
+    }
+    0
+}
+
+fn nearby_forest_bonus(seed: i64, x: i32, z: i32) -> i32 {
+    for dz in (-32..=32).step_by(8) {
+        for dx in (-32..=32).step_by(8) {
+            if terrain_column(seed, x + dx, z + dz).biome == BiomeKind::Forest {
+                return 32;
+            }
+        }
+    }
+    0
+}
+
+fn openness_bonus(seed: i64, x: i32, z: i32) -> i32 {
+    let mut safe = 0;
+    for dz in (-8..=8).step_by(4) {
+        for dx in (-8..=8).step_by(4) {
+            let column = terrain_column(seed, x + dx, z + dz);
+            if !column.is_water() && max_neighbor_delta(seed, x + dx, z + dz) <= MAX_SPAWN_SLOPE {
+                safe += 1;
+            }
+        }
+    }
+    safe * 2
 }
 
 #[cfg(test)]
