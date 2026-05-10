@@ -1,5 +1,6 @@
 pub mod blocks;
 mod chunk_layers;
+mod chunk_snapshot;
 pub mod flat;
 mod generator;
 mod item_entity;
@@ -26,7 +27,8 @@ mod terrain;
 #[cfg(test)]
 mod terrain_tests;
 
-pub use blocks::{BlockState, ChunkSnapshot, GeneratedChunkKey, MAX_Y, MIN_Y, TerrainKind};
+pub use blocks::{BlockState, MAX_Y, MIN_Y};
+pub use chunk_snapshot::{ChunkSnapshot, GeneratedChunkKey, TerrainKind};
 pub use flat::FlatWorld;
 pub use generator::TerrainGenerator;
 pub use item_entity::{DroppedItemEntity, PICKUP_DELAY, PICKUP_EXPAND};
