@@ -185,6 +185,7 @@ fn ignorable_live_packet(id: i32) -> bool {
             | ids::play::HELD_ITEM_SLOT
             | ids::play::UPDATE_HEALTH
             | ids::play::DEATH_COMBAT_EVENT
+            | ids::play::PLAYER_POSITION
             | ids::play::UNLOAD_CHUNK
             | ids::play::CHUNK_CACHE_CENTER
             | ids::play::CHUNK_CACHE_RADIUS
