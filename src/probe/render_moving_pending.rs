@@ -16,6 +16,8 @@ pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     if seen.len() != INITIAL_CHUNKS {
         return Err(Box::new(ProbeError::Phase("render moving initial")));
     }
+    let center_x = (position.x.floor() as i32).div_euclid(16) + 1;
+    let center_z = (position.z.floor() as i32).div_euclid(16);
     live_play::send_position_look_at(
         &mut stream,
         position.x + 16.0,
@@ -25,8 +27,10 @@ pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
         position.pitch,
     )
     .await?;
-    let expected = window(1, 0, RADIUS);
-    for batch in packets::expect_cache_center_collecting_batches(&mut stream, 1, 0).await? {
+    let expected = window(center_x, center_z, RADIUS);
+    for batch in
+        packets::expect_cache_center_collecting_batches(&mut stream, center_x, center_z).await?
+    {
         accept_batch(&mut seen, &expected, batch.positions)?;
     }
     while seen.len() < TOTAL_CHUNKS {
