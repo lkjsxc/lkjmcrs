@@ -1,11 +1,11 @@
 # Current Results
 
-## 2026-05-10 Cave Terrain
+## 2026-05-10 Surface Terrain
 
-Latest full recorded compose result: implementation commit `b30c64d`, with
-static generated water, deterministic river terrain, dry spawn scoring,
-air-only generated cave terrain, water storage and protocol mapping, and live
-river plus cave terrain probe coverage.
+Latest full recorded compose result: implementation commit `2cc8b06`, with
+surface terrain fields, biome-aware surface material selection, ocean and coast
+shaping, broader dry-spawn scoring, deterministic flat gameplay fixtures, and
+natural terrain probe coverage.
 
 Command owner:
 
@@ -34,7 +34,7 @@ Result:
 - `render-distance`: pass,
   `render-distance counters radius=32 initial=25 total=4225
   followup_batches=263 max_followup_batch=16
-  max_followup_payload_bytes=1035640`, then `render-distance probe ok`.
+  max_followup_payload_bytes=1041807`, then `render-distance probe ok`.
 - `render-moving-pending`: pass, `render-moving-pending probe ok`.
 - `persist-place`: pass, `persist-place probe ok`.
 - `persistence-server` restart: pass.
