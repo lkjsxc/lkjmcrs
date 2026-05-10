@@ -4,9 +4,11 @@ use std::collections::HashMap;
 use std::io::{Cursor, Read};
 
 const AIR: i32 = 0;
+const WATER: i32 = crate::protocol::chunk::WATER_ID;
 type ErrorBox = Box<dyn std::error::Error>;
 
 pub(super) struct DecodedChunk {
+    pos: (i32, i32),
     blocks: HashMap<(usize, i32, usize), i32>,
 }
 
@@ -22,8 +24,14 @@ impl DecodedChunk {
         if cursor.position() != end {
             return Err(Box::new(ProbeError::Phase("terrain chunk data boundary")));
         }
-        let _chunk_pos = (x, z);
-        Ok(Self { blocks })
+        Ok(Self {
+            pos: (x, z),
+            blocks,
+        })
+    }
+
+    pub(super) fn position(&self) -> (i32, i32) {
+        self.pos
     }
 
     pub(super) fn has_non_flat_surface(&self) -> bool {
@@ -54,6 +62,14 @@ impl DecodedChunk {
 
     pub(super) fn surface_y(&self, x: usize, z: usize) -> Option<i32> {
         (-64..320).rev().find(|y| self.state(x, *y, z) != AIR)
+    }
+
+    pub(super) fn has_dry_headroom(&self, x: usize, ground_y: i32, z: usize) -> bool {
+        let ground = self.state(x, ground_y, z);
+        ground != AIR
+            && ground != WATER
+            && self.state(x, ground_y + 1, z) == AIR
+            && self.state(x, ground_y + 2, z) == AIR
     }
 
     fn state(&self, x: usize, y: i32, z: usize) -> i32 {

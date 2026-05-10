@@ -6,6 +6,7 @@ use crate::probe::terrain_chunk::DecodedChunk;
 use crate::probe::validation::{validate_chunk_batch_finished, validate_chunk_radius};
 use crate::protocol::types::{LoginStart, NextState};
 use crate::protocol::{codec, ids};
+use std::io::Cursor;
 use tokio::net::TcpStream;
 use uuid::Uuid;
 
@@ -23,9 +24,11 @@ pub(super) async fn run(host: &str) -> Result<(), ErrorBox> {
 }
 
 async fn expect_bootstrap_terrain(stream: &mut TcpStream) -> Result<(), ErrorBox> {
+    super::expect(stream, ids::play::LOGIN, "terrain play login").await?;
+    let spawn_packet =
+        super::expect(stream, ids::play::DEFAULT_SPAWN_POSITION, "terrain spawn").await?;
+    let spawn = decode_default_spawn(spawn_packet.data)?;
     for (id, phase) in [
-        (ids::play::LOGIN, "terrain play login"),
-        (ids::play::DEFAULT_SPAWN_POSITION, "terrain spawn"),
         (ids::play::SET_TIME, "terrain time"),
         (ids::play::PLAYER_ABILITIES, "terrain abilities"),
         (ids::play::UPDATE_HEALTH, "terrain health"),
@@ -46,6 +49,7 @@ async fn expect_bootstrap_terrain(stream: &mut TcpStream) -> Result<(), ErrorBox
     let chunk_count = validate_chunk_radius(radius.data)?;
     super::expect(stream, ids::play::CHUNK_BATCH_START, "terrain batch").await?;
     let mut natural = false;
+    let mut dry_spawn = false;
     for _ in 0..chunk_count {
         let packet =
             super::expect(stream, ids::play::LEVEL_CHUNK_WITH_LIGHT, "terrain chunk").await?;
@@ -54,9 +58,19 @@ async fn expect_bootstrap_terrain(stream: &mut TcpStream) -> Result<(), ErrorBox
         if decoded.has_non_flat_surface() {
             natural = true;
         }
+        if decoded.position() == (spawn.0.div_euclid(16), spawn.2.div_euclid(16)) {
+            dry_spawn = decoded.has_dry_headroom(
+                spawn.0.rem_euclid(16) as usize,
+                spawn.1 - 1,
+                spawn.2.rem_euclid(16) as usize,
+            );
+        }
     }
     if !natural {
         return Err(Box::new(ProbeError::Phase("terrain natural variation")));
+    }
+    if !dry_spawn {
+        return Err(Box::new(ProbeError::Phase("terrain dry spawn")));
     }
     let finished = super::expect(
         stream,
@@ -65,4 +79,18 @@ async fn expect_bootstrap_terrain(stream: &mut TcpStream) -> Result<(), ErrorBox
     )
     .await?;
     validate_chunk_batch_finished(finished.data, chunk_count)
+}
+
+fn decode_default_spawn(data: Vec<u8>) -> Result<(i32, i32, i32), ErrorBox> {
+    let mut cursor = Cursor::new(data);
+    if codec::read_string(&mut cursor)? != "minecraft:overworld" {
+        return Err(Box::new(ProbeError::Phase("terrain spawn dimension")));
+    }
+    let pos = codec::read_position(&mut cursor)?;
+    codec::read_f32(&mut cursor)?;
+    codec::read_f32(&mut cursor)?;
+    if cursor.position() != cursor.get_ref().len() as u64 {
+        return Err(Box::new(ProbeError::Phase("terrain spawn trailing bytes")));
+    }
+    Ok(pos)
 }
