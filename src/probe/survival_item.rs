@@ -36,7 +36,7 @@ async fn reject_far_selected_item(
         &mut client.stream,
         32,
         BlockPos::new(20, 80, 0),
-        9,
+        0,
         "far reach",
     )
     .await
