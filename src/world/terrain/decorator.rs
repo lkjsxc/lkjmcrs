@@ -3,18 +3,19 @@ use super::column::{TerrainColumn, terrain_column};
 use super::noise;
 use crate::world::BlockState;
 
-const TREE_CELL: i32 = 11;
-const TREE_SCAN_RADIUS: i32 = 2;
-const MAX_TREE_SLOPE: i32 = 4;
+const TREE_CELL: i32 = 5;
+const MAX_TREE_SLOPE: i32 = 6;
+pub(in crate::world) const TREE_REACH: i32 = 3;
+pub(in crate::world) const TREE_MAX_HEIGHT: i32 = 10;
 
 pub(in crate::world) fn block_at(seed: i64, x: i32, y: i32, z: i32) -> Option<BlockState> {
-    for rz in z - TREE_SCAN_RADIUS..=z + TREE_SCAN_RADIUS {
-        for rx in x - TREE_SCAN_RADIUS..=x + TREE_SCAN_RADIUS {
+    for rz in z - TREE_REACH..=z + TREE_REACH {
+        for rx in x - TREE_REACH..=x + TREE_REACH {
             let root = terrain_column(seed, rx, rz);
-            if !is_tree_root(seed, rx, rz, root) {
+            if !is_tree_root_at(seed, rx, rz, root) {
                 continue;
             }
-            if let Some(state) = tree_state(seed, rx, rz, root.surface_y, x, y, z) {
+            if let Some(state) = tree_state_at(seed, rx, rz, root.surface_y, x, y, z) {
                 return Some(state);
             }
         }
@@ -26,7 +27,7 @@ pub(in crate::world) fn nearby_wood(seed: i64, x: i32, z: i32) -> bool {
     for dz in (-32..=32).step_by(4) {
         for dx in (-32..=32).step_by(4) {
             let column = terrain_column(seed, x + dx, z + dz);
-            if is_tree_root(seed, x + dx, z + dz, column) {
+            if is_tree_root_at(seed, x + dx, z + dz, column) {
                 return true;
             }
         }
@@ -34,13 +35,40 @@ pub(in crate::world) fn nearby_wood(seed: i64, x: i32, z: i32) -> bool {
     false
 }
 
-fn is_tree_root(seed: i64, x: i32, z: i32, column: TerrainColumn) -> bool {
+pub(in crate::world) fn is_tree_root_at(seed: i64, x: i32, z: i32, column: TerrainColumn) -> bool {
     column.water_y.is_none()
         && column.surface == SurfaceKind::Grass
-        && column.biome == BiomeKind::Forest
-        && column.surface_y < 104
+        && eligible_biome(seed, x, z, column)
+        && column.surface_y < 112
         && root_position(seed, x, z) == (x, z)
         && max_neighbor_delta(seed, x, z, column.surface_y) <= MAX_TREE_SLOPE
+}
+
+pub(in crate::world) fn tree_state_at(
+    seed: i64,
+    rx: i32,
+    rz: i32,
+    root_y: i32,
+    x: i32,
+    y: i32,
+    z: i32,
+) -> Option<BlockState> {
+    let trunk_top = root_y + trunk_height(seed, rx, rz);
+    if x == rx && z == rz && (root_y + 1..=trunk_top).contains(&y) {
+        return Some(BlockState::SpruceLog);
+    }
+    let dy = y - trunk_top;
+    let radius = (x - rx).abs().max((z - rz).abs());
+    (radius <= leaf_radius(seed, rx, rz, dy)).then_some(BlockState::SpruceLeaves)
+}
+
+fn eligible_biome(seed: i64, x: i32, z: i32, column: TerrainColumn) -> bool {
+    match column.biome {
+        BiomeKind::Forest | BiomeKind::Plains => true,
+        BiomeKind::Coast => noise::unit(seed ^ 0x4343, x, z) > 0.10,
+        BiomeKind::Highlands if column.surface_y < 96 => noise::unit(seed ^ 0x3434, x, z) > 0.45,
+        _ => false,
+    }
 }
 
 fn root_position(seed: i64, x: i32, z: i32) -> (i32, i32) {
@@ -64,32 +92,20 @@ fn max_neighbor_delta(seed: i64, x: i32, z: i32, surface_y: i32) -> i32 {
         .unwrap_or(0)
 }
 
-fn tree_state(
-    seed: i64,
-    rx: i32,
-    rz: i32,
-    root_y: i32,
-    x: i32,
-    y: i32,
-    z: i32,
-) -> Option<BlockState> {
-    let trunk_top = root_y + 4 + (noise::unit(seed ^ 0x5eed, rx, rz).abs() * 2.0) as i32;
-    if x == rx && z == rz && (root_y + 1..=trunk_top).contains(&y) {
-        return Some(BlockState::SpruceLog);
-    }
-    let radius = (x - rx).abs().max((z - rz).abs());
-    let leaf_base = trunk_top - 2;
-    let leaf_top = trunk_top + 1;
-    (radius <= leaf_radius(y, leaf_base, leaf_top) && (leaf_base..=leaf_top).contains(&y))
-        .then_some(BlockState::SpruceLeaves)
+fn trunk_height(seed: i64, rx: i32, rz: i32) -> i32 {
+    5 + (noise::unit(seed ^ 0x5eed, rx, rz).abs() * 4.0).round() as i32
 }
 
-fn leaf_radius(y: i32, leaf_base: i32, leaf_top: i32) -> i32 {
-    if y == leaf_top {
-        1
-    } else if y == leaf_base {
-        2
-    } else {
-        1
+fn leaf_radius(seed: i64, rx: i32, rz: i32, dy: i32) -> i32 {
+    let broad = noise::unit(seed ^ 0x6eed, rx, rz) > -0.15;
+    match dy {
+        1 => 1,
+        0 => 2,
+        -1 | -2 if broad => 3,
+        -1 | -2 => 2,
+        -3 => 2,
+        -4 if broad => 2,
+        -4 => 1,
+        _ => -1,
     }
 }

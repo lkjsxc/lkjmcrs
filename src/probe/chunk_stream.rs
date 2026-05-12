@@ -19,7 +19,7 @@ pub(super) async fn run(host: &str) -> Result<(), Box<dyn std::error::Error>> {
     block_mutation::acquire_dirt_from(
         &mut client.stream,
         BlockPos::new(2, 79, 0),
-        9,
+        10,
         "stream dirt",
     )
     .await?;

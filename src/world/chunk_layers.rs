@@ -46,6 +46,7 @@ pub(super) fn terrain_layers(
             );
         }
     }
+    write_tree_decorators(&mut layers, pos, world_seed);
     layers
 }
 
@@ -77,8 +78,6 @@ fn write_column(
         for y in column.surface_y + 1..=water_y {
             layers[layer_index(x, y, z)] = 5;
         }
-    } else {
-        write_decorators(layers, world_seed, global_x, global_z, x, z, column);
     }
 }
 
@@ -90,19 +89,50 @@ fn surface_state(surface: SurfaceKind) -> u8 {
     }
 }
 
-fn write_decorators(
-    layers: &mut [u8],
-    world_seed: i64,
-    global_x: i32,
-    global_z: i32,
-    x: usize,
-    z: usize,
-    column: TerrainColumn,
-) {
-    for y in column.surface_y + 1..=column.surface_y + 10 {
-        if let Some(state) = terrain::decorator_block_at(world_seed, global_x, y, global_z) {
-            layers[layer_index(x, y, z)] = state_index(state);
+fn write_tree_decorators(layers: &mut [u8], pos: ChunkPos, world_seed: i64) {
+    let min_x = pos.x * CHUNK_WIDTH as i32 - terrain::TREE_REACH;
+    let max_x = pos.x * CHUNK_WIDTH as i32 + CHUNK_WIDTH as i32 - 1 + terrain::TREE_REACH;
+    let min_z = pos.z * CHUNK_WIDTH as i32 - terrain::TREE_REACH;
+    let max_z = pos.z * CHUNK_WIDTH as i32 + CHUNK_WIDTH as i32 - 1 + terrain::TREE_REACH;
+    for rz in min_z..=max_z {
+        for rx in min_x..=max_x {
+            let root = terrain::terrain_column(world_seed, rx, rz);
+            if terrain::is_tree_root_at(world_seed, rx, rz, root) {
+                write_tree(layers, pos, world_seed, rx, rz, root.surface_y);
+            }
         }
+    }
+}
+
+fn write_tree(layers: &mut [u8], pos: ChunkPos, seed: i64, rx: i32, rz: i32, root_y: i32) {
+    for y in root_y + 1..=root_y + terrain::TREE_MAX_HEIGHT {
+        for z in rz - terrain::TREE_REACH..=rz + terrain::TREE_REACH {
+            for x in rx - terrain::TREE_REACH..=rx + terrain::TREE_REACH {
+                if let Some(state) = terrain::tree_state_at(seed, rx, rz, root_y, x, y, z) {
+                    write_tree_block(layers, pos, x, y, z, state);
+                }
+            }
+        }
+    }
+}
+
+fn write_tree_block(
+    layers: &mut [u8],
+    pos: ChunkPos,
+    global_x: i32,
+    y: i32,
+    global_z: i32,
+    state: BlockState,
+) {
+    if global_x.div_euclid(16) != pos.x || global_z.div_euclid(16) != pos.z {
+        return;
+    }
+    let x = global_x.rem_euclid(16) as usize;
+    let z = global_z.rem_euclid(16) as usize;
+    let index = layer_index(x, y, z);
+    let state = state_index(state);
+    if layers[index] == 0 || (layers[index] == 7 && state == 6) {
+        layers[index] = state;
     }
 }
 

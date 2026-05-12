@@ -1,10 +1,10 @@
 use super::column::TerrainColumn;
 use super::noise;
 
-pub(in crate::world) const RIVER_LEVEL: i32 = 63;
+pub(in crate::world) const RIVER_LEVEL: i32 = 72;
 
-const CHANNEL_WIDTH: f64 = 0.075;
-const BANK_WIDTH: f64 = 0.155;
+const CHANNEL_WIDTH: f64 = 0.070;
+const BANK_WIDTH: f64 = 0.190;
 
 pub(in crate::world) fn apply_river(
     seed: i64,
@@ -12,23 +12,35 @@ pub(in crate::world) fn apply_river(
     z: i32,
     base: TerrainColumn,
 ) -> TerrainColumn {
+    if base.water_y.is_some() {
+        return base;
+    }
     let distance = river_distance(seed, x, z);
     if distance > BANK_WIDTH {
         return base;
     }
-
-    let influence = ((BANK_WIDTH - distance) / BANK_WIDTH).clamp(0.0, 1.0);
-    let bank_cut = (influence * 5.0).round() as i32;
-    let mut surface_y = base.surface_y - bank_cut;
     if distance <= CHANNEL_WIDTH {
-        let channel_cut = ((CHANNEL_WIDTH - distance) / CHANNEL_WIDTH * 4.0).round() as i32;
-        surface_y = surface_y.min(RIVER_LEVEL - 1 - channel_cut);
+        return TerrainColumn::new(riverbed_y(distance, base.surface_y), Some(RIVER_LEVEL));
     }
+    TerrainColumn::new(bank_y(distance, base.surface_y), None)
+}
 
-    let water_y = base
-        .water_y
-        .or_else(|| (surface_y < RIVER_LEVEL && distance <= CHANNEL_WIDTH).then_some(RIVER_LEVEL));
-    TerrainColumn::new(surface_y, water_y)
+fn riverbed_y(distance: f64, base_y: i32) -> i32 {
+    let channel = ((CHANNEL_WIDTH - distance) / CHANNEL_WIDTH).clamp(0.0, 1.0);
+    let target = RIVER_LEVEL - 2 - (channel * 2.0).round() as i32;
+    base_y.min(target).max(RIVER_LEVEL - 4)
+}
+
+fn bank_y(distance: f64, base_y: i32) -> i32 {
+    let influence = ((BANK_WIDTH - distance) / BANK_WIDTH).clamp(0.0, 1.0);
+    let lowered = base_y - (influence * 22.0).round() as i32;
+    let dry_floor = RIVER_LEVEL + 1;
+    let terrace_cap = dry_floor
+        + ((distance - CHANNEL_WIDTH) / (BANK_WIDTH - CHANNEL_WIDTH) * 10.0).round() as i32;
+    lowered
+        .max(dry_floor)
+        .min(base_y)
+        .min(terrace_cap.max(dry_floor))
 }
 
 fn river_distance(seed: i64, x: i32, z: i32) -> f64 {

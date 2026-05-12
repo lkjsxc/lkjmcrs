@@ -22,19 +22,19 @@ pub(in crate::world) fn biome_for(
     surface_y: i32,
     water_y: Option<i32>,
 ) -> BiomeKind {
-    if water_y.is_some() && fields.land < -0.48 {
+    if water_y.is_some() && fields.land < -0.50 {
         return BiomeKind::Ocean;
     }
     if water_y.is_some() {
         return BiomeKind::River;
     }
-    if (-0.58..=-0.34).contains(&fields.land) {
+    if (-0.50..=-0.10).contains(&fields.land) {
         return BiomeKind::Coast;
     }
-    if surface_y >= 102 || fields.ridge > 0.72 {
+    if surface_y >= 106 || fields.ridge > 0.74 {
         return BiomeKind::Highlands;
     }
-    if fields.moisture > -0.05 && fields.temperature > -0.45 {
+    if fields.moisture > -0.12 && fields.temperature > -0.45 {
         return BiomeKind::Forest;
     }
     BiomeKind::Plains
@@ -42,7 +42,8 @@ pub(in crate::world) fn biome_for(
 
 pub(in crate::world) fn surface_for(biome: BiomeKind, surface_y: i32) -> SurfaceKind {
     match biome {
-        BiomeKind::Ocean | BiomeKind::River | BiomeKind::Coast => SurfaceKind::Dirt,
+        BiomeKind::Ocean | BiomeKind::River => SurfaceKind::Dirt,
+        BiomeKind::Coast => SurfaceKind::Grass,
         BiomeKind::Highlands if surface_y >= 108 => SurfaceKind::Stone,
         BiomeKind::Highlands => SurfaceKind::Grass,
         BiomeKind::Forest | BiomeKind::Plains => SurfaceKind::Grass,

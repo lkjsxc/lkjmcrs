@@ -4,7 +4,7 @@ use crate::probe::inventory_packets;
 use crate::probe::play_bootstrap::complete_configuration;
 use crate::probe::terrain_chunk::DecodedChunk;
 use crate::probe::validation::{validate_chunk_batch_finished, validate_chunk_radius};
-use crate::protocol::chunk::{SPRUCE_LEAVES_ID, SPRUCE_LOG_ID, WATER_ID};
+use crate::protocol::chunk::{SPRUCE_LOG_ID, WATER_ID};
 use crate::protocol::types::{LoginStart, NextState};
 use crate::protocol::{codec, ids};
 use std::io::Cursor;
@@ -12,6 +12,8 @@ use tokio::net::TcpStream;
 use uuid::Uuid;
 
 type ErrorBox = Box<dyn std::error::Error>;
+const WATER_LEVEL: i32 = 72;
+const MIN_TRUNK_COLUMNS: usize = 8;
 
 pub(super) async fn run(host: &str) -> Result<(), ErrorBox> {
     let mut stream = super::retry_connect(|| async move {
@@ -75,14 +77,14 @@ struct QualitySeen {
     dry_spawn: bool,
     natural: bool,
     water: bool,
-    wood: bool,
+    trunk_columns: usize,
 }
 
 impl QualitySeen {
     fn record(&mut self, chunk: DecodedChunk, spawn: (i32, i32, i32)) {
         self.natural |= chunk.has_non_flat_surface();
-        self.water |= chunk.contains_state(WATER_ID);
-        self.wood |= chunk.contains_state(SPRUCE_LOG_ID) || chunk.contains_state(SPRUCE_LEAVES_ID);
+        self.water |= chunk.contains_state_at_y(WATER_ID, WATER_LEVEL);
+        self.trunk_columns += chunk.count_columns_with_state(SPRUCE_LOG_ID);
         if chunk.position() == (spawn.0.div_euclid(16), spawn.2.div_euclid(16)) {
             self.dry_spawn = chunk.has_dry_headroom(
                 spawn.0.rem_euclid(16) as usize,
@@ -96,7 +98,10 @@ impl QualitySeen {
         require(self.dry_spawn, "quality dry spawn")?;
         require(self.natural, "quality non-flat terrain")?;
         require(self.water, "quality water access")?;
-        require(self.wood, "quality generated wood")
+        require(
+            self.trunk_columns >= MIN_TRUNK_COLUMNS,
+            "quality generated trunks",
+        )
     }
 }
 

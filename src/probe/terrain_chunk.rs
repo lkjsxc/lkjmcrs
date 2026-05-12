@@ -42,6 +42,19 @@ impl DecodedChunk {
         self.blocks.values().any(|value| *value == state)
     }
 
+    pub(super) fn contains_state_at_y(&self, state: i32, y: i32) -> bool {
+        self.blocks
+            .iter()
+            .any(|((_, block_y, _), value)| *block_y == y && *value == state)
+    }
+
+    pub(super) fn count_columns_with_state(&self, state: i32) -> usize {
+        (0..16)
+            .flat_map(|z| (0..16).map(move |x| (x, z)))
+            .filter(|(x, z)| (-64..320).any(|y| self.state(*x, y, *z) == state))
+            .count()
+    }
+
     pub(super) fn has_enclosed_underground_air(&self) -> bool {
         (0..16).any(|z| {
             (0..16).any(|x| {

@@ -5,6 +5,8 @@ use crate::probe::play_bootstrap::complete_configuration;
 use crate::probe::terrain_chunk::DecodedChunk;
 use crate::probe::validation::{validate_chunk_batch_finished, validate_chunk_radius};
 use crate::protocol::chunk::WATER_ID;
+
+const WATER_LEVEL: i32 = 72;
 use crate::protocol::types::{LoginStart, NextState};
 use crate::protocol::{codec, ids};
 use tokio::net::TcpStream;
@@ -45,6 +47,7 @@ async fn expect_river_bootstrap(stream: &mut TcpStream) -> Result<(), ErrorBox> 
     let chunk_count = validate_chunk_radius(radius.data)?;
     super::expect(stream, ids::play::CHUNK_BATCH_START, "river batch").await?;
     let mut has_water = false;
+    let mut has_level_water = false;
     let mut natural = false;
     for _ in 0..chunk_count {
         let packet =
@@ -52,10 +55,14 @@ async fn expect_river_bootstrap(stream: &mut TcpStream) -> Result<(), ErrorBox> 
         chunk::validate_level_chunk_with_light(packet.data.clone())?;
         let decoded = DecodedChunk::from_packet(packet.data)?;
         has_water |= decoded.contains_state(WATER_ID);
+        has_level_water |= decoded.contains_state_at_y(WATER_ID, WATER_LEVEL);
         natural |= decoded.has_non_flat_surface();
     }
     if !has_water {
         return Err(Box::new(ProbeError::Phase("river water")));
+    }
+    if !has_level_water {
+        return Err(Box::new(ProbeError::Phase("river water level")));
     }
     if !natural {
         return Err(Box::new(ProbeError::Phase("river natural terrain")));

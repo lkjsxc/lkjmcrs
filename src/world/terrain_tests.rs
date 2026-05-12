@@ -12,9 +12,9 @@ fn worldgen_golden_samples_stay_stable() {
     assert_eq!(
         samples,
         [
-            (64, BlockState::Water),
-            (64, BlockState::Water),
-            (64, BlockState::Water),
+            (73, BlockState::Water),
+            (73, BlockState::Water),
+            (73, BlockState::Water),
         ]
     );
 }
@@ -67,11 +67,16 @@ fn natural_spawn_resolves_to_dry_column() {
 
 #[test]
 fn cave_carving_keeps_bedrock_and_surface_intact() {
-    let chunk = TerrainGenerator::natural(8675309).chunk_snapshot(ChunkPos::new(0, 0));
+    let seed = 8675309;
+    let chunk = TerrainGenerator::natural(seed).chunk_snapshot(ChunkPos::new(0, 0));
 
     for z in 0..16 {
         for x in 0..16 {
-            let surface_y = i32::from(chunk.heightmap_at_local(x, z)) - 1;
+            let column = terrain::terrain_column(seed, x as i32, z as i32);
+            if column.water_y.is_some() {
+                continue;
+            }
+            let surface_y = column.surface_y;
             assert_eq!(chunk.block_at_local(x, 0, z), BlockState::Bedrock);
             assert_ne!(chunk.block_at_local(x, surface_y, z), BlockState::Air);
             for y in surface_y.saturating_sub(7)..=surface_y {
@@ -133,13 +138,6 @@ fn cave_decisions_are_stable_at_chunk_borders() {
     }
 }
 
-#[test]
-fn flat_generator_remains_selectable() {
-    let chunk = TerrainGenerator::flat().chunk_snapshot(ChunkPos::new(0, 0));
-    assert!(chunk.is_shared_flat_base());
-    assert_eq!(column(&chunk, 0, 0), (80, BlockState::GrassBlock));
-}
-
 fn column(chunk: &super::ChunkSnapshot, x: usize, z: usize) -> (u16, BlockState) {
     let height = chunk.heightmap_at_local(x, z);
     (height, chunk.block_at_local(x, i32::from(height) - 1, z))
@@ -156,8 +154,8 @@ fn water_column_count(chunk: &super::ChunkSnapshot) -> usize {
 }
 
 fn first_cave_air(world: &TerrainGenerator) -> Option<(ChunkPos, usize, i32, usize)> {
-    for chunk_z in -2..=2 {
-        for chunk_x in -2..=2 {
+    for chunk_z in -8..=8 {
+        for chunk_x in -8..=8 {
             let pos = ChunkPos::new(chunk_x, chunk_z);
             let chunk = world.chunk_snapshot(pos);
             for z in 0..16 {

@@ -26,6 +26,8 @@ mod storage_tests;
 mod terrain;
 #[cfg(test)]
 mod terrain_tests;
+#[cfg(test)]
+mod terrain_water_tree_tests;
 
 pub use blocks::{BlockState, MAX_Y, MIN_Y};
 pub use chunk_snapshot::{ChunkSnapshot, GeneratedChunkKey, TerrainKind};
