@@ -19,22 +19,25 @@ fit together without making Anvil or plugin-pack compatibility promises.
    temperature, moisture, and river potential.
 3. Shape terrain from macro fields so landforms, coasts, river corridors, and
    mountain belts are decided before local block painting.
-4. Assign biome and surface palette from elevation, slope, moisture,
+4. Blend river terraces and ocean shelves to the shared water level before
+   surface palette decisions.
+5. Assign biome and surface palette from elevation, slope, moisture,
    temperature, coast influence, and water adjacency.
-5. Write solid terrain, static water, riverbeds, beaches, and surface blocks.
-6. Apply deterministic decorators such as trees only through owner-documented
-   stages.
-7. Apply retained cave carving below surface and away from static water.
-8. Resolve a deterministic scenic spawn from generated terrain.
-9. Load sparse persisted sections through `WorldStore`.
-10. Apply persisted sections above the generated base.
-11. Encode the final chunk through the protocol chunk contract.
+6. Write solid terrain, static water, riverbeds, beaches, and surface blocks.
+7. Apply deterministic decorators such as trees only through owner-documented
+   density, slope, and headroom stages.
+8. Apply retained cave carving below surface and away from static water.
+9. Resolve a deterministic scenic spawn from generated terrain.
+10. Load sparse persisted sections through `WorldStore`.
+11. Apply persisted sections above the generated base.
+12. Encode the final chunk through the protocol chunk contract.
 
 ## River And Water Slice
 
 - River terrain is owned by [water-and-rivers.md](water-and-rivers.md).
 - Rivers are static generated terrain blocks, not simulated fluids.
 - Water uses the block-state constant documented by the protocol chunk owner.
+- River and ocean water share the documented top level.
 - Spawn scoring must choose dry columns even when rivers generate near origin.
 - Ocean, coast, and beach rules are owned by
   [generation/oceans-and-coasts.md](generation/oceans-and-coasts.md).

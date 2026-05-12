@@ -12,14 +12,16 @@ public chunk stream.
 3. Complete login, configuration, and play bootstrap.
 4. Decode initial and nearby streamed `level_chunk_with_light` packets.
 5. Require dry spawn footing with two-block headroom.
-6. Require nearby static water access.
-7. Require nearby generated spruce-style wood output.
+6. Require nearby static water access at the documented level.
+7. Require multiple nearby generated spruce-style trunks, not a single token
+   wood block.
 8. Require non-flat terrain outside the near spawn area.
 
 ## Assertions
 
 - Surface features appear through generated terrain, not persisted overrides.
 - Spawn is resolved from the same generator state used for chunk output.
+- Tree density is observed through decoded generated chunks.
 - Chunk batch count still matches the advertised radius.
 - Embedded light remains valid for richer terrain sections.
 

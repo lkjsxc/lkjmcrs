@@ -14,10 +14,14 @@ adopting config packs, plugins, or external runtime contracts.
 - Store player mutations as overrides above generated terrain.
 - `natural` builds bedrock, stone, dirt, grass, static water, riverbeds, cave
   air, and surface survival features from deterministic generated fields.
+- Static water uses a shared river and ocean level that blends into nearby
+  banks and shelves instead of sitting far below ordinary land.
 - Static water and rivers are retained generated terrain owned by
   [water-and-rivers.md](water-and-rivers.md).
 - Generated caves are retained generated terrain owned by [caves.md](caves.md).
 - Richer surface generation is owned by [generation/README.md](generation/README.md).
+- Spruce-style surface decorators should provide roughly triple the compact
+  baseline tree density while staying deterministic and spawn-safe.
 - `flat` remains the controlled generator for scale and cache regression
   probes.
 - Spawn selection is owned by [spawn-resolution.md](spawn-resolution.md).
@@ -32,5 +36,7 @@ adopting config packs, plugins, or external runtime contracts.
    current target.
 5. Surface biomes, forests, coasts, rivers, and scenic spawn quality are in
    scope for the normal survival terrain target.
-6. Ores, mobs, weather, structures, fluid simulation, and Anvil files remain
+6. Formula marker changes are required when generated chunk cache semantics
+   change.
+7. Ores, mobs, weather, structures, fluid simulation, and Anvil files remain
    outside the current terrain target.

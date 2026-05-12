@@ -52,7 +52,8 @@ gameplay contract is owned by [survival-core.md](survival-core.md):
 
 - Full vanilla registry synchronization.
 - Full variant registry contents beyond one valid entry per required registry.
-- Full biome, cave, ore, tree, structure, and weather generation.
+- Full biome, ore, structure, and weather generation.
+- Tree decorators beyond the documented spruce-style terrain family.
 - Entity AI.
 - Full inventory behavior and recipes.
 - Chat signing.

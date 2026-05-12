@@ -11,8 +11,9 @@ private runtime state.
 - Verify `flat` terrain remains selectable for scale regression probes.
 - Cover spawn-near chunks and representative outer chunks.
 - Cover final generated blocks before sparse persisted overrides are applied.
-- Cover static water, riverbeds, and underground cave air when those features
-  are active generated terrain.
+- Cover static water, riverbeds, banks, and underground cave air when those
+  features are active generated terrain.
+- Cover generated spruce-style decorator density over a fixed seed area.
 
 ## Golden Inputs
 
@@ -22,6 +23,8 @@ private runtime state.
 - Expected sampled block states or column heights.
 - Expected result for at least one chunk adjacent to a sampled golden chunk.
 - Expected enclosed underground `Air` for cave-enabled natural terrain.
+- Expected water top height for at least one static water sample.
+- Expected generated spruce trunk count over a fixed radius.
 
 ## Acceptance Rules
 

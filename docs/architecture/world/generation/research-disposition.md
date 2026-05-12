@@ -30,10 +30,13 @@ first-party Rust server target by accident.
 ## Current Application
 
 - The active target remains surface-first normal survival terrain.
-- The first promoted decorator family is spruce-style wood terrain using
+- The first promoted hydrology refinement keeps river and ocean water at one
+  terrain-level surface with smooth nearby banks.
+- The first promoted decorator family is denser spruce-style wood terrain using
   vanilla block states owned by protocol and storage docs.
 - The first promoted quality gate is a live `terrain-quality` probe requiring
-  dry spawn footing, nearby water, generated wood, and non-flat terrain.
+  dry spawn footing, nearby level water, multiple generated trunks, and
+  non-flat terrain.
 
 ## Rules
 

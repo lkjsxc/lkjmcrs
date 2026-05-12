@@ -18,8 +18,15 @@ Define static water and river generation for natural terrain.
 
 ## Terrain Rules
 
-- River level is `63`.
-- Natural terrain may carve shallow riverbeds below the river level.
+- River level is `72` for natural terrain.
+- River and ocean water share the same top level so mouths and low basins meet
+  without a visible step.
+- Riverbeds sit one to three blocks below the water top in normal lowland
+  terrain.
+- Banks blend from the wet channel into dry land through terraces instead of
+  cutting a deep canyon through ordinary plains.
+- Dry bank columns near water should usually sit within six blocks above the
+  water top before uplands or highlands rise farther away.
 - Dry surface columns keep grass on top.
 - Submerged riverbed columns use dirt or stone at the top, then water above.
 - Heightmaps may treat static water as the top non-air block for this slice.
@@ -31,10 +38,12 @@ Define static water and river generation for natural terrain.
 
 - Unit tests guard water block-state mapping and section-storage encoding.
 - Golden terrain coverage requires water for a fixed seed and nearby chunks.
+- Golden coverage checks that water top height matches the documented river
+  level and is not stranded far below nearby banks.
 - Border property coverage checks river and water continuity across adjacent
   generated chunks.
 - Live river terrain smoke decodes chunk data and requires at least one water
-  block near spawn.
+  block near spawn at the documented level.
 
 ## Relationship To Richer Terrain
 

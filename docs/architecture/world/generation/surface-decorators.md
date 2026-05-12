@@ -36,8 +36,16 @@ water, biome, and surface palette stages have completed.
   `minecraft:spruce_leaves[distance=7,persistent=true,waterlogged=false]`.
 - Candidate roots are deterministic from `world_seed` and absolute
   coordinates.
+- Forest root density targets roughly one candidate per `6x6` blocks before
+  slope and safety rejection.
+- The promoted density target is about three times the compact spruce baseline
+  density.
+- Moist lowland plains may place sparse companion trees so forests spread
+  across readable land instead of appearing as isolated patches.
 - Placement requires dry grass surface, moderate local slope, and enough
-  vertical headroom for a compact tree form.
+  vertical headroom for a richer spruce form.
+- Tree forms may vary trunk height, crown height, and crown radius while using
+  only owned spruce log and spruce leaf states.
 - Placement skips ocean, river, beach, static water, stone highlands, and a
   small exclusion area around the resolved spawn column.
 
@@ -55,6 +63,7 @@ water, biome, and surface palette stages have completed.
 ## Verification
 
 - Golden tests include fixed-seed decoration presence and absence samples.
+- Density tests count generated spruce trunks over fixed seed areas.
 - Border property tests cover decorations crossing chunk boundaries or near
   edges.
 - Live chunk smoke verifies encoded decoration blocks only after their block

@@ -24,6 +24,10 @@
   range `2..=32`.
 - `simulation_distance`: advertised simulation radius, default
   `min(view_distance, 8)`, valid range `2..=8`.
+- `terrain_generator`: generated terrain lane, default `natural`, accepts
+  `natural` or `flat`.
+- `world_seed`: signed integer seed for deterministic generated terrain,
+  default `0`.
 - `session_server_url`: online verifier base URL, default
   `https://sessionserver.mojang.com`.
 - `allow_insecure_session_server`: permits HTTP verifier URLs only for
@@ -42,11 +46,13 @@
 6. `default_game_mode` accepts only `creative` or `survival`.
 7. View distance must be between `2` and `32`.
 8. Simulation distance must be between `2` and `8`.
-9. Operator checks match exact authenticated UUIDs.
-10. There is no starter-item config field.
-11. Checked-in shared config must not grant operator UUIDs.
-12. Verification-only config overlays may grant UUIDs for disposable probes.
-13. HTTP verifier URLs require `allow_insecure_session_server: true`.
+9. Terrain generator must be `natural` or `flat`.
+10. World seed changes generated terrain and spawn deterministically.
+11. Operator checks match exact authenticated UUIDs.
+12. There is no starter-item config field.
+13. Checked-in shared config must not grant operator UUIDs.
+14. Verification-only config overlays may grant UUIDs for disposable probes.
+15. HTTP verifier URLs require `allow_insecure_session_server: true`.
 
 ## Example
 
@@ -60,6 +66,8 @@
   "default_game_mode": "survival",
   "view_distance": 32,
   "simulation_distance": 8,
+  "terrain_generator": "natural",
+  "world_seed": 0,
   "session_server_url": "https://sessionserver.mojang.com",
   "allow_insecure_session_server": false,
   "operator_uuids": []
