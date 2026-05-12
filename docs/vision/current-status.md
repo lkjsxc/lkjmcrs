@@ -33,8 +33,11 @@ the next work batch.
   timing evidence is landed.
 - Radius `32` natural-terrain implementation and probes are compose-verified
   in the latest recorded full result.
+- Spruce-style surface decorators generate denser tree cover and the terrain
+  quality probe requires multiple trunk columns near spawn.
 - Static water and deterministic river terrain are implemented as generated
-  natural terrain and compose-verified through decoded chunk packets.
+  natural terrain with shared level `72`, smoother banks, and compose-verified
+  decoded chunk packets.
 - Stateful persistence, survival-item, inventory-sync, and item-pickup probes
   use isolated compose data volumes.
 - Play keepalive timeout is implemented and compose-verified.

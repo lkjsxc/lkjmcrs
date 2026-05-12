@@ -1,11 +1,12 @@
 # Current Results
 
-## 2026-05-10 Surface Wood Terrain
+## 2026-05-12 Level Water And Dense Trees
 
-Latest full recorded compose result: implementation commit `dcd1e26`, with
-canonical research disposition, owned spruce log and leaves block states,
-deterministic spruce-style surface decorators, generated-wood spawn scoring,
-terrain-quality probing, and natural render-movement probe hardening.
+Latest full recorded compose result: implementation commit `81ab2ab`, with
+shared river and ocean water level `72`, smoother low banks and shelves,
+denser deterministic spruce-style decorators, water-level probe assertions,
+trunk-density unit coverage, and terrain-quality probing for multiple trunk
+columns.
 
 Command owner:
 
@@ -35,7 +36,7 @@ Result:
 - `render-distance`: pass,
   `render-distance counters radius=32 initial=25 total=4225
   followup_batches=263 max_followup_batch=16
-  max_followup_payload_bytes=1031544`, then `render-distance probe ok`.
+  max_followup_payload_bytes=1029588`, then `render-distance probe ok`.
 - `render-moving-pending`: pass, `render-moving-pending probe ok`.
 - `persist-place`: pass, `persist-place probe ok`.
 - `persistence-server` restart: pass.

@@ -20,6 +20,8 @@ Use this subtree for historical compose verification summaries.
   radius `8` load metrics before moving-pending hardening.
 - [2026-05-10-world-foundation-history.md](2026-05-10-world-foundation-history.md):
   focused world foundation and binary storage compose history.
+- [2026-05-10-surface-wood-history.md](2026-05-10-surface-wood-history.md):
+  first spruce-style surface decorator compose history.
 - [2026-05-06-survival-sandbox.md](2026-05-06-survival-sandbox.md): compact
   verify output, runtime config, survival item loop, and SMP command evidence.
 
